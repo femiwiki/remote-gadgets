@@ -1,0 +1,35 @@
+/* 이 CSS 설정은 모든 스킨에 적용됩니다 */
+
+/*
+ * 영어 문서 폰트는 Arial을 우선하기
+ * See 주제:V19kdq48epmrel7u
+ */
+#mw-content-text:lang(en) {
+  font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", "본고딕",
+    "Noto Sans CJK KR", "KoPubDotum Medium", "나눔바른고딕", "나눔고딕",
+    NanumGothic, "맑은고딕", "Malgun Gothic", Dotum, sans-serif;
+}
+
+/* 시각편집기에서 분류가 둘 나오는 것 가리기 */
+html.ve-active #catlinks {
+  display: none;
+}
+
+/* 개인 도구 중 "토론"과  "기여"를 로그인 하지 않은 사용자에게는 보이지 않기 */
+#pt-anontalk,
+#pt-anoncontribs {
+  display: none;
+}
+
+/* <languages />의 결과물 가리기(스킨의 언어 링크와 중복되어 필요가 없음)  */
+.mw-pt-languages {
+  display: none;
+}
+
+/*
+ * 위키베이스에 의한 '링크 추가' 버튼을 숨김
+ * See https://github.com/femiwiki/docker-mediawiki/issues/323
+ */
+.wb-langlinks-link {
+  display: none;
+}

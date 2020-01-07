@@ -1,0 +1,14 @@
+/* 이 CSS 설정은 벡터 스킨을 사용하는 사용자에게 적용됩니다 */
+
+/* 벡터 스킨 전용 로고 표시 */
+.mw-wiki-logo {
+  background-image: url(/fw-resources/logo.png);
+  background-size: 120px 100px;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+/* 분류 틀에서 표시되는 분류 숨김 */
+.fw-catlinks {
+  display: none;
+}
