@@ -1,0 +1,7 @@
+# Python
+/.venv/
+/build/
+/dist/
+
+# Node
+/node_modules/
