@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "scripts": {
+    "lint-js": "node_modules/.bin/eslint pages/*.js",
+    "lint-css": "node_modules/.bin/stylelint pages/*.css",
+    "lint": "yarn run lint-js && yarn run lint-css"
+  },
+  "devDependencies": {
+    "prettier": "1.18.2",
+    "eslint": "^6.1.0",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-prettier": "^3.1.0",
+    "stylelint": "^10.1.0",
+    "stylelint-config-prettier": "^5.2.0",
+    "stylelint-prettier": "^1.1.1"
+  }
+}
