@@ -35,8 +35,11 @@ def main():
             logging.debug('Saved: '+title)
         except FileNotFoundError:
             logging.debug('Deleting: '+title+'...')
-            page.delete(SUMMARY)
-            logging.debug('Deleted: '+title)
+            try:
+                page.delete(SUMMARY)
+                logging.debug('Deleted: '+title)
+            except mwclient.errors.APIError as e:
+                logging.info('APIError: '+str(e.info))
 
         time_to_sleep = log(i+1)
         logging.debug('Sleep '+str(time_to_sleep)+' seconds...')
