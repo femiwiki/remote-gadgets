@@ -27,17 +27,21 @@ def main():
         environ['GITHUB_REPOSITORY'] + "/commit/" + environ['GITHUB_SHA'][:7]
 
     for i, FILE in enumerate(MODIFIED):
-        f = open(FILE, "r")
         title = FILE[len(TARGET_PATH):]
         page = FEMIWIKI.pages[title]
-        logging.debug('Saving: '+title+'...')
-        page.save(f.read(), SUMMARY)
-        logging.debug('Saved: '+title)
+        try:
+            f = open(FILE, "r")
+            logging.debug('Saving: '+title+'...')
+            page.edit(f.read(), SUMMARY)
+            logging.debug('Saved: '+title)
+        except FileNotFoundError:
+            logging.debug('Deleting: '+title+'...')
+            page.delete(SUMMARY)
+            logging.debug('Deleted: '+title)
+
         time_to_sleep = log(i+1)
         logging.debug('Sleep '+str(time_to_sleep)+' seconds...')
         sleep(time_to_sleep)
-
-    # TODO: Handle deleted files
 
 
 if __name__ == '__main__':
