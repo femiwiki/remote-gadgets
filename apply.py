@@ -31,7 +31,7 @@ def main():
         try:
             f = open(FILE, "r")
             logging.debug('Saving: '+title+'...')
-            page.edit(f.read(), SUMMARY)
+            page.save(f.read(), SUMMARY)
             logging.debug('Saved: '+title)
         except FileNotFoundError:
             logging.debug('Deleting: '+title+'...')
