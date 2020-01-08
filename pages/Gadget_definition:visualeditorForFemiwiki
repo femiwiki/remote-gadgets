@@ -1,21 +1,17 @@
 {
-	"settings": {
-		"rights": [],
-		"default": true,
-		"hidden": false,
-		"skins": [],
-		"category": "edit"
-	},
-	"module": {
-		"scripts": [
-			"visualeditorForFemiwiki.js"
-		],
-		"styles": [],
-		"peers": [],
-		"dependencies": [
-			"ext.visualEditor.desktopArticleTarget.init"
-		],
-		"messages": [],
-		"type": "general"
-	}
+  "settings": {
+    "rights": [],
+    "default": true,
+    "hidden": false,
+    "skins": [],
+    "category": "edit"
+  },
+  "module": {
+    "scripts": ["visualeditorForFemiwiki.js"],
+    "styles": [],
+    "peers": [],
+    "dependencies": ["ext.visualEditor.desktopArticleTarget.init"],
+    "messages": [],
+    "type": "general"
+  }
 }

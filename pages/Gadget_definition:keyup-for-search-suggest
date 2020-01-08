@@ -3,20 +3,14 @@
     "rights": [],
     "default": true,
     "hidden": true,
-    "skins": [
-      "femiwiki"
-    ],
+    "skins": ["femiwiki"],
     "category": "search"
   },
   "module": {
-    "scripts": [
-      "keyup-for-search-suggest.js"
-    ],
+    "scripts": ["keyup-for-search-suggest.js"],
     "styles": [],
     "peers": [],
-    "dependencies": [
-      "mediawiki.searchSuggest"
-    ],
+    "dependencies": ["mediawiki.searchSuggest"],
     "messages": [],
     "type": "general"
   }

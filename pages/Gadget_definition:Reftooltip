@@ -1,19 +1,17 @@
 {
-	"settings": {
-		"rights": [],
-		"default": false,
-		"hidden": false,
-		"skins": [],
-		"category": "view"
-	},
-	"module": {
-		"scripts": [
-			"Reftooltip.js"
-		],
-		"styles": [],
-		"peers": [],
-		"dependencies": [],
-		"messages": [],
-		"type": "general"
-	}
+  "settings": {
+    "rights": [],
+    "default": false,
+    "hidden": false,
+    "skins": [],
+    "category": "view"
+  },
+  "module": {
+    "scripts": ["Reftooltip.js"],
+    "styles": [],
+    "peers": [],
+    "dependencies": [],
+    "messages": [],
+    "type": "general"
+  }
 }

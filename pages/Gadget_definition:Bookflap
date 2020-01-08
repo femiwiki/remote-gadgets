@@ -1,25 +1,17 @@
 {
-	"settings": {
-		"rights": [],
-		"default": true,
-		"hidden": true,
-		"skins": [],
-		"category": "view"
-	},
-	"module": {
-		"scripts": [
-			"bookflap.js"
-		],
-		"styles": [
-			"bookflap.css"
-		],
-		"peers": [
-			"BookflapVectorStyles"
-		],
-		"dependencies": [
-			"jquery.cookie"
-		],
-		"messages": [],
-		"type": "general"
-	}
+  "settings": {
+    "rights": [],
+    "default": true,
+    "hidden": true,
+    "skins": [],
+    "category": "view"
+  },
+  "module": {
+    "scripts": ["bookflap.js"],
+    "styles": ["bookflap.css"],
+    "peers": ["BookflapVectorStyles"],
+    "dependencies": ["jquery.cookie"],
+    "messages": [],
+    "type": "general"
+  }
 }
