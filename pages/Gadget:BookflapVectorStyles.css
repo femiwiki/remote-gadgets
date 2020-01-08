@@ -1,0 +1,51 @@
+.skin-vector .book-flap-raw .book-flap-title,
+.skin-vector .book-flap-raw .book-flap-body {
+  display: block !important;
+}
+
+.skin-vector .book-flap-button {
+  display: none !important;
+}
+
+.skin-vector .book-flap-wrapper {
+  float: right;
+  clear: right;
+  width: 250px !important;
+  border-spacing: 0.4em 0;
+  text-align: center;
+  line-height: 1.4em;
+  font-size: 88%;
+}
+
+.skin-vector .book-flap-body {
+  background: #f9f9f9;
+  border: 1px solid #aaa;
+  margin: 0 0 1em 1em;
+  padding: 0.2em;
+}
+
+.skin-vector .book-flap-body ul {
+  list-style-type: none;
+  list-style-image: none;
+  margin: 0;
+}
+
+.skin-vector .book-flap-title {
+  padding: 0.2em 0.4em 0.2em;
+  font-size: 145%;
+  line-height: 1.2em;
+  font-weight: bold;
+}
+
+.skin-vector .book-flap-body > p {
+  line-height: 1.6;
+}
+
+.skin-vector .book-flap-body ul li {
+  background: #aaaaaa;
+}
+
+.skin-vector .book-flap-body ul li ul,
+.skin-vector .book-flap-body ul li li {
+  background: #f9f9f9;
+}

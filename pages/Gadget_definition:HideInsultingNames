@@ -1,0 +1,19 @@
+{
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": false,
+		"skins": [],
+		"category": "view"
+	},
+	"module": {
+		"scripts": [
+			"HideInsultingNames.js"
+		],
+		"styles": [],
+		"peers": [],
+		"dependencies": [],
+		"messages": [],
+		"type": "general"
+	}
+}

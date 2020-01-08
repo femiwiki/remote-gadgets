@@ -1,0 +1,21 @@
+{
+	"settings": {
+		"rights": [],
+		"default": false,
+		"hidden": true,
+		"skins": [
+			"vector"
+		],
+		"category": ""
+	},
+	"module": {
+		"scripts": [],
+		"styles": [
+			"BookflapVectorStyles.css"
+		],
+		"peers": [],
+		"dependencies": [],
+		"messages": [],
+		"type": "styles"
+	}
+}

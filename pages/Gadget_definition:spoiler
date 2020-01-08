@@ -1,0 +1,21 @@
+{
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": false,
+		"skins": [],
+		"category": "view"
+	},
+	"module": {
+		"scripts": [
+			"spoiler.js"
+		],
+		"styles": [],
+		"peers": [
+			"Spoiler-styles"
+		],
+		"dependencies": [],
+		"messages": [],
+		"type": "general"
+	}
+}

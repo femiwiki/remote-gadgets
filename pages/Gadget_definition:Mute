@@ -1,0 +1,21 @@
+{
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": false,
+		"skins": [],
+		"category": "view"
+	},
+	"module": {
+		"scripts": [
+			"mute.js"
+		],
+		"styles": [
+			"mute.css"
+		],
+		"peers": [],
+		"dependencies": [],
+		"messages": [],
+		"type": "general"
+	}
+}

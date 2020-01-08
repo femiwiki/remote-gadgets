@@ -1,0 +1,21 @@
+{
+	"settings": {
+		"rights": [
+			"rollback"
+		],
+		"default": false,
+		"hidden": false,
+		"skins": [],
+		"category": "edit"
+	},
+	"module": {
+		"scripts": [
+			"ConfirmRollback.js"
+		],
+		"styles": [],
+		"peers": [],
+		"dependencies": [],
+		"messages": [],
+		"type": "general"
+	}
+}

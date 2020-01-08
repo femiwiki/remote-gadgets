@@ -1,0 +1,165 @@
+/* CSS placed here will be applied to all skins */
+
+#mw-wrapper {
+  position: relative;
+}
+
+.book-flap-wrapper {
+  width: 100%;
+}
+
+.book-flap-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+#book-flap-close-button {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 15rem;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.book-flap-body {
+  font-size: 0.8rem;
+}
+
+.book-flap-slide {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background-color: white;
+  width: 15rem;
+  height: 100%;
+  overflow-y: scroll;
+}
+
+.book-flap-left.book-flap-slide {
+  left: 0;
+}
+.book-flap-right.book-flap-slide {
+  right: 0;
+}
+
+.book-flap-slide .book-flap-title {
+  height: 2.4em;
+  background-color: #aca6e4;
+  line-height: 2.4em;
+  color: white;
+  overflow: hidden;
+  padding-left: 1.3em;
+}
+
+.book-flap-side {
+  margin-top: 2.3em;
+  padding: 1.3rem;
+  background-color: #f9f9f9;
+  pointer-events: auto;
+}
+
+.book-flap-side .book-flap-title {
+  font-size: 1.1em;
+  height: 2.4em;
+  line-height: 2.4em;
+  overflow: hidden;
+}
+
+.book-flap-side .book-flap-title a {
+  color: black;
+}
+
+.book-flap-slide .book-flap-body {
+  margin: 0;
+  padding: 0 1.3rem;
+}
+
+.book-flap-side .book-flap-body {
+  margin: 0;
+}
+
+.book-flap-slide .book-flap-body > p,
+.book-flap-side .book-flap-body > p {
+  margin: 0 0 0.3em 0;
+}
+
+.book-flap-slide .book-flap-body ul,
+.book-flap-side .book-flap-body ul {
+  list-style-type: none;
+  margin: 0;
+  padding-left: 0;
+}
+
+.book-flap-slide .book-flap-body ul li,
+.book-flap-side .book-flap-body ul li {
+  margin-bottom: 0.3em;
+  list-style-type: none;
+}
+
+.book-flap-slide .book-flap-body > ul > li > ul,
+.book-flap-side .book-flap-body > ul > li > ul {
+  margin-top: 0.3em;
+  border-top: 1px solid #b9b5d9;
+  padding-top: 0.3em;
+}
+
+.book-flap-slide .book-flap-body > ul > li,
+.book-flap-side .book-flap-body > ul > li {
+  margin-top: 1em;
+}
+
+.book-flap-slide .book-flap-body li li li,
+.book-flap-side .book-flap-body li li li {
+  padding-left: 0.5em;
+}
+
+.book-flap-slide .book-flap-title a {
+  color: white;
+}
+
+.bookflap-collapse-button {
+  width: 2em;
+  height: 2em;
+  float: right;
+  font-size: 0.7rem;
+  color: #797979;
+  font: 400 13.3333px Arial;
+  cursor: pointer;
+  text-align: center;
+  line-height: 2em;
+}
+
+#book-flap-leftside,
+#book-flap-rightside {
+  box-sizing: border-box;
+  position: absolute;
+  max-width: 80rem;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  margin: auto;
+}
+
+#book-flap-leftside {
+  padding-right: 65rem;
+}
+
+#book-flap-rightside {
+  padding-left: 65rem;
+}
+
+.book-flap-body .틀-도구모음 {
+  float: right;
+}
+
+@media screen and (max-width: 80rem) {
+  #book-flap-leftside,
+  #book-flap-rightside {
+    display: none;
+  }
+}

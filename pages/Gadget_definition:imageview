@@ -1,0 +1,23 @@
+{
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": false,
+		"skins": [
+			"femiwiki"
+		],
+		"category": "view"
+	},
+	"module": {
+		"scripts": [
+			"imageview.js"
+		],
+		"styles": [
+			"imageview.css"
+		],
+		"peers": [],
+		"dependencies": [],
+		"messages": [],
+		"type": "general"
+	}
+}

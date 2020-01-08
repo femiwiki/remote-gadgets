@@ -1,0 +1,26 @@
+body.skin-femiwiki #ca-talk.hasOpenTopic a:before {
+  display: inline-block;
+  content: "!";
+  border-radius: 0.6rem;
+  background-color: #a5c831;
+  width: 1.2rem;
+  height: 1.2rem;
+  font-size: 0.7rem;
+  line-height: 1.1rem;
+  text-align: center;
+  color: #fff;
+  margin-right: 0.5em;
+  vertical-align: middle;
+}
+
+body.skin-vector #ca-talk.hasOpenTopic > span > a:after {
+  content: "진행 중인 토론이 있습니다";
+  display: inline-block;
+  border-radius: 2px;
+  background-color: #fc3;
+  padding: 0.25em 0.8em 0.2em 0.8em;
+  margin-left: 1em;
+  margin-top: -1em;
+  color: #222;
+  font-weight: normal;
+}

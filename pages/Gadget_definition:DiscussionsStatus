@@ -1,0 +1,24 @@
+{
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": false,
+		"skins": [],
+		"category": "view"
+	},
+	"module": {
+		"scripts": [
+			"DiscussionsStatus.js"
+		],
+		"styles": [
+			"DiscussionsStatus.css"
+		],
+		"peers": [],
+		"dependencies": [
+			"mediawiki.api",
+			"mediawiki.Title"
+		],
+		"messages": [],
+		"type": "general"
+	}
+}

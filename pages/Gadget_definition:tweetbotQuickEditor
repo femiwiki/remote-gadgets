@@ -1,0 +1,25 @@
+{
+	"settings": {
+		"rights": [
+			"edit"
+		],
+		"default": false,
+		"hidden": false,
+		"skins": [],
+		"category": "edit"
+	},
+	"module": {
+		"scripts": [
+			"tweetbotQuickEditor.js"
+		],
+		"styles": [],
+		"peers": [],
+		"dependencies": [
+			"mediawiki.api",
+			"oojs-ui-core",
+			"oojs-ui-windows"
+		],
+		"messages": [],
+		"type": ""
+	}
+}

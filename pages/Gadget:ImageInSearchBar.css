@@ -1,0 +1,19 @@
+/*
+#p-search {
+  position: relative;
+}
+#p-search:after {
+  content: "";
+  display: block;
+  position: absolute;
+  right: .3rem;
+  bottom: .3rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  background: url('https://upload.wikimedia.org/wikipedia/commons/d/d0/Yellow_ribbon.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  pointer-events: none;
+}
+*/

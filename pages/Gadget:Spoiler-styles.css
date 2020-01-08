@@ -1,0 +1,20 @@
+.spoiler-text {
+  display: none;
+}
+
+.spoiler-text,
+.spoiler-notice-text.spoiler-show > a,
+.spoiler-text .thumbcaption,
+html.ve-active .spoiler-text {
+  background-color: #dae8b2;
+  border-radius: 0.4em;
+  padding-left: 0.3em;
+}
+
+html.ve-active span.spoiler-text {
+  display: inline;
+}
+
+html.ve-active div.spoiler-text {
+  display: block;
+}

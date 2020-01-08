@@ -1,0 +1,21 @@
+{
+	"settings": {
+		"rights": [
+			"edit"
+		],
+		"default": true,
+		"hidden": false,
+		"skins": [],
+		"category": "edit"
+	},
+	"module": {
+		"scripts": [
+			"Edittools.js"
+		],
+		"styles": [],
+		"peers": [],
+		"dependencies": [],
+		"messages": [],
+		"type": "general"
+	}
+}

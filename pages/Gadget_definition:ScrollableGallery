@@ -1,0 +1,23 @@
+{
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": false,
+		"skins": [
+			"femiwiki"
+		],
+		"category": "view"
+	},
+	"module": {
+		"scripts": [
+			"ScrollableGallery.js"
+		],
+		"styles": [],
+		"peers": [
+			"ScrollableGallery-styles"
+		],
+		"dependencies": [],
+		"messages": [],
+		"type": "general"
+	}
+}

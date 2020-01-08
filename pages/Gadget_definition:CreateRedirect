@@ -1,0 +1,23 @@
+{
+	"settings": {
+		"rights": [
+			"edit"
+		],
+		"default": false,
+		"hidden": false,
+		"skins": [],
+		"category": "edit"
+	},
+	"module": {
+		"scripts": [
+			"CreateRedirect.js"
+		],
+		"styles": [],
+		"peers": [],
+		"dependencies": [
+			"mediawiki.api"
+		],
+		"messages": [],
+		"type": "general"
+	}
+}

@@ -1,0 +1,5 @@
+h4 > .mw-editsection,
+h5 > .mw-editsection,
+h6 > .mw-editsection {
+  display: none;
+}
