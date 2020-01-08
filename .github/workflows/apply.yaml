@@ -2,6 +2,8 @@ name: Apply
 
 on:
   push:
+    branches:
+      - master
     paths:
       - 'pages/*'
 
@@ -45,7 +47,8 @@ jobs:
     - name: Lint
       run: yarn run lint
 
-    - if: success()
+    - name: Apply
+      if: github.ref == 'refs/heads/master' && success()
       env:
         FEMIWIKI_BOT_PASSWORD: ${{ secrets.FEMIWIKI_BOT_PASSWORD }}
       run: |
