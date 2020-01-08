@@ -4,9 +4,9 @@
     "lint-js": "node_modules/.bin/eslint pages/*.js",
     "lint-css": "node_modules/.bin/stylelint pages/*.css",
     "lint-json": "yarn run prettier-json-check || (yarn run prettier-json-write && git --no-pager diff && git reset --hard && false)",
-    "lint-filename": "test -z \"$(find pages/ -not -regex \"pages/\\(\\S+\\)?\")\"",
-    "prettier-json-check": "node_modules/prettier/bin-prettier.js --parser json -c pages/Gadget_definition:*",
-    "prettier-json-write": "node_modules/prettier/bin-prettier.js --parser json --write pages/Gadget_definition:*",
+    "lint-filename": "test -z \"$(find pages/ -not -regex \"pages/\\([a-zA-Z\\._/:-]+\\)?\")\"",
+    "prettier-json-check": "node_modules/prettier/bin-prettier.js --parser json -c pages/{G,g}adget_definition:*",
+    "prettier-json-write": "node_modules/prettier/bin-prettier.js --parser json --write pages/{G,g}adget_definition:*",
     "lint": "yarn run lint-js && yarn run lint-css && yarn run lint-json && yarn run lint-filename"
   },
   "devDependencies": {
