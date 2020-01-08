@@ -2,9 +2,9 @@
   "extends": ["plugin:prettier/recommended", "prettier"],
   "plugins": ["prettier"],
   "rules": {
-    "prettier/prettier": "error"
+    "prettier/prettier": "warn"
   },
   "parserOptions": {
-    "ecmaVersion": 6
+    "ecmaVersion": 5
   }
 }
