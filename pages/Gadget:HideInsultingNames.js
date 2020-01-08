@@ -5,8 +5,8 @@
   if (mw.config.get("wgCanonicalSpecialPageName") != "Recentchanges") {
     return;
   }
-  const substitute = "<del>(가려짐)</del>";
-  const substitute2 = "<i>(이름이 변경됨)</i>";
+  var substitute = "<del>(가려짐)</del>";
+  var substitute2 = "<i>(이름이 변경됨)</i>";
 
   mw.hook("wikipage.content").add(function() {
     // ~님에 대한 부적절한 사용자명 변경 건의
