@@ -3,7 +3,6 @@ from os import environ
 from sys import argv, stdout
 from time import sleep
 from math import log
-import json
 import logging
 logging.basicConfig(stream=stdout, level=logging.DEBUG)
 
