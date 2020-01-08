@@ -8,7 +8,7 @@
   },
   "module": {
     "scripts": [],
-    "styles": ["Spoiler-styles.css"],
+    "styles": ["spoiler-styles.css"],
     "peers": [],
     "dependencies": [],
     "messages": [],

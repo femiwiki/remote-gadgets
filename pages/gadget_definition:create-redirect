@@ -1,16 +1,16 @@
 {
   "settings": {
-    "rights": [],
-    "default": true,
+    "rights": ["edit"],
+    "default": false,
     "hidden": false,
     "skins": [],
-    "category": "view"
+    "category": "edit"
   },
   "module": {
-    "scripts": ["HideInsultingNames.js"],
+    "scripts": ["create-redirect.js"],
     "styles": [],
     "peers": [],
-    "dependencies": [],
+    "dependencies": ["mediawiki.api"],
     "messages": [],
     "type": "general"
   }

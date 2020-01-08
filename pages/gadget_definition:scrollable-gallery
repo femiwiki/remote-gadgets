@@ -1,15 +1,15 @@
 {
   "settings": {
-    "rights": ["edit"],
+    "rights": [],
     "default": true,
     "hidden": false,
-    "skins": [],
-    "category": "plugin-configuration"
+    "skins": ["femiwiki"],
+    "category": "view"
   },
   "module": {
-    "scripts": ["CodeEditorTweaks.js"],
+    "scripts": ["scrollable-gallery.js"],
     "styles": [],
-    "peers": [],
+    "peers": ["scrollable-gallery-styles"],
     "dependencies": [],
     "messages": [],
     "type": "general"

@@ -1,14 +1,14 @@
 {
   "settings": {
     "rights": [],
-    "default": false,
+    "default": true,
     "hidden": true,
-    "skins": ["vector"],
+    "skins": ["femiwiki"],
     "category": ""
   },
   "module": {
     "scripts": [],
-    "styles": ["BookflapVectorStyles.css"],
+    "styles": ["scrollable-gallery-styles.css"],
     "peers": [],
     "dependencies": [],
     "messages": [],

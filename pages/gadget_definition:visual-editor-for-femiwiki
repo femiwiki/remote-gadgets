@@ -1,16 +1,16 @@
 {
   "settings": {
-    "rights": ["rollback"],
-    "default": false,
+    "rights": [],
+    "default": true,
     "hidden": false,
     "skins": [],
     "category": "edit"
   },
   "module": {
-    "scripts": ["ConfirmRollback.js"],
+    "scripts": ["visual-editor-for-femiwiki.js"],
     "styles": [],
     "peers": [],
-    "dependencies": [],
+    "dependencies": ["ext.visualEditor.desktopArticleTarget.init"],
     "messages": [],
     "type": "general"
   }

@@ -7,7 +7,7 @@
     "category": "edit"
   },
   "module": {
-    "scripts": ["tweetbotQuickEditor.js"],
+    "scripts": ["tweetbot-quick-editor.js"],
     "styles": [],
     "peers": [],
     "dependencies": ["mediawiki.api", "oojs-ui-core", "oojs-ui-windows"],

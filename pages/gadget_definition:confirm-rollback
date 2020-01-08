@@ -1,16 +1,16 @@
 {
   "settings": {
-    "rights": ["edit"],
+    "rights": ["rollback"],
     "default": false,
     "hidden": false,
     "skins": [],
     "category": "edit"
   },
   "module": {
-    "scripts": ["CreateRedirect.js"],
+    "scripts": ["confirm-rollback.js"],
     "styles": [],
     "peers": [],
-    "dependencies": ["mediawiki.api"],
+    "dependencies": [],
     "messages": [],
     "type": "general"
   }

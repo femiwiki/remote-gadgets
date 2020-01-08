@@ -7,7 +7,7 @@
     "category": "view"
   },
   "module": {
-    "scripts": ["Rc-lazy-load.js"],
+    "scripts": ["rc-lazy-load.js"],
     "styles": [],
     "peers": [],
     "dependencies": [],

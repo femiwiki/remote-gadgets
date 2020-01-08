@@ -9,7 +9,7 @@
   "module": {
     "scripts": ["bookflap.js"],
     "styles": ["bookflap.css"],
-    "peers": ["BookflapVectorStyles"],
+    "peers": ["bookflap-vector-styles"],
     "dependencies": ["jquery.cookie"],
     "messages": [],
     "type": "general"

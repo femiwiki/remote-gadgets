@@ -9,7 +9,7 @@
   "module": {
     "scripts": ["spoiler.js"],
     "styles": [],
-    "peers": ["Spoiler-styles"],
+    "peers": ["spoiler-styles"],
     "dependencies": [],
     "messages": [],
     "type": "general"

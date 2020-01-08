@@ -3,13 +3,13 @@
     "rights": [],
     "default": true,
     "hidden": false,
-    "skins": ["femiwiki"],
+    "skins": [],
     "category": "view"
   },
   "module": {
-    "scripts": ["ScrollableGallery.js"],
+    "scripts": ["hide-insulting-names.js"],
     "styles": [],
-    "peers": ["ScrollableGallery-styles"],
+    "peers": [],
     "dependencies": [],
     "messages": [],
     "type": "general"
