@@ -4,7 +4,7 @@
 
   var today = new Date();
 
-  if (today.getMonth() == 2 || today.getDate() != 8) {
+  if (today.getMonth() != 2 || today.getDate() != 8) {
     return;
   }
 
