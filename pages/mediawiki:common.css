@@ -33,3 +33,11 @@ html.ve-active #catlinks {
 .wb-langlinks-link {
   display: none;
 }
+
+/*
+ * 콜라보레이션 허브 가입하기 버튼 숨기기
+ * See https://github.com/femiwiki/docker-mediawiki/issues/375
+ */
+.mw-ck-members-join {
+  display: none;
+}
