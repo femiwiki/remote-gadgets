@@ -3,13 +3,15 @@ from os import environ
 from sys import argv, stdout
 from time import sleep
 from math import log
+from ntpath import basename
 import logging
 logging.basicConfig(stream=stdout, level=logging.DEBUG)
 
 PASSWORD = environ['FEMIWIKI_BOT_PASSWORD']
 
-TARGET_PATH = 'pages/'
-MODIFIED = [f for f in argv[1:] if f.startswith(TARGET_PATH)]
+PAGE_TARGET_PATH = 'pages/'
+GADGET_TARGET_PATH = 'gadgets/'
+MODIFIED = [f for f in argv[1:] if f.startswith(PAGE_TARGET_PATH) or f.startswith(GADGET_TARGET_PATH)]
 
 
 def main():
@@ -26,7 +28,7 @@ def main():
         environ['GITHUB_REPOSITORY'] + "/commit/" + environ['GITHUB_SHA'][:7]
 
     for i, FILE in enumerate(MODIFIED):
-        title = FILE[len(TARGET_PATH):]
+        title = basename(FILE)
         page = FEMIWIKI.pages[title]
         try:
             f = open(FILE, "r")

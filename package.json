@@ -4,10 +4,10 @@
     "lint-js": "node_modules/.bin/eslint pages/*.js",
     "lint-css": "node_modules/.bin/stylelint pages/*.css",
     "lint-json": "yarn run prettier-json-check || (yarn run prettier-json-write && git --no-pager diff && git reset --hard && false)",
-    "lint-filename": "test -z \"$(yarn run find-filename)\" || yarn run find-filename",
-    "find-filename": "find pages/ -not -regex \"pages/\\([a-z\\._/:-]+\\)?\"",
-    "prettier-json-check": "node_modules/prettier/bin-prettier.js --parser json -c pages/{G,g}adget_definition:*",
-    "prettier-json-write": "node_modules/prettier/bin-prettier.js --parser json --write pages/{G,g}adget_definition:*",
+    "lint-filename": "test -z \"$(yarn run --silent find-filename)\" || (yarn run find-filename && false)",
+    "find-filename": "find pages/ gadgets/ -not -regex \".+/\\([a-z\\._/:-]+\\)?\"",
+    "prettier-json-check": "node_modules/prettier/bin-prettier.js --parser json -c **/{G,g}adget_definition:*",
+    "prettier-json-write": "node_modules/prettier/bin-prettier.js --parser json --write **/{G,g}adget_definition:*",
     "lint": "yarn run lint-js && yarn run lint-css && yarn run lint-json && yarn run lint-filename"
   },
   "devDependencies": {
