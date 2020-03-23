@@ -1,5 +1,7 @@
 // <nowiki>
 (function() {
+  "use strict";
+
   var $watchlink = document.querySelector(".mw-watchlink");
   if (!$watchlink || mw.config.get("wgArticleId") === 0) {
     return;
