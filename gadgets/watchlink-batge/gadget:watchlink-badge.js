@@ -1,5 +1,9 @@
 // <nowiki>
 (function() {
+  var $watchlink = document.querySelector(".mw-watchlink");
+  if (!$watchlink || mw.config.get("wgArticleId") === 0) {
+    return;
+  }
   new mw.Api()
     .get({
       action: "query",
@@ -21,8 +25,7 @@
       var $badge = document.createElement("div");
       $badge.className = "fw-watchlink-badge";
       $badge.innerText = watchers;
-      var watchlink = document.querySelector(".mw-watchlink");
-      watchlink.parentElement.insertBefore($badge, watchlink);
+      $watchlink.parentElement.insertBefore($badge, $watchlink);
     });
 })();
 // </nowiki>
