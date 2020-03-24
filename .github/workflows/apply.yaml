@@ -2,8 +2,11 @@ name: Apply
 
 on:
   push:
+    branches:
+      - master
     paths:
       - 'pages/*'
+      - 'gadgets/*'
 
 jobs:
 
