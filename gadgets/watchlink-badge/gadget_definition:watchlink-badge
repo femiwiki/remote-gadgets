@@ -1,6 +1,6 @@
 {
   "settings": {
-    "rights": ["editmywatchlist"],
+    "rights": ["editmywatchlist", "unwatchedpages"],
     "default": true,
     "hidden": false,
     "skins": ["femiwiki"],

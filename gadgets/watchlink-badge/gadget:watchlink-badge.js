@@ -20,7 +20,7 @@
       for (var p in data.query.pages) {
         watchers = pages[p].watchers;
       }
-      if (watchers === 0) {
+      if (!watchers || watchers === 0) {
         return;
       }
 
