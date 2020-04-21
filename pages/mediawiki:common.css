@@ -10,6 +10,17 @@
     NanumGothic, "맑은고딕", "Malgun Gothic", Dotum, sans-serif;
 }
 
+/*
+ * 일본어 문서 폰트는 Noto Sans CJK KR, 본고딕을 우선하기
+ */
+
+#mw-content-text:lang(ja) {
+  font-family: "Noto Sans CJK KR", "본고딕", "Noto Sans KR",
+    "Apple SD Gothic Neo", Arial,
+     "KoPubDotum Medium", "나눔바른고딕", "나눔고딕",
+    NanumGothic, "맑은고딕", "Malgun Gothic", Dotum, sans-serif;
+}
+
 /* 시각편집기에서 분류가 둘 나오는 것 가리기 */
 html.ve-active #catlinks {
   display: none;
