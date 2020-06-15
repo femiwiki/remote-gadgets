@@ -16,9 +16,8 @@
 
 #mw-content-text:lang(ja) {
   font-family: "Noto Sans CJK KR", "본고딕", "Noto Sans KR",
-    "Apple SD Gothic Neo", Arial,
-     "KoPubDotum Medium", "나눔바른고딕", "나눔고딕",
-    NanumGothic, "맑은고딕", "Malgun Gothic", Dotum, sans-serif;
+    "Apple SD Gothic Neo", Arial, "KoPubDotum Medium", "나눔바른고딕",
+    "나눔고딕", NanumGothic, "맑은고딕", "Malgun Gothic", Dotum, sans-serif;
 }
 
 /* 시각편집기에서 분류가 둘 나오는 것 가리기 */
@@ -38,7 +37,7 @@ html.ve-active #catlinks {
 }
 
 /*
- * 위키베이스에 의한 '링크 추가' 버튼을 숨김
+ * 위키베이스에 의한 "링크 추가" 버튼을 숨김
  * See https://github.com/femiwiki/docker-mediawiki/issues/323
  */
 .wb-langlinks-link {
