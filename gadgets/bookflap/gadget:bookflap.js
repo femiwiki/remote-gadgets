@@ -13,7 +13,7 @@
 
   var $overlay = $("<div></div>")
     .addClass("book-flap-overlay")
-    .appendTo($("#mw-wrapper"));
+    .appendTo($("body"));
   var $leftside = $("<div></div>")
     .attr("id", "book-flap-leftside")
     .attr("class", "skin-fw-unprintable")
