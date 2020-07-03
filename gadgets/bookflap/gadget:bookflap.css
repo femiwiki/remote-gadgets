@@ -83,6 +83,11 @@
   margin: 0;
 }
 
+.book-flap-slide .book-flap-title a,
+.book-flap-side .book-flap-title a {
+  text-decoration: none;
+}
+
 .book-flap-slide .book-flap-body > p,
 .book-flap-side .book-flap-body > p {
   margin: 0 0 0.3em 0;
@@ -91,7 +96,8 @@
 .book-flap-slide .book-flap-body ul,
 .book-flap-side .book-flap-body ul {
   list-style-type: none;
-  margin: 0;
+  /* !important is a workaround for https://github.com/femiwiki/remote-gadgets/issues/29 */
+  margin: 0 !important;
   padding-left: 0;
 }
 
