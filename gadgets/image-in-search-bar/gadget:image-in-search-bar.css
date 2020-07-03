@@ -1,5 +1,6 @@
 #p-search {
-  position: relative;
+  /* Disabled by https://github.com/femiwiki/remote-gadgets/issues/27 */
+  /* position: relative; */
 }
 #p-search #anniversary-icon {
   display: block;
