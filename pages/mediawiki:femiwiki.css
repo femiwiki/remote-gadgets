@@ -144,3 +144,10 @@ div.dialog input[type="reset"] {
     content: none;
   }
 }
+
+/*
+ * https://github.com/femiwiki/FemiwikiSkin/issues/182 우회
+ */
+#site-navigation {
+  min-width: calc(4.8rem + 1px);
+}
