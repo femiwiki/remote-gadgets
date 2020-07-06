@@ -1,33 +1,71 @@
-import mwclient
-from os import environ
-from sys import argv, stdout
-from time import sleep
+#!/usr/bin/python
+
 from math import log
 from ntpath import basename
+from os import environ, popen, path
+from pathlib import Path
+from sys import argv, stdout, exit
+from time import sleep
 import logging
+import mwclient
+
 logging.basicConfig(stream=stdout, level=logging.DEBUG)
 
-PASSWORD = environ['FEMIWIKI_BOT_PASSWORD']
+TARGET_DIRECTORIES = [
+    'pages',
+    'gadgets'
+]
 
-PAGE_TARGET_PATH = 'pages/'
-GADGET_TARGET_PATH = 'gadgets/'
-MODIFIED = [f for f in argv[1:] if f.startswith(PAGE_TARGET_PATH) or f.startswith(GADGET_TARGET_PATH)]
+
+def sanitize_args(arr):
+    if len(arr) == 2 and arr[1] == 'help':
+        print(f'Usage:  {arr[0]} [previously applied commit id]')
+        exit()
+    elif len(arr) > 2:
+        exit(1)
 
 
-def main():
-    if not MODIFIED:
-        logging.info('There is no modified file')
-        return
+def modified_files_exists():
+    return len(argv) == 1
 
-    logging.info('modified files:' + ' / '.join(MODIFIED))
+
+def get_modified_files():
+    '''return empty array if previous applied commit does not exist'''
+    latest_commit = environ['GITHUB_SHA']
+
+    if len(argv) < 2:
+        return []
+
+    previous_commit = argv[1]
+    return popen(
+        'git diff-tree --no-commit-id --name-only -r ' +
+        f'"{previous_commit}" "{latest_commit}"'
+    ).read().split('\n')
+
+
+def validate_files(arr):
+    def is_target(f):
+        for d in TARGET_DIRECTORIES:
+            if f.startswith(d):
+                return True
+        return False
+
+    return [f for f in arr if is_target(f)]
+
+
+def edit_pages_on_wiki(target):
+    PASSWORD = environ['FEMIWIKI_BOT_PASSWORD']
+
+    logging.info('target files:' + ' / '.join(target))
 
     FEMIWIKI = mwclient.Site('femiwiki.com', path='/')
     FEMIWIKI.login('페미위키_깃헙_가젯_봇@페미위키_깃헙_가젯_봇', PASSWORD)
 
-    SUMMARY = "Github @" + environ['GITHUB_ACTOR'] + "의 " + "https://github.com/" + \
-        environ['GITHUB_REPOSITORY'] + "/commit/" + environ['GITHUB_SHA'][:7]
+    SUMMARY = "Github @" + environ['GITHUB_ACTOR'] + "의 " + \
+        "https://github.com/" + environ['GITHUB_REPOSITORY'] + "/commit/" + \
+        environ['GITHUB_SHA'][:7]
 
-    for i, FILE in enumerate(MODIFIED):
+    for i, FILE in enumerate(target):
         title = basename(FILE)
         page = FEMIWIKI.pages[title]
         try:
@@ -46,6 +84,33 @@ def main():
         time_to_sleep = log(i+1)
         logging.debug('Sleep '+str(time_to_sleep)+' seconds...')
         sleep(time_to_sleep)
+
+
+def get_all_files():
+    ROOT = Path('.')
+    glob = sum([
+        list(ROOT.glob(f'{d}/**/*'))
+        for d in TARGET_DIRECTORIES
+    ], [])
+    return [
+        str(p)
+        for p
+        in glob
+        if path.isfile(p)
+    ]
+
+
+def main():
+    sanitize_args(argv)
+
+    MODIFIED = validate_files(get_modified_files())
+
+    if MODIFIED:
+        edit_pages_on_wiki(MODIFIED)
+    else:
+        logging.info('Failed to load the last applied commit')
+        logging.info('Trying to apply all files...')
+        edit_pages_on_wiki(get_all_files())
 
 
 if __name__ == '__main__':
