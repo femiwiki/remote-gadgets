@@ -1,3 +1,5 @@
+.last-applied-commit
+
 # Python
 /.venv/
 /build/
