@@ -44,9 +44,15 @@ jobs:
       run: |
         yarn --dev
         python -m pip install -r requirements.txt
+        python -m pip install -r requirements-dev.txt
 
     - name: Lint
-      run: yarn run lint
+      run: |
+        yarn run lint
+        flake8
+
+    - name: Unit test (Python)
+      run: pytest
 
     - name: Apply
       if: github.ref == 'refs/heads/master' && success()
