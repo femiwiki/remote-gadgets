@@ -1,12 +1,3 @@
-/*
- * gnb의 최근 바뀜, 임의 문서 버튼 숨기기
- * 스킨에 이미 있어 숨김
- */
-#fw-menu #n-recentchanges,
-#fw-menu #n-randompage {
-  display: none;
-}
-
 /**
   * 개인 도구의 "베타" 링크 숨기기
   * [[주제:Uty456jw505lp6ym]]
@@ -64,15 +55,6 @@ div.dialog input[type="reset"] {
 }
 
 @media screen and (max-width: 480px) {
-  /*
-    * [[특수:제재안목록]] 모바일 뷰 수정
-    */
-  .sanction {
-    width: calc(100% + 2.6rem);
-    margin-left: -1.3rem;
-    box-sizing: border-box;
-  }
-
   /*
     * 알림 창 이상한 문제 우회
     * https://github.com/femiwiki/skin/issues/8
@@ -143,11 +125,4 @@ div.dialog input[type="reset"] {
   .mwe-popups.mwe-popups:after {
     content: none;
   }
-}
-
-/*
- * https://github.com/femiwiki/FemiwikiSkin/issues/182 우회
- */
-#site-navigation {
-  min-width: calc(4.8rem + 1px);
 }

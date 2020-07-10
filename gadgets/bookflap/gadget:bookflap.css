@@ -96,8 +96,7 @@
 .book-flap-slide .book-flap-body ul,
 .book-flap-side .book-flap-body ul {
   list-style-type: none;
-  /* !important is a workaround for https://github.com/femiwiki/remote-gadgets/issues/29 */
-  margin: 0 !important;
+  margin: 0;
   padding-left: 0;
 }
 
