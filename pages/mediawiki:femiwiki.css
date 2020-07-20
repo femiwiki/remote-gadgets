@@ -27,7 +27,7 @@
   * 뮤트 메뉴의 버튼이 잘 안 보이는 문제 수정
   * [[주제:Ucejtawk4j2jmvx3]]
   */
-div.dialog input[type="reset"] {
+div.dialog input[type='reset'] {
   background-color: lightgray;
   color: #252525;
 }

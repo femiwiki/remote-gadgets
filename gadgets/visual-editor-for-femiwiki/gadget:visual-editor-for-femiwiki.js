@@ -1,23 +1,23 @@
 //<nowiki>
-(function(mw, $) {
-  "use strict";
+(function (mw, $) {
+  'use strict';
 
   /**
    * =r을 입력하면 출처 문단이 만들어지게 합니다.
    */
-  mw.libs.ve.addPlugin(function() {
+  mw.libs.ve.addPlugin(function () {
     /**
      * @class AddReferencesListCommand
      */
-    var AddReferencesListCommand = function() {
+    var AddReferencesListCommand = function () {
       AddReferencesListCommand.parent.call(
         this,
-        "addReferencesList" // Command name
+        'addReferencesList' // Command name
       );
     };
     OO.inheritClass(AddReferencesListCommand, ve.ui.Command);
 
-    AddReferencesListCommand.prototype.execute = function(surface) {
+    AddReferencesListCommand.prototype.execute = function (surface) {
       // surface.execute.apply(
       //   surface,
       //   ["format", "convert"].concat(["heading", { level: 2 }])
@@ -28,25 +28,25 @@
         .insertContent(
           [
             {
-              type: "heading",
+              type: 'heading',
               attributes: {
-                level: 2
-              }
-            }
+                level: 2,
+              },
+            },
           ]
-            .concat("출처".split(""))
+            .concat('출처'.split(''))
             .concat({
-              type: "/heading"
+              type: '/heading',
             })
             .concat({
-              type: "mwReferencesList",
+              type: 'mwReferencesList',
               attributes: {
-                listGroup: "mwReference/",
-                refGroup: "",
-                isResponsive: mw.config.get("wgCiteResponsiveReferences")
-              }
+                listGroup: 'mwReference/',
+                refGroup: '',
+                isResponsive: mw.config.get('wgCiteResponsiveReferences'),
+              },
             })
-            .concat({ type: "/mwReferencesList" })
+            .concat({ type: '/mwReferencesList' })
         )
         .collapseToEnd()
         .select();
@@ -58,40 +58,40 @@
     ve.ui.commandRegistry.register(new AddReferencesListCommand());
     ve.ui.sequenceRegistry.register(
       new ve.ui.Sequence(
-        "addReferencesList", // Sequence name
-        "addReferencesList", // Command name
-        "=r",
+        'addReferencesList', // Sequence name
+        'addReferencesList', // Command name
+        '=r',
         2
       )
     );
 
-    ve.ui.commandHelpRegistry.register("insert", "addReferencesList", {
-      sequences: ["addReferencesList"],
-      label: "출처 문단 넣기"
+    ve.ui.commandHelpRegistry.register('insert', 'addReferencesList', {
+      sequences: ['addReferencesList'],
+      label: '출처 문단 넣기',
     });
 
     // 문서 옵션의 분류 버튼 클릭시 addCategories 커맨드를 실행하게 합니다
     ve.ui.toolFactory.registry.referencesList.static.commandName =
-      "addReferencesList";
+      'addReferencesList';
   });
 
   /**
    * =n을 입력하면 부연 설명 문단이 만들어지게 합니다.
    */
-  mw.libs.ve.addPlugin(function() {
+  mw.libs.ve.addPlugin(function () {
     /**
      * @class AddNotesSectionCommand
      */
-    var AddNotesSectionCommand = function() {
+    var AddNotesSectionCommand = function () {
       // Parent constructor
       AddNotesSectionCommand.parent.call(
         this,
-        "addNotesSection" // Command name
+        'addNotesSection' // Command name
       );
     };
     OO.inheritClass(AddNotesSectionCommand, ve.ui.Command);
 
-    AddNotesSectionCommand.prototype.execute = function(surface) {
+    AddNotesSectionCommand.prototype.execute = function (surface) {
       // surface.execute.apply(
       //   surface,
       //   ["format", "convert"].concat(["heading", { level: 2 }])
@@ -102,35 +102,35 @@
         .insertContent(
           [
             {
-              type: "heading",
+              type: 'heading',
               attributes: {
-                level: 2
-              }
-            }
+                level: 2,
+              },
+            },
           ]
-            .concat("부연 설명".split(""))
+            .concat('부연 설명'.split(''))
             .concat({
-              type: "/heading"
+              type: '/heading',
             })
             .concat({
-              type: "mwTransclusionBlock",
+              type: 'mwTransclusionBlock',
               attributes: {
                 mw: {
                   parts: [
                     {
                       template: {
                         target: {
-                          href: "틀:부연 설명",
-                          wt: "부연 설명"
+                          href: '틀:부연 설명',
+                          wt: '부연 설명',
                         },
-                        params: {}
-                      }
-                    }
-                  ]
-                }
-              }
+                        params: {},
+                      },
+                    },
+                  ],
+                },
+              },
             })
-            .concat({ type: "/mwTransclusionBlock" })
+            .concat({ type: '/mwTransclusionBlock' })
         )
         .collapseToEnd()
         .select();
@@ -142,16 +142,16 @@
     ve.ui.commandRegistry.register(new AddNotesSectionCommand());
     ve.ui.sequenceRegistry.register(
       new ve.ui.Sequence(
-        "addNotesSection", // Sequence name
-        "addNotesSection", // Command name
-        "=n",
+        'addNotesSection', // Sequence name
+        'addNotesSection', // Command name
+        '=n',
         2
       )
     );
 
-    ve.ui.commandHelpRegistry.register("insert", "addNotesSection", {
-      sequences: ["addNotesSection"],
-      label: "부연 설명 문단 넣기"
+    ve.ui.commandHelpRegistry.register('insert', 'addNotesSection', {
+      sequences: ['addNotesSection'],
+      label: '부연 설명 문단 넣기',
     });
 
     /**
@@ -167,12 +167,12 @@
       NotesSectionTool.super.apply(this, arguments);
     };
     OO.inheritClass(NotesSectionTool, ve.ui.FragmentWindowTool);
-    NotesSectionTool.static.name = "notesSection";
-    NotesSectionTool.static.group = "object";
-    NotesSectionTool.static.icon = "speechBubbles";
-    NotesSectionTool.static.title = "부연 설명 목록";
+    NotesSectionTool.static.name = 'notesSection';
+    NotesSectionTool.static.group = 'object';
+    NotesSectionTool.static.icon = 'speechBubbles';
+    NotesSectionTool.static.title = '부연 설명 목록';
     NotesSectionTool.static.modelClasses = [ve.dm.MWReferencesListNode];
-    NotesSectionTool.static.commandName = "addNotesSection";
+    NotesSectionTool.static.commandName = 'addNotesSection';
     ve.ui.toolFactory.register(NotesSectionTool);
   });
 
@@ -181,43 +181,43 @@
    * - 문서 옵션에서 분류를 클릭하면 분류 틀이 입력되도록 합니다.
    * - Ctrl+Shift+A 입력시 분류 틀이 입력되도록 합니다.
    */
-  mw.libs.ve.addPlugin(function() {
+  mw.libs.ve.addPlugin(function () {
     /**
      * @Class AddCategoriesCommand
      */
-    var AddCategoriesCommand = function() {
+    var AddCategoriesCommand = function () {
       AddCategoriesCommand.parent.call(
         this,
-        "addCategories" // Command name
+        'addCategories' // Command name
       );
     };
     OO.inheritClass(AddCategoriesCommand, ve.ui.Command);
 
-    AddCategoriesCommand.prototype.execute = function(surface) {
+    AddCategoriesCommand.prototype.execute = function (surface) {
       surface.getModel().selectLastContentOffset();
       surface
         .getModel()
         .getFragment()
         .insertContent([
           {
-            type: "mwTransclusionBlock",
+            type: 'mwTransclusionBlock',
             attributes: {
               mw: {
                 parts: [
                   {
                     template: {
                       target: {
-                        href: "틀:분류",
-                        wt: "분류"
+                        href: '틀:분류',
+                        wt: '분류',
                       },
-                      params: {}
-                    }
-                  }
-                ]
-              }
-            }
+                      params: {},
+                    },
+                  },
+                ],
+              },
+            },
           },
-          { type: "/mwTransclusionBlock" }
+          { type: '/mwTransclusionBlock' },
         ])
         .collapseToEnd()
         .select();
@@ -225,16 +225,16 @@
     // class ends
 
     ve.ui.commandRegistry.register(new AddCategoriesCommand());
-    ve.ui.triggerRegistry.register("addCategories", {
-      pc: new ve.ui.Trigger("alt+shift+a")
+    ve.ui.triggerRegistry.register('addCategories', {
+      pc: new ve.ui.Trigger('alt+shift+a'),
     });
 
     // 문서 옵션의 분류 버튼 클릭시 addCategories 커맨드를 실행하게 합니다
-    ve.ui.toolFactory.registry.categories.static.commandName = "addCategories";
+    ve.ui.toolFactory.registry.categories.static.commandName = 'addCategories';
 
-    ve.ui.commandHelpRegistry.register("insert", "addCategories", {
-      trigger: "addCategories",
-      label: "분류 넣기"
+    ve.ui.commandHelpRegistry.register('insert', 'addCategories', {
+      trigger: 'addCategories',
+      label: '분류 넣기',
     });
   });
 
@@ -244,19 +244,19 @@
   function addDashSequence() {
     ve.ui.sequenceRegistry.register(
       new ve.ui.Sequence(
-        "dash",
-        "bulletWrapOnce",
-        [{ type: "paragraph" }, "-", " "],
+        'dash',
+        'bulletWrapOnce',
+        [{ type: 'paragraph' }, '-', ' '],
         2
       )
     );
 
-    ve.ui.commandHelpRegistry.register("formatting", "listBullet", {
-      sequences: ["dash"]
+    ve.ui.commandHelpRegistry.register('formatting', 'listBullet', {
+      sequences: ['dash'],
     });
   }
   mw.libs.ve.addPlugin(addDashSequence); // for VisualEditor
-  mw.loader.using(["ext.visualEditor.core"]).done(function() {
+  mw.loader.using(['ext.visualEditor.core']).done(function () {
     addDashSequence(); // for Stuructured Discussion
   });
 
@@ -265,12 +265,12 @@
    * 뜨지 않게 합니다.
    * https://github.com/femiwiki/mediawiki/issues/262
    */
-  mw.libs.ve.addPlugin(function() {
+  mw.libs.ve.addPlugin(function () {
     ve.init.mw.DesktopArticleTarget.static.compatibility.whitelist[
-      "iphone"
+      'iphone'
     ] = null;
     ve.init.mw.DesktopArticleTarget.static.compatibility.whitelist[
-      "android"
+      'android'
     ] = null;
   });
 })(mediaWiki, jQuery);

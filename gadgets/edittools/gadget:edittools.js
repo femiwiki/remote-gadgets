@@ -10,8 +10,8 @@
  */
 /*jslint browser: true*/
 /*global jQuery, mediaWiki*/
-(function($, mw) {
-  "use strict";
+(function ($, mw) {
+  'use strict';
 
   var conf, editTools, $sections;
 
@@ -19,45 +19,45 @@
     initialSubset:
       window.EditTools_initial_subset === undefined
         ? window.EditTools_initial_subset
-        : 0
+        : 0,
   };
 
   editTools = {
     /**
      * Creates the selector
      */
-    setup: function() {
+    setup: function () {
       var $container, $select, initial;
 
       if (mw.toolbar === undefined) return;
 
-      $container = $("#mw-edittools-charinsert");
+      $container = $('#mw-edittools-charinsert');
       if (!$container.length) {
         return;
       }
-      $sections = $container.find(".mw-edittools-section");
+      $sections = $container.find('.mw-edittools-section');
       if ($sections.length <= 1) {
         // Only care if there is more than one
         return;
       }
 
-      $select = $("<select>").css("display", "inline");
+      $select = $('<select>').css('display', 'inline');
 
       initial = conf.initialSubset;
       if (isNaN(initial) || initial < 0 || initial >= $select.length) {
         initial = 0;
       }
 
-      $sections.each(function(i, el) {
+      $sections.each(function (i, el) {
         var $section, sectionTitle, $option;
 
         $section = $(el);
-        sectionTitle = $section.data("sectionTitle");
+        sectionTitle = $section.data('sectionTitle');
 
-        $option = $("<option>")
+        $option = $('<option>')
           .text(sectionTitle)
-          .prop("value", i)
-          .prop("selected", i === initial);
+          .prop('value', i)
+          .prop('selected', i === initial);
 
         $select.append($option);
       });
@@ -74,7 +74,7 @@
      * @context {Element}
      * @param e {jQuery.Event}
      */
-    handleOnchange: function() {
+    handleOnchange: function () {
       editTools.chooseSection(Number($(this).val()));
 
       return true;
@@ -86,7 +86,7 @@
      * @param sectionNr {Number}
      * @param setFocus {Boolean}
      */
-    chooseSection: function(sectionNr) {
+    chooseSection: function (sectionNr) {
       var $choise = $sections.eq(sectionNr);
       if ($choise.length !== 1) {
         return;
@@ -97,8 +97,8 @@
       // for over 2 seconds, so instead we're doing it on-demand
       // for each section. No need to do it twice thoguh, so remember
       // in data whether it was done already
-      if (!$choise.data("charInsert.buttonsMade")) {
-        $choise.data("charInsert.buttonsMade", true);
+      if (!$choise.data('charInsert.buttonsMade')) {
+        $choise.data('charInsert.buttonsMade', true);
         editTools.makeButtons($choise);
       }
 
@@ -111,24 +111,24 @@
      *
      * @param $section {jQuery}
      */
-    makeButtons: function($section) {
+    makeButtons: function ($section) {
       var $links;
 
       if (!$section.length) {
         return;
       }
 
-      $links = $section.find("a");
-      $links.each(function(i, a) {
+      $links = $section.find('a');
+      $links.each(function (i, a) {
         var $a, $button, start, end;
         $a = $(a);
-        $button = $("<input>").attr("type", "button");
-        start = $a.data("mw-charinsert-start");
-        end = $a.data("mw-charinsert-end");
+        $button = $('<input>').attr('type', 'button');
+        start = $a.data('mw-charinsert-start');
+        end = $a.data('mw-charinsert-end');
         if (start !== undefined && end !== undefined) {
-          $button.click(function(e) {
+          $button.click(function (e) {
             e.preventDefault();
-            mw.toolbar.insertTags(start, end, "");
+            mw.toolbar.insertTags(start, end, '');
           });
         } else {
           $button[0].onclick = a.onclick;
@@ -136,7 +136,7 @@
         $button[0].value = $a.text();
         $a.replaceWith($button);
       });
-    }
+    },
   };
 
   $(document).ready(editTools.setup);

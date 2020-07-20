@@ -1,6 +1,6 @@
 // <nowiki>
-(function() {
-  "use strict";
+(function () {
+  'use strict';
 
   var today = new Date();
 
@@ -8,9 +8,9 @@
     return;
   }
 
-  var icon = document.createElement("div");
-  icon.id = "anniversary-icon";
-  icon.innerHTML = "🥖🌹";
-  document.getElementById("p-search").appendChild(icon);
+  var icon = document.createElement('div');
+  icon.id = 'anniversary-icon';
+  icon.innerHTML = '🥖🌹';
+  document.getElementById('p-search').appendChild(icon);
 })();
 // </nowiki>

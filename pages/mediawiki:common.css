@@ -5,9 +5,9 @@
  * See 주제:V19kdq48epmrel7u
  */
 #mw-content-text:lang(en) {
-  font-family: Arial, "Apple SD Gothic Neo", "Noto Sans KR", "본고딕",
-    "Noto Sans CJK KR", "KoPubDotum Medium", "나눔바른고딕", "나눔고딕",
-    NanumGothic, "맑은고딕", "Malgun Gothic", Dotum, sans-serif;
+  font-family: Arial, 'Apple SD Gothic Neo', 'Noto Sans KR', '본고딕',
+    'Noto Sans CJK KR', 'KoPubDotum Medium', '나눔바른고딕', '나눔고딕',
+    NanumGothic, '맑은고딕', 'Malgun Gothic', Dotum, sans-serif;
 }
 
 /*
@@ -15,9 +15,9 @@
  */
 
 #mw-content-text:lang(ja) {
-  font-family: "Noto Sans CJK KR", "본고딕", "Noto Sans KR",
-    "Apple SD Gothic Neo", Arial, "KoPubDotum Medium", "나눔바른고딕",
-    "나눔고딕", NanumGothic, "맑은고딕", "Malgun Gothic", Dotum, sans-serif;
+  font-family: 'Noto Sans CJK KR', '본고딕', 'Noto Sans KR',
+    'Apple SD Gothic Neo', Arial, 'KoPubDotum Medium', '나눔바른고딕',
+    '나눔고딕', NanumGothic, '맑은고딕', 'Malgun Gothic', Dotum, sans-serif;
 }
 
 /* 시각편집기에서 분류가 둘 나오는 것 가리기 */

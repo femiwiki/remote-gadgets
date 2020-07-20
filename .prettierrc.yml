@@ -1,0 +1,5 @@
+singleQuote: true
+overrides:
+  - files: "gadgets/**/{G,g}adget_definition:*"
+    options:
+      parser: "json"
