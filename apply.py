@@ -55,12 +55,13 @@ def get_modified_files(wiki):
         return None
 
     previous_commit = previous_commit.group(1)
-    logging.info('previous commit:' + previous_commit)
 
-    return popen(
-        'git diff-tree --no-commit-id --name-only -r ' +
+    GIT_COMMAND = 'git diff-tree --no-commit-id --name-only -r ' + \
         f'"{previous_commit}" "{latest_commit}"'
-    ).read().split('\n')
+
+    logging.info('git command:' + GIT_COMMAND)
+
+    return popen(GIT_COMMAND).read().split('\n')
 
 
 def validate_files(arr):
@@ -78,7 +79,7 @@ def edit_pages_on_wiki(target, wiki):
 
     SUMMARY = "Github @" + environ['GITHUB_ACTOR'] + "의 " + \
         "https://github.com/" + environ['GITHUB_REPOSITORY'] + "/commit/" + \
-        environ['GITHUB_SHA'][:7]
+        environ['GITHUB_SHA'][:8]
 
     for i, FILE in enumerate(target):
         title = basename(FILE)
