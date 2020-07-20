@@ -1,0 +1,63 @@
+local mArguments --initialize lazily
+local mHatnote = require('Module:Hatnote')
+local mHatList = require('Module:Hatnote list')
+local libraryUtil = require('libraryUtil')
+local checkType = libraryUtil.checkType
+local p = {}
+
+function p.about (frame)
+	-- A passthrough that gets args from the frame and all
+
+	mArguments = require('Module:Arguments')
+	args = mArguments.getArgs(frame)
+	return p._about(args)
+end
+
+
+function p._about (args, options)
+	-- Produces "about" hatnote.
+
+	-- Type checks and defaults
+	checkType('_about', 1, args, 'table', true)
+	args = args or {}
+	checkType('_about', 2, options, 'table', true)
+	options = options or {}
+	local defaultOptions = {
+		aboutForm = '이 %s는 %s에 대해 설명하고 있습니다. ',
+		defaultPageType = '문서',
+		namespace = mw.title.getCurrentTitle().namespace,
+		otherText = '다른 내용', --included for complete list
+		forSeeForm = '%s에 대한 내용은 %s 문서를 살펴보세요',
+		pageTypesByNamespace = {
+			[0] = '문서',
+			[14] = '분류'
+		},
+		sectionString = 'section'
+	}
+	for k, v in pairs(defaultOptions) do
+		if options[k] == nil then options[k] = v end
+	end
+
+	-- Set initial "about" string
+	local pageType = (args.section and options.sectionString) or
+		options.pageTypesByNamespace[options.namespace] or
+		options.defaultPageType
+	local about = ''
+	if args[1] then
+		about = string.format(options.aboutForm, pageType, args[1])
+	end
+
+	--Allow passing through certain options
+	local fsOptions = {
+		otherText = options.otherText,
+		forSeeForm = options.forSeeForm
+	}
+
+	-- Set for-see list
+	local forSee = mHatList._forSee(args, 2, fsOptions)
+
+	-- Concatenate and return
+	return mHatnote._hatnote(about .. forSee)
+end
+
+return p
