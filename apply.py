@@ -6,6 +6,7 @@ from os import environ, popen, path
 from pathlib import Path
 from sys import argv, stdout, exit
 from time import sleep
+from re import search
 import logging
 import mwclient
 
@@ -17,12 +18,15 @@ TARGET_DIRECTORIES = [
     'lua'
 ]
 
+USERNAME = '페미위키_깃헙_가젯_봇'
+TOKEN_ID = '페미위키_깃헙_가젯_봇'
+
 
 def sanitize_args(arr):
     if len(arr) == 2 and arr[1] == 'help':
-        print(f'Usage:  {arr[0]} [previously applied commit id]')
+        print(f'Usage:  {arr[0]}')
         exit()
-    elif len(arr) > 2:
+    elif len(arr) > 1:
         exit(1)
 
 
@@ -30,14 +34,29 @@ def modified_files_exists():
     return len(argv) == 1
 
 
-def get_modified_files():
+def get_modified_files(wiki):
     '''return empty array if previous applied commit does not exist'''
     latest_commit = environ['GITHUB_SHA']
 
-    if len(argv) < 2:
-        return []
+    result = wiki.api(
+        'query',
+        list='usercontribs',
+        uclimit=1,
+        ucprop='comment',
+        ucuser=USERNAME,
+    )
 
-    previous_commit = argv[1]
+    contribs = result['query']['usercontribs']
+    if not contribs:
+        return None
+
+    previous_commit = search(r'/commit/(.+)$', contribs[0]['comment'])
+    if not previous_commit:
+        return None
+
+    previous_commit = previous_commit.group(1)
+    logging.info('previous commit:' + previous_commit)
+
     return popen(
         'git diff-tree --no-commit-id --name-only -r ' +
         f'"{previous_commit}" "{latest_commit}"'
@@ -54,13 +73,8 @@ def validate_files(arr):
     return [f for f in arr if is_target(f)]
 
 
-def edit_pages_on_wiki(target):
-    PASSWORD = environ['FEMIWIKI_BOT_PASSWORD']
-
+def edit_pages_on_wiki(target, wiki):
     logging.info('target files:' + ' / '.join(target))
-
-    FEMIWIKI = mwclient.Site('femiwiki.com', path='/')
-    FEMIWIKI.login('페미위키_깃헙_가젯_봇@페미위키_깃헙_가젯_봇', PASSWORD)
 
     SUMMARY = "Github @" + environ['GITHUB_ACTOR'] + "의 " + \
         "https://github.com/" + environ['GITHUB_REPOSITORY'] + "/commit/" + \
@@ -68,7 +82,7 @@ def edit_pages_on_wiki(target):
 
     for i, FILE in enumerate(target):
         title = basename(FILE)
-        page = FEMIWIKI.pages[title]
+        page = wiki.pages[title]
         try:
             f = open(FILE, "r")
             logging.debug('Saving: '+title+'...')
@@ -104,14 +118,19 @@ def get_all_files():
 def main():
     sanitize_args(argv)
 
-    MODIFIED = validate_files(get_modified_files())
+    FEMIWIKI = mwclient.Site('femiwiki.com', path='/')
+
+    PASSWORD = environ['FEMIWIKI_BOT_PASSWORD']
+    FEMIWIKI.login(f'{USERNAME}@{TOKEN_ID}', PASSWORD)
+
+    MODIFIED = validate_files(get_modified_files(FEMIWIKI))
 
     if MODIFIED:
-        edit_pages_on_wiki(MODIFIED)
+        edit_pages_on_wiki(MODIFIED, FEMIWIKI)
     else:
         logging.info('Failed to load the last applied commit')
         logging.info('Trying to apply all files...')
-        edit_pages_on_wiki(get_all_files())
+        edit_pages_on_wiki(get_all_files(), FEMIWIKI)
 
 
 if __name__ == '__main__':

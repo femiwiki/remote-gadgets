@@ -6,10 +6,6 @@ def test_sanitize_args(capsys):
     captured = capsys.readouterr()
     assert captured.out == ''
 
-    sanitize_args(['apply.py', 'aaaaaaa'])
-    captured = capsys.readouterr()
-    assert captured.out == ''
-
 
 def test_validate_files():
     f = validate_files([

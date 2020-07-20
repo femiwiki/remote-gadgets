@@ -53,30 +53,10 @@ jobs:
     - name: Unit test (Python)
       run: pytest
 
-
-    - name: Download last applied commit id
-      continue-on-error: true
-      uses: actions/download-artifact@v1
-      with:
-        name: artifact
-
     - name: Apply
       if: github.ref == 'refs/heads/master' && success()
       env:
         FEMIWIKI_BOT_PASSWORD: ${{ secrets.FEMIWIKI_BOT_PASSWORD }}
       run: |
         git config --global core.quotepath false
-        export PREVIOUS=$(cat .last-applied-commit 2>/dev/null)
-        python apply.py "$PREVIOUS"
-
-    - name: Save last applied commit id
-      if: success()
-      run: |
-        echo $GITHUB_SHA > .last-applied-commit
-
-    - name: Upload last applied commit id
-      if: success()
-      uses: actions/upload-artifact@v2
-      with:
-        name: artifact
-        path: .last-applied-commit
+        python apply.py
