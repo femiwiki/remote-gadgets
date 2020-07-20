@@ -13,7 +13,8 @@ logging.basicConfig(stream=stdout, level=logging.DEBUG)
 
 TARGET_DIRECTORIES = [
     'pages',
-    'gadgets'
+    'gadgets',
+    'lua'
 ]
 
 

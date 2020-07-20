@@ -1,8 +1,11 @@
 {
   "private": true,
   "scripts": {
-    "lint-filename": "test -z \"$(yarn run --silent find-filename)\" || (yarn run find-filename && false)",
-    "find-filename": "find pages/ gadgets/ -not -regex \".+/\\([a-z\\._/:-]+\\)?\"",
+    "lint-filename": "yarn run lint-filename-etc && yarn run lint-filename-lua",
+    "lint-filename-etc": "test -z \"$(yarn run --silent find-filename-etc)\" || (yarn run find-filename-etc && false)",
+    "find-filename-etc": "find pages/ gadgets/ -not -regex \".+/\\([a-z\\._/:-]+\\)?\"",
+    "lint-filename-lua": "test -z \"$(yarn run --silent find-filename-lua)\" || (yarn run find-filename-lua && false)",
+    "find-filename-lua": "find lua/ -not -regex \".+/\\(module:[A-Z][A-Za-z0-9\\._/:-]+\\)?\"",
     "lint": "prettier . --check && yarn run lint-filename",
     "fix": "prettier . --write"
   },
