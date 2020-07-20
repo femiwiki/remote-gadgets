@@ -1,0 +1,938 @@
+
+local citation_config = {};
+
+-- override <code>...</code> styling to remove color, border, and padding.  <code> css is specified here:
+-- https://git.wikimedia.org/blob/mediawiki%2Fcore.git/69cd73811f7aadd093050dbf20ed70ef0b42a713/skins%2Fcommon%2FcommonElements.css#L199
+local code_style="color:inherit; border:inherit; padding:inherit;";
+
+--[[--------------------------< U N C A T E G O R I Z E D _ N A M E S P A C E S >------------------------------
+
+List of namespaces that should not be included in citation error categories.  Same as setting notracking = true by default
+
+Note: Namespace names should use underscores instead of spaces.
+
+]]
+local uncategorized_namespaces = { '토론', '사용자', '사용자토론', '페미위키토론', '파일토론', '틀토론',
+	'도움말토론', '분류토론', '모듈토론', '미디어위키토론' };
+
+local uncategorized_subpages = {'/[Ss]andbox', '/[Tt]estcases', '/연습장', '/시험장'};		-- list of Lua patterns found in page names of pages we should not categorize
+
+--[[--------------------------< M E S S A G E S >--------------------------------------------------------------
+
+Translation table
+
+The following contains fixed text that may be output as part of a citation.
+This is separated from the main body to aid in future translations of this
+module.
+
+]]
+
+local messages = {
+	['archived-dead'] = '$2에 $1에서 보존된 문서',
+	['archived-not-dead'] = '$2에 $1',
+	['archived-missing'] = '$2에 원본$1에서 보존된 문서',
+	['archived'] = '보존된 문서',
+	['by'] = 'By',																-- contributions to authored works: introduction, foreword, afterword
+	['cartography'] = '$1 제작',
+	['editor'] = '편집.',
+	['editors'] = '편집.', 
+	['edition'] = '($1판)', 
+	['episode'] = '제 $1회',
+	['et al'] = '외.', 
+	['in'] = '',																-- edited works
+	['inactive'] = '년 이후로 접속 불가',
+	['inset'] = '$1 inset',
+	['lay summary'] = '요약문',
+	['newsgroup'] = '[[뉴스그룹]]:&nbsp;$1',
+	['original'] = '원본 문서',
+	['published'] = '$1에 출판됨',
+	['retrieved'] = '$1에 확인함',
+	['season'] = '시즌 $1', 
+	['section'] = '§ $1',
+	['sections'] = '§§ $1',
+	['series'] = '시리즈 $1',
+	['type'] = ' ($1)',															-- for titletype
+	['written'] = '$1에서 작성',
+
+	['vol'] = '$1 $2권',												-- $1 is sepc; bold journal style volume is in presentation{}
+	['vol-no'] = '$1 $2권 $3호',									-- sepc, volume, issue
+	['issue'] = '$1 $2호',												-- $1 is sepc
+
+	['j-vol'] = '$1 $2',														-- sepc, volume; bold journal volume is in presentation{}
+	['j-issue'] = ' ($1)',
+
+	['nopp'] = '$1 $2';															-- page(s) without prefix; $1 is sepc
+
+	['p-prefix'] = "$1 $2쪽",												-- $1 is sepc
+	['pp-prefix'] = "$1 $2쪽",											-- $1 is sepc
+	['j-page(s)'] = ': $1',														-- same for page and pages
+	['n-page(s)'] = '$1 $2면',														-- same for page and pages
+
+	['sheet'] = '$1 Sheet&nbsp;$2',												-- $1 is sepc
+	['sheets'] = '$1 Sheets&nbsp;$2',											-- $1 is sepc
+	['j-sheet'] = ': Sheet&nbsp;$1',
+	['j-sheets'] = ': Sheets&nbsp;$1',
+	
+	['subscription'] = '<span title="이 자료는 온라인 상에서 유료 구독을 해야만 확인할 수 있습니다." style="border-bottom:1px dotted; cursor:help; font-size:0.95em; font-size:90%; color:#555">(구독 필요)</span>' ..
+		'[[분류:구독이 필요한 링크를 포함한 문서]]', 
+ 
+	['registration']='<span title="이 자료는 해당 사이트에 가입을 해야만 확인할 수 있습니다." style="border-bottom:1px dotted; cursor:help; font-size:0.95em; font-size:90%; color:#555">(가입 필요)</span>' ..
+		'[[분류:가입이 필요한 링크를 포함한 문서]]',
+	
+	['language'] = '($1)', 
+	['via'] = " &ndash; $1 경유",
+	['event'] = '에 발생',
+	['minutes'] = '분', 
+	
+	['parameter-separator'] = ', ',
+	['parameter-final-separator'] = ', 및 ',
+	['parameter-pair-separator'] = ' 및 ',
+	
+	-- Determines the location of the help page
+	['help page link'] = '도움말:인용 오류',
+	['help page label'] = '도움말',
+	
+	-- Internal errors (should only occur if configuration is bad)
+	['undefined_error'] = 'Called with an undefined error condition',
+	['unknown_manual_ID'] = 'Unrecognized manual ID mode',
+	['unknown_ID_mode'] = 'Unrecognized ID mode',
+	['unknown_argument_map'] = 'Argument map not defined for this variable',
+	['bare_url_no_origin'] = 'Bare url found but origin indicator is nil or empty',
+}
+
+--[[--------------------------< P R E S E N T A T I O N >------------------------------------------------------
+
+Fixed presentation markup.  Originally part of citation_config.messages it has been moved into its own, more semantically
+correct place.
+
+]]
+local presentation = 
+	{
+	-- Error output
+	-- .error class is specified at https://git.wikimedia.org/blob/mediawiki%2Fcore.git/9553bd02a5595da05c184f7521721fb1b79b3935/skins%2Fcommon%2Fshared.css#L538
+	-- .citation-comment class is specified at Help:CS1_errors#Controlling_error_message_display
+	['hidden-error'] = '<span style="display:none;font-size:100%" class="error citation-comment">$1</span>',
+	['visible-error'] = '<span style="font-size:100%" class="error citation-comment">$1</span>',
+
+	['accessdate'] = '<span class="reference-accessdate">$1$2</span>',			-- to allow editors to hide accessdate using personal css
+
+	['bdi'] = '<bdi$1>$2</bdi>',												-- bidirectional isolation used with |script-title= and the like
+
+	['cite'] = '<cite class="$1">$2</cite>';									-- |ref= not set so no id="..." attribute
+	['cite-id'] = '<cite id="$1" class="$2">$3</cite>';							-- for use when |ref= is set
+
+	['format'] = ' <span style="font-size:85%;">($1)</span>',					-- for |format=, |chapter-format=, etc
+
+	['italic-title'] = "&#12298;$1&#12299;",									-- 《 》
+	['single-bracket'] = '&#12296;$1&#12297;',									-- 〈 〉 
+	['italic-title2'] = "''$1''",												-- '' ''
+
+	['kern-left'] = '<span style="padding-left:0.2em;">$1</span>$2',			-- spacing to use when title contains leading single or double quote mark
+	['kern-right'] = '$1<span style="padding-right:0.2em;">$2</span>',			-- spacing to use when title contains trailing single or double quote mark
+
+	['nowrap1'] = '<span class="nowrap">$1</span>',								-- for nowrapping an item: <span ...>yyyy-mm-dd</span>
+	['nowrap2'] = '<span class="nowrap">$1</span> $2',							-- for nowrapping portions of an item: <span ...>dd mmmm</span> yyyy (note white space)
+
+	['ocins'] = '<span title="$1" class="Z3988"><span style="display:none;">&nbsp;</span></span>',		-- Note: Using display: none on the COinS span breaks some clients
+
+	['parameter'] = '<code style="'..code_style..'">&#124;$1=</code>',
+
+	['quoted-text'] = '<q>$1</q>',												-- for wrapping |quote= content
+	['quoted-title'] = '&ldquo;$1&rdquo;',										-- “  ”
+
+	['trans-italic-title'] = "&#91;''$1''&#93;",								-- ['' '']
+	['trans-quoted-title'] = "&#91;$1&#93;",									-- [ ]
+	['vol-bold'] = ' <b>$1</b>',													-- for journal cites; for other cites ['vol'] in messages{}
+	}
+
+	
+--[[--------------------------< A L I A S E S >----------------------------------------------------------------
+
+Aliases table for commonly passed parameters
+
+]]
+
+local aliases = {
+	['AccessDate'] = {'access-date', 'accessdate', '확인날짜', '확인일자'},
+	['Agency'] = {'agency', '통신사'},
+	['AirDate'] = {'air-date', 'airdate', '방송날짜', '방송일자', '방영날짜', '방영일자'},
+	['ArchiveDate'] = {'archive-date', 'archivedate', '보존날짜', '보존일자'},
+	['ArchiveFormat'] = 'archive-format',
+	['ArchiveURL'] = {'archive-url', 'archiveurl', '보존url'},
+	['ASINTLD'] = {'ASIN-TLD', 'asin-tld'},
+	['At'] = {'at', '쪽기타'},
+	['Authors'] = {'authors', 'people', 'host', 'credits', '인물', '제작진'},
+	['BookTitle'] = {'book-title', 'booktitle'},
+	['Callsign'] = {'call-sign', 'callsign', '콜사인', '호출부호'},				-- cite interview
+	['Cartography'] = {'cartography', '지도제작'},
+	['Chapter'] = {'chapter', 'contribution', 'entry', 'article', 'section', '장', '항목'},
+	['ChapterFormat'] = {'chapter-format', 'contribution-format', 'section-format'};
+	['ChapterURL'] = {'chapter-url', 'chapterurl', 'contribution-url', 'contributionurl', 'section-url', 'sectionurl', '장url'},
+	['City'] = {'city', '도시'},												-- cite interview
+	['Class'] = {'class', '분류'},												-- cite arxiv and arxiv identifiers
+	['Coauthors'] = {'coauthors', 'coauthor', '공저자'},						-- coauthor and coauthors are deprecated; remove after 1 January 2015?
+	['Collaboration'] = 'collaboration',
+	['Conference'] = {'conference', 'event', '콘퍼런스', '컨퍼런스', '행사'},
+	['ConferenceFormat'] = {'conference-format', 'event-format'},
+	['ConferenceURL'] = {'conference-url', 'conferenceurl', 'event-url', 'eventurl', '콘퍼런스url', '컨퍼런스url'},
+	['Contribution'] = 'contribution', -- introduction, foreword, afterword, etc; required when |contributor= set
+	['Date'] = {'date', 'air-date', 'airdate', '날짜', '일자'},
+	['DeadURL'] = {'dead-url', 'deadurl', '깨진링크', '죽은링크', '깨진url', '죽은url'},
+	['Degree'] = {'degree', '학위'},
+	['DF'] = 'df',
+	['DisplayAuthors'] = {'display-authors', 'displayauthors', '저자표시'},
+	['DisplayEditors'] = {'display-editors', 'displayeditors', '편집자표시'},
+	['Docket'] = 'docket',
+	['DoiBroken'] = {'doi-broken', 'doi-broken-date', 'doi-inactive-date', 'doi_brokendate', 'doi_inactivedate', 'doi_깨진날짜'},
+	['Edition'] = {'edition', '판'},
+	['Editors'] = 'editors',
+	['Embargo'] = {'embargo', '엠바고'},
+	['Encyclopedia'] = {'encyclopedia', 'encyclopaedia', '백과사전'},			-- this one only used by citation
+	['Episode'] = {'episode', '에피소드'},										-- cite serial only TODO: make available to cite episode? 수정 필요?
+	['Format'] = {'format', '형식', '포맷'},
+	['ID'] = {'id', 'ID'},
+	['IgnoreISBN'] = {'ignore-isbn-error', 'ignoreisbnerror', 'isbn오류무시'},
+	['Inset'] = {'inset', '삽화'},
+	['Issue'] = {'issue', 'number', '호', '회', '화'},
+	['Language'] = {'language', 'in', '언어'},									-- 언어고리, 언어링크 제거 필요
+	['LastAuthorAmp'] = {'last-author-amp', 'lastauthoramp', '저자앰퍼샌드'},
+	['LayDate'] = {'lay-date', 'laydate', '요약문날짜'},
+	['LayFormat'] = 'lay-format',
+	['LaySource'] = {'lay-source', 'laysource', '요약문출처'},
+	['LayURL'] = {'lay-url', 'lay-summary', 'layurl', 'laysummary', '요약문', '요약문url'},
+	['MailingList'] = {'mailinglist', 'mailing-list', '메일링리스트'},			-- cite mailing list only
+	['Map'] = {'map', '지도'},													-- cite map only
+	['MapFormat'] = 'map-format',												-- cite map only
+	['MapURL'] = {'mapurl', 'map-url', '지도url'},								-- cite map only
+	['MessageID'] = {'message-id', '메시지id'},
+	['Minutes'] = {'minutes', '분'},
+	['Mode'] = {'mode', '모드'},
+	['Month'] = {'month', '월', '달', '작성월', '발행월'},						-- 임시
+	['NameListFormat'] = {'name-list-format', '이름목록형식'},
+	['Network'] = {'network', '네트워크'},
+	['NoPP'] = {'no-pp', 'nopp', '쪽숨김'},
+	['NoTracking'] = {'template-doc-demo', 'template doc demo', 'no-cat', 'nocat', 
+		'no-tracking', 'notracking', '분류없음'},
+	['Number'] = 'number', -- this case only for cite techreport
+	['OrigYear'] = {'orig-year', 'origyear', '원본연도', '초판연도'},
+	['Others'] = {'others', 'interviewer', 'interviewers', '기타', '인터뷰어'},
+	['Page'] = {'p', 'page', '쪽', '페이지', '면'},
+	['Pages'] = {'pp', 'pages'},
+	['Periodical'] = {'journal', 'newspaper', 'magazine', 'work',
+		'website',  'periodical', 'encyclopedia', 'encyclopaedia', 'dictionary',
+		'저널', '뉴스', '신문', '잡지', '작품', '웹사이트', '백과사전', '메일링리스트'},
+	['Place'] = {'place', 'location', '위치', '장소'},
+	['Program'] = {'program', '프로그램'},										-- cite interview
+	['PostScript'] = {'postscript', '추신'},
+	['PublicationDate'] = {'publicationdate', 'publication-date', '출판날짜', '출판일자'},
+	['PublicationPlace'] = {'publication-place', 'publicationplace', '출판위치', '출판장소'},
+	['PublisherName'] = {'publisher', 'distributor', 'institution', 'newsgroup', '출판사', '뉴스그룹'},
+	['Quote'] = {'quote', 'quotation', '인용', '인용문'},
+	['Ref'] = 'ref',
+	['RegistrationRequired'] = {'registration', '등록'},
+	['Scale'] = {'scale', '축척'},
+	['ScriptChapter'] = 'script-chapter',
+	['ScriptTitle'] = 'script-title',											-- 수정 필요
+	['Section'] = 'section',													-- 번역 수정 필요(지도 틀 말고 그 외에서도 쓰이는 듯)
+	['Season'] = {'season', '시즌'},
+	['Sections'] = 'sections',													-- cite map only -- 번역 수정 필요
+	['Series'] = {'series', 'version', '시리즈', '총서'},
+	['SeriesSeparator'] = 'series-separator',
+	['SeriesLink'] = {'series-link', 'serieslink', '시리즈링크', '시리즈고리'},
+	['SeriesNumber'] = {'series-number', 'series-no', 'seriesnumber', 'seriesno', '시리즈번호'},
+	['Sheet'] = 'sheet',														-- cite map only
+	['Sheets'] = 'sheets',														-- cite map only
+	['Station'] = {'station', '방송국'},
+	['SubscriptionRequired'] = {'subscription', '구독'},
+	['Time'] = 'time',
+	['Time2'] = '시간',															-- 임의로 추가함, '분'을 없앰
+	['TimeCaption'] = {'time-caption', 'timecaption'},
+	['Title'] = {'title', '제목'},
+	['TitleLink'] = {'title-link', 'episode-link', 'titlelink', 'episodelink', '제목링크', '제목고리'},
+	['NoBracket'] = {'이탤릭체'},												-- 임의로 추가함
+	['TitleNote'] = 'department',												-- 번역 필요
+	['TitleType'] = {'type', 'medium', '종류', '매체'},
+	['TransChapter'] = {'trans-chapter', 'trans_chapter', '번역장'},
+	['TransMap'] = 'trans-map',													-- cite map only
+	['Transcript'] = {'transcript', '대본'},
+	['TranscriptFormat'] = 'transcript-format',
+	['TranscriptURL'] = {'transcript-url', 'transcripturl', '대본url'},
+	['TransTitle'] = {'trans-title', 'trans_title', '번역제목'},
+	['URL'] = {'url', 'URL'},
+	['Vauthors'] = 'vauthors',
+	['Veditors'] = 'veditors',
+	['Via'] = {'via', '경유'},
+	['Volume'] = {'volume', '권'},
+	['Year'] = {'year', '연도', '연', '년', '년도'},
+
+	['AuthorList-First'] = {"first#", "given#", "author-first#", "author#-first", 
+		"이름#"},
+	['AuthorList-Last'] = {"last#", "author#", "surname#", "author-last#", "author#-last", "subject#", 
+		"성#", "저자#", "대상#"},
+	['AuthorList-Link'] = {"authorlink#", "author-link#", "author#-link", "subjectlink#", "author#link", "subject-link#", "subject#-link", "subject#link", 
+		"저자고리#", "저자#고리", "저자링크#", "저자#링크", "대상고리#", "대상링크#", "대상#고리", "대상#링크", 
+		"저자-고리#", "저자#-고리", "저자-링크#", "저자#-링크", "대상-고리#", "대상-링크#", "대상#-고리", "대상#-링크"},
+	['AuthorList-Mask'] = {"author-mask#", "authormask#", "author#mask", "author#-mask", "저자#-숨김", "저자-숨김#", "저자#숨김", "저자숨김#"},
+	
+	['ContributorList-First'] = {'contributor-first#','contributor#-first'},
+	['ContributorList-Last'] = {'contributor#', 'contributor-last#', 'contributor#-last'},
+	['ContributorList-Link'] = {'contributor-link#', 'contributor#-link'},
+	['ContributorList-Mask'] = {'contributor-mask#', 'contributor#-mask'},
+	
+	['EditorList-First'] = {"editor-first#", "editor#-first", "editor-given#", "editor#-given", 
+		"편집자-이름#", "편집자#-이름", "편집자이름#", "편집자#이름"},
+	['EditorList-Last'] = {"editor#", "editor-last#", "editor#-last", "editor-surname#", "editor#-surname", 
+		"편집자#", "편집자-성#", "편집자#-성", "편집자성#", "편집자#성"},
+	['EditorList-Link'] = {"editor-link#", "editor#-link", "editorlink#", "editor#link", 
+		"편집자-고리#", "편집자#-고리", "편집자고리#", "편집자#고리", "편집자#-링크", "편집자-링크#", "편집자링크#", "편집자#링크"},
+	['EditorList-Mask'] = {"editor-mask#", "editor#-mask", "editormask#", "editor#mask", "편집자#-숨김", "편집자-숨김#", "편집자#숨김", "편집자숨김#"},
+	
+	['TranslatorList-First'] = {'translator-first#','translator#-first', 
+		'번역자-이름#', '번역자#-이름', '번역자이름#', '번역자#이름'},
+	['TranslatorList-Last'] = {'translator#', 'translator-last#', 'translator#-last', 
+		'번역자#', '번역자-성#', '번역자#-성', '번역자성#', '번역자#성'},
+	['TranslatorList-Link'] = {'translator-link#', 'translator#-link', 
+		'번역자-고리#', '번역자#-고리', '번역자고리#', '번역자#고리', '번역자#-링크', '번역자-링크#', '번역자링크#', '번역자#링크'},
+	['TranslatorList-Mask'] = {'translator-mask#', 'translator#-mask', "번역자#-숨김", "번역자-숨김#", "번역자#숨김", "번역자숨김#"},
+}
+
+--[[--------------------------< D E F A U L T S >--------------------------------------------------------------
+
+Default parameter values
+
+TODO: keep this?  Only one default?
+]]
+
+local defaults = {
+	['DeadURL'] = 'yes',
+}
+
+
+--[[--------------------------< V O L U M E ,  I S S U E ,  P A G E S >----------------------------------------
+
+These tables hold cite class values (from the template invocation) and identify those templates that support
+|volume=, |issue=, and |page(s)= parameters.  Cite conference and cite map require further qualification which
+is handled in the main module.
+
+]]
+
+local templates_using_volume = {'citation', 'audio-visual', 'book', 'conference', 'encyclopaedia', 'interview', 'journal', 'magazine', 'map', 'news', 'report', 'techreport'}
+local templates_using_issue = {'citation', 'conference', 'episode', 'interview', 'journal', 'magazine', 'map', 'news'}
+local templates_not_using_page = {'audio-visual', 'episode', 'mailinglist', 'newsgroup', 'podcast', 'serial', 'sign', 'speech'}
+
+
+
+--[[--------------------------< K E Y W O R D S >--------------------------------------------------------------
+
+This table holds keywords for those parameters that have defined sets of acceptible keywords.
+
+]]
+
+local keywords = {
+	['yes_true_y'] = {'yes', 'true', 'y', '예', '참'},							-- ignore-isbn-error, last-author-amp, no-tracking, nopp, registration, subscription
+	['deadurl'] = {'yes', 'true', 'y', 'no', 'unfit', 'usurped', '예', '참', '아니오', '거짓', '부적절'},		-- 'unfit no archive', 'usurped no archive' 숨김
+	['mode'] = {'cs1', 'cs2'},
+	['name-list-format'] = {'vanc'},
+	['contribution'] = {'afterword', 'foreword', 'introduction', 'preface'},	-- generic contribution titles that are rendered unquoted in the 'chapter' position
+	['date-format'] = {'dmy', 'dmy-all', 'mdy', 'mdy-all', 'ymd', 'ymd-all'}
+}
+
+
+--[[--------------------------< S T R I P M A R K E R S >------------------------------------------------------
+
+Common pattern definition location for stripmarkers so that we don't have to go hunting for them if (when)
+MediaWiki changes their form.
+
+]]
+
+local stripmarkers = {
+	['any'] = '\127[^\127]*UNIQ%-%-(%a+)%-[%a%d]+%-QINU[^\127]*\127',			-- capture returns name of stripmarker
+	['math'] = '\127[^\127]*UNIQ%-%-math%-[%a%d]+%-QINU[^\127]*\127'			-- math stripmarkers used in coins_cleanup() and coins_replace_math_stripmarker()
+	}
+
+
+--[[--------------------------< I N V I S I B L E _ C H A R A C T E R S >--------------------------------------
+
+This table holds non-printing or invisible characters indexed either by name or by Unicode group. Values are decimal
+representations of UTF-8 codes.  The table is organized as a table of tables because the lua pairs keyword returns
+table data in an arbitrary order.  Here, we want to process the table from top to bottom because the entries at
+the top of the table are also found in the ranges specified by the entries at the bottom of the table.
+
+This list contains patterns for templates like {{'}} which isn't an error but transcludes characters that are
+invisible.  These kinds of patterns must be recognized by the functions that use this list.
+
+Also here is a pattern that recognizes stripmarkers that begin and end with the delete characters.  The nowiki
+stripmarker is not an error but some others are because the parameter values that include them become part of the
+template's metadata before stripmarker replacement.
+
+]]
+
+local invisible_chars = {
+	{'대체', '\239\191\189'},											-- U+FFFD, EF BF BD -- replacement
+	{'너비 없는 결합', '\226\128\141'},										-- U+200D, E2 80 8D -- zero width joiner
+	{'너비 없는 공백', '\226\128\139'},										-- U+200B, E2 80 8B -- zero width space
+	{'가는 공백', '\226\128\138'},												-- U+200A, E2 80 8A -- hair space
+	{'소프트 하이픈', '\194\173'},												-- U+00AD, C2 AD -- soft hyphen
+	{'수평 탭', '\009'},													-- U+0009 (HT), 09 -- horizontal tab
+	{'줄바꿈(엔터)', '\010'},														-- U+000A (LF), 0A -- line feed
+	{'캐리지 리턴', '\013'},												-- U+000D (CR), 0D -- carriage return
+	{'stripmarker', stripmarkers.any},											-- stripmarker; may or may not be an error; capture returns the stripmaker type
+	{'지움', '\127'},															-- U+007F (DEL), 7F; must be done after stripmarker test -- delete
+	{'C0 제어', '[\000-\008\011\012\014-\031]'},								-- U+0000–U+001F (NULL–US), 00–1F (except HT, LF, CR (09, 0A, 0D)) -- C0 control
+	{'C1 제어', '[\194\128-\194\159]'},										-- U+0080–U+009F (XXX–APC), C2 80 – C2 9F -- C1 제어
+--	{'Specials', '[\239\191\185-\239\191\191]'},								-- U+FFF9-U+FFFF, EF BF B9 – EF BF BF -- 특수
+--	{'Private use area', '[\238\128\128-\239\163\191]'},						-- U+E000–U+F8FF, EE 80 80 – EF A3 BF -- 사용자 정의 영역
+--	{'Supplementary Private Use Area-A', '[\243\176\128\128-\243\191\191\189]'},	-- U+F0000–U+FFFFD, F3 B0 80 80 – F3 BF BF BD -- 보조 사용자 정의 영역-A
+--	{'Supplementary Private Use Area-B', '[\244\128\128\128-\244\143\191\189]'},	-- U+100000–U+10FFFD, F4 80 80 80 – F4 8F BF BD -- 보조 사용자 정의 영역-B
+}
+
+
+--[[--------------------------< M A I N T E N A N C E _ C A T E G O R I E S >----------------------------------
+
+Here we name maintenance categories to be used in maintenance messages.
+
+]]
+
+local maint_cats = {
+	['ASIN'] = 'CS1 관리 - ISBN을 사용한 ASIN',
+	['date_year'] = 'CS1 관리 - 날짜와 연도',
+	['disp_auth_ed'] = 'CS1 관리 - 저자표시',									-- $1 is authors or editors -- 수정 필요
+	['embargo'] = 'CS1 관리 - PMC 엠바고 만료',
+--	['english'] = 'CS1 관리 - 한국어 인용 (ko)',								-- 실제로 안 쓰이고 있어서 숨김
+	['etal'] = 'CS1 관리 - et al.의 직접적인 사용',
+	['extra_text'] = 'CS1 관리 - 추가 문구',
+	['ignore_isbn_err'] = 'CS1 관리 - ISBN 오류 무시',							-- $1 is authors or editors
+	['missing_pipe'] = 'CS1 관리 - 수직선 없음',
+	['mult_names'] = 'CS1 관리 - 여러 이름',							-- $1 is authors or editors -- 수정 필요
+	['unknown_lang'] = 'CS1 관리 - 인식할 수 없는 언어',
+	['untitled'] = 'CS1 관리 - 이름 없는 작품',
+	}
+
+--[[--------------------------< P R O P E R T I E S _ C A T E G O R I E S >------------------------------------
+
+Here we name properties categories
+
+]]
+
+local prop_cats = {
+	['foreign_lang_source'] = 'CS1 - $1 인용 ($2)',								-- |language= categories; $1 is language name, $2 is ISO639-1 code
+--	['foreign_lang_source_2'] = 'CS1 외국어 인용 (ISO 639-2)|$1', -- |language= category; a cat for ISO639-2 languages; $1 is the ISO 639-2 code
+--	['script'] = 'CS1 외국어 문자 사용',							-- when language specified by |script-title=xx: doesn't have its own category
+--	['script_with_name'] = 'CS1 - $1 문자 사용 ($2)',					-- |script-title=xx: has matching category; $1 is language name, $2 is ISO639-1 code
+	} -- 위 세 분류 임시로 숨김
+
+
+
+--[[--------------------------< T I T L E _ T Y P E S >--------------------------------------------------------
+
+Here we map a template's CitationClass to TitleType (default values for |type= parameter)
+
+]]
+
+local title_types = {
+	['AV-media-notes'] = '미디어 설명',
+	['DVD-notes'] = '미디어 설명',
+	['mailinglist'] = '메일링 리스트',
+	['map'] = '지도',
+	['podcast'] = '팟캐스트',
+	['pressrelease'] = '보도 자료',
+	['report'] = '보고서',
+	['techreport'] = '기술 보고서',
+	['thesis'] = '학위논문',
+	}
+
+--[[--------------------------< E R R O R _ C O N D I T I O N S >----------------------------------------------
+
+Error condition table
+
+The following contains a list of IDs for various error conditions defined in the code.  For each ID, we specify a
+text message to display, an error category to include, and whether the error message should be wrapped as a hidden comment.
+
+Anchor changes require identical changes to matching anchor in Help:CS1 errors
+
+]]
+
+local error_conditions = {
+	accessdate_missing_url = {
+		message = '<code style="'..code_style..'">&#124;확인날짜=</code>는 <code style="'..code_style..'">&#124;url=</code>을 필요로 함',
+		anchor = 'accessdate_missing_url',
+		category = '인용 오류 - URL 없이 확인날짜를 사용함',
+		hidden = true },
+	archive_missing_date = {
+		message = '<code style="'..code_style..'">&#124;보존url=</code>은 <code style="'..code_style..'">&#124;보존날짜=</code>를 필요로 함',
+		anchor = 'archive_missing_date',
+		category = '인용 오류 - 보존url',
+		hidden = false },
+	archive_missing_url = {
+		message = '<code style="'..code_style..'">&#124;보존url=</code>은 <code style="'..code_style..'">&#124;url=</code>을 필요로 함',
+		anchor = 'archive_missing_url',
+		category = '인용 오류 - 보존url',
+		hidden = false },
+	archive_url = {
+		message = '<code style="'..code_style..'">&#124;보존url=</code>이 잘못됨: $1',
+		anchor = 'archive_url',
+		category = '인용 오류 - 보존url',
+		hidden = false },
+	arxiv_missing = {
+		message = '<code style="'..code_style..'">&#124;arxiv=</code>가 필요함',
+		anchor = 'arxiv_missing',
+		category = '인용 오류 - arXiv',											-- same as bad arxiv
+		hidden = false },
+	arxiv_params_not_supported = {
+		message = 'arXiv 인용에서 지원되지 않는 변수를 사용함',
+		anchor = 'arxiv_params_not_supported',
+		category = '인용 오류 - arXiv',											-- same as bad arxiv
+		hidden = false },
+	bad_arxiv = {
+		message = '<code style="'..code_style..'">&#124;arxiv=</code> 값 확인 필요',
+		anchor = 'bad_arxiv',
+		category = '인용 오류 - arXiv',
+		hidden = false },
+	bad_asin = {
+		message = '<code style="'..code_style..'">&#124;asin=</code> 값 확인 필요',
+		anchor = 'bad_asin',
+		category ='인용 오류 - ASIN',
+		hidden = false },
+	bad_date = {
+		message = '다음 날짜 값 확인 필요: <code style="'..code_style..'">$1</code>',
+		anchor = 'bad_date',
+		category = '인용 오류 - 날짜',
+		hidden = true },
+	bad_doi = {
+		message = '<code style="'..code_style..'">&#124;doi=</code> 값 확인 필요',
+		anchor = 'bad_doi',
+		category = '인용 오류 - DOI',
+		hidden = false },
+	bad_hdl = {
+		message = '<code style="'..code_style..'">&#124;hdl=</code> 값 확인 필요',
+		anchor = 'bad_hdl',
+		category = '인용 오류 - HDL',
+		hidden = false },
+	bad_isbn = {
+		message = '<code style="'..code_style..'">&#124;isbn=</code> 값 확인 필요: $1',
+		anchor = 'bad_isbn',
+		category = '인용 오류 - ISBN',
+		hidden = false },
+	bad_ismn = {
+		message = '<code style="'..code_style..'">&#124;ismn=</code> 값 확인 필요',
+		anchor = 'bad_ismn',
+		category = '인용 오류 - ISMN',
+		hidden = false },
+	bad_issn = {
+		message = '<code style="'..code_style..'">&#124;$1issn=</code> 값 확인 필요',
+		anchor = 'bad_issn',
+		category = '인용 오류 - ISSN',
+		hidden = false },
+	bad_lccn = {
+		message = '<code style="'..code_style..'">&#124;lccn=</code> 값 확인 필요',
+		anchor = 'bad_lccn',
+		category = '인용 오류 - LCCN',
+		hidden = false },
+	bad_message_id = {
+		message = '<code style="'..code_style..'">&#124;메시지id=</code> 값 확인 필요',
+		anchor = 'bad_message_id',
+		category = '인용 오류 - 메시지id',
+		hidden = false },
+	bad_ol = {
+		message = '<code style="'..code_style..'">&#124;ol=</code> 값 확인 필요',
+		anchor = 'bad_ol',
+		category = '인용 오류 - OL',
+		hidden = false },
+	bad_paramlink = {															-- for |title-link=, |author/editor/translator-link=, |series-link=, |episode-link=
+		message = '<code style="'..code_style..'">&#124;$1=</code> 값 확인 필요',
+		anchor = 'bad_paramlink',
+		category = '인용 오류 - 변수 링크',
+		hidden = false },
+	bad_pmc = {
+		message = '<code style="'..code_style..'">&#124;pmc=</code> 값 확인 필요',
+		anchor = 'bad_pmc',
+		category = '인용 오류 - PMC',
+		hidden = false },
+	bad_pmid = {
+		message = '<code style="'..code_style..'">&#124;pmid=</code> 값 확인 필요',
+		anchor = 'bad_pmid',
+		category = '인용 오류 - PMID',
+		hidden = false },
+	bad_oclc = {
+		message = '<code style="'..code_style..'">&#124;oclc=</code> 값 확인 필요',
+		anchor = 'bad_oclc',
+		category = '인용 오류 - OCLC',
+		hidden = false },
+	bad_url = {
+		message = '$1 값 확인 필요',
+		anchor = 'bad_url',
+		category = '인용 오류 - URL',
+		hidden = false },
+	bare_url_missing_title = {
+		message = '$1은 제목을 필요로 함',
+		anchor = 'bare_url_missing_title',
+		category = '인용 오류 - 제목 없이 URL을 사용함',
+		hidden = false },
+	chapter_ignored = {
+		message = '<code style="'..code_style..'">&#124;장=</code>이 무시됨',
+		anchor = 'chapter_ignored',
+		category = '인용 오류 - 장이 무시됨',
+		hidden = false },
+	citation_missing_title = {
+		message = '<code style="'..code_style..'">&#124;$1=</code>이(가) 없거나 비었음',
+		anchor = 'citation_missing_title',
+		category = '인용 오류 - 제목이 없음',
+		hidden = false },
+	cite_web_url = {															-- this error applies to cite web and to cite podcast
+		message = '<code style="'..code_style..'">&#124;url=</code>이 없거나 비었음',
+		anchor = 'cite_web_url',
+		category = '인용 오류 - URL이 없음',
+		hidden = true },
+	coauthors_missing_author = {
+		message = '<code style="'..code_style..'">&#124;공저자=</code>는 <code style="'..code_style..'">&#124;저자=</code>를 필요로 함',
+		anchor = 'coauthors_missing_author',
+		category = '인용 오류 - 저자 없이 공저자를 사용함',
+		hidden = false },
+	contributor_ignored = {
+		message = '<code style="'..code_style..'">&#124;contributor=</code> ignored</code>',
+		anchor = 'contributor_ignored',
+		category = 'CS1 errors: contributor',
+		hidden = false },
+	contributor_missing_required_param = {
+		message = '<code style="'..code_style..'">&#124;contributor=</code> requires <code style="'..code_style..'">&#124;$1=</code>',
+		anchor = 'contributor_missing_required_param',
+		category = 'CS1 errors: contributor',
+		hidden = false },
+	deprecated_params = {
+		message = '더 이상 지원되지 않는 변수를 사용함',
+		anchor = 'deprecated_params',
+		category = '인용 오류 - 오래된 변수를 사용함',
+		hidden = true },
+	empty_citation = {
+		message = '인용 틀이 비었음',
+		anchor = 'empty_citation',
+		category = '인용 오류 - 인용 틀이 비었음',
+		hidden = false },
+	first_missing_last = {
+		message = '이름 목록에서 <code style="'..code_style..'">&#124;이름$2=</code>이(가) 있지만 <code style="'..code_style..'">&#124;성$2=</code>이(가) 없음', -- 수정 필요
+		anchor = 'first_missing_last',
+		category = '인용 오류 - 저자 또는 편집자 없음',
+		hidden = false },
+	format_missing_url = {
+		message = '<code style="'..code_style..'">&#124;$1=</code>은 <code style="'..code_style..'">&#124;$2=</code>을 필요로 함',
+		anchor = 'format_missing_url',
+		category = '인용 오류 - URL 없이 형식을 사용함',
+		hidden = true },
+	invalid_param_val = {
+		message = '다음 값 잘못됨: <code style="'..code_style..'">&#124;$1=$2</code>',
+		anchor = 'invalid_param_val',
+		category = '인용 오류 - 잘못된 변수 값',
+		hidden = false },
+	invisible_char = {
+		message = '$2에 $1가 있음(위치 $3)',
+		anchor = 'invisible_char',
+		category = '인용 오류 - 보이지 않는 문자',
+		hidden = false },
+	missing_name = {
+		message = '이름 목록에서 <code style="'..code_style..'">&#124;성$2=</code>이(가) 없음', -- 수정 필요
+		anchor = 'missing_name',
+		category = '인용 오류 - 저자 또는 편집자 없음',
+		hidden = false },
+	param_has_ext_link = {
+		message = '<code style="'..code_style..'">$1</code>에 외부 링크가 있음',
+		anchor = 'param_has_ext_link',
+		category = '인용 오류 - 외부 링크',
+		hidden = false },
+	parameter_ignored = {
+		message = '지원되지 않는 변수 무시됨: <code style="'..code_style..'">&#124;$1=</code>',
+		anchor = 'parameter_ignored',
+		category = '인용 오류 - 지원되지 않는 변수 무시됨',
+		hidden = true },
+	parameter_ignored_suggest = {
+		message = '지원되지 않는 변수 무시됨: <code style="'..code_style..'">&#124;$1=</code> (추천: <code style="'..code_style..'">&#124;$2=</code>)',
+		anchor = 'parameter_ignored_suggest',
+		category = '인용 오류 - 지원되지 않는 변수 무시됨',
+		hidden = true },
+	redundant_parameters = {
+		message = '필요 이상의 변수가 사용됨: $1',
+		anchor = 'redundant_parameters',
+		category = '인용 오류 - 필요 이상의 변수가 사용됨',
+		hidden = false },
+	text_ignored = {
+		message = '다음 글자 무시됨: &lsquo;$1&rsquo;',
+		anchor = 'text_ignored',
+		category = '인용 오류 - 이름 없는 변수가 사용됨',
+		hidden = false },
+	trans_missing_title = {
+		message = '<code style="'..code_style..'">&#124;번역$1=</code>은 <code style="'..code_style..'">&#124;$1=</code>을 필요로 함',
+		anchor = 'trans_missing_title',
+		category = '인용 오류 - 번역된 제목',
+		hidden = false },
+	vancouver = {
+		message = '밴쿠버 양식 오류',
+		anchor = 'vancouver',
+		category = '인용 오류 - 밴쿠버 양식',
+		hidden = false },
+	wikilink_in_url = {
+		message = 'URL과 위키 링크가 충돌함',
+		anchor = 'wikilink_in_url',
+		category = '인용 오류 - URL과 위키 링크가 충돌함',
+		hidden = false },
+}
+
+--[[--------------------------< I D _ H A N D L E R S >--------------------------------------------------------
+
+The following contains a list of values for various defined identifiers.  For each identifier we specify a
+variety of information necessary to properly render the identifier in the citation.
+
+	parameters: a list of parameter aliases for this identifier
+	link: Wikipedia article name
+	label: the alternate name to apply to link
+	mode: 	'manual' when there is a specific function in the code to handle the identifier;
+			'external' for identifiers that link outside of Wikipedia;
+	prefix: the first part of a url that will be concatenated with a second part which usually contains the identifier
+	encode: true if uri should be percent encoded; otherwise false
+	COinS: identifier link or keyword for use in COinS:
+		for identifiers registered at info-uri.info use: info:....
+		for identifiers that have COinS keywords, use the keyword: rft.isbn, rft.issn, rft.eissn
+		for others make a url using the value in prefix, use the keyword: pre (not checked; any text other than 'info' or 'rft' works here)
+		set to nil to leave the identifier out of the COinS
+	separator: character or text between label and the identifier in the rendered citation
+]]
+
+local id_handlers = {
+	['ARXIV'] = {
+		parameters = {'arxiv', 'ARXIV', 'eprint', '전자문서'}, 
+		link = 'arXiv',
+		label = 'arXiv',
+		mode = 'manual',
+		prefix = '//arxiv.org/abs/', 											-- protocol relative tested 2013-09-04
+		encode = false,
+		COinS = 'info:arxiv',
+		separator = ':',
+	},
+	['ASIN'] = {
+		parameters = { 'asin', 'ASIN' },	   
+		link = '아마존 표준 식별 번호',
+		label = 'ASIN',
+		mode = 'manual',
+		prefix = '//www.amazon.',
+		COinS = nil,															-- no COinS for this id (needs thinking on implementation because |asin-tld=)
+		separator = '&nbsp;',
+		encode = false;
+	},
+	['BIBCODE'] = {
+		parameters = {'bibcode', 'BIBCODE'}, 
+		link = '비브코드',
+		label = 'Bibcode',
+		mode = 'external',
+		prefix = 'http://adsabs.harvard.edu/abs/',
+		encode = false,
+		COinS = 'info:bibcode',
+		separator = ':',
+	},
+	['DOI'] = {
+		parameters = { 'doi', 'DOI' },
+		link = '디지털 객체 식별자',
+		label = 'doi',
+		mode = 'manual',
+		prefix = '//dx.doi.org/',
+		COinS = 'info:doi',
+		separator = ':',
+		encode = true,
+	},
+	['EISSN'] = {
+		parameters = {'eissn', 'EISSN'}, 
+		link = '국제 표준 일련 번호',
+		label = 'eISSN',
+		mode = 'manual',
+		prefix = '//www.worldcat.org/issn/',
+		COinS = 'rft.eissn',
+		encode = false,
+		separator = '&nbsp;',
+	},
+	['HDL'] = {
+		parameters = { 'hdl', 'HDL' },
+		link = '핸들 시스템',
+		label = 'hdl',
+		mode = 'manual',
+		prefix = '//hdl.handle.net/',
+		COinS = 'info:hdl',
+		separator = ':',
+		encode = true,
+	},
+	['ISBN'] = {
+		parameters = {'isbn', 'ISBN', 'isbn13', 'ISBN13'}, 
+		link = '국제 표준 도서 번호',
+		label = 'ISBN',
+		mode = 'manual',
+		prefix = 'Special:BookSources/',
+		COinS = 'rft.isbn',
+		separator = '&nbsp;',
+	},
+	['ISMN'] = {
+		parameters = {'ismn', 'ISMN'}, 
+		link = '국제 표준 음악 번호',
+		label = 'ISMN',
+		mode = 'manual',
+		prefix = '',															-- not currently used; 
+		COinS = 'nil',															-- nil because we can't use pre or rft or info:
+		separator = '&nbsp;',
+	},
+	['ISSN'] = {
+		parameters = {'issn', 'ISSN'}, 
+		link = '국제 표준 일련 번호',
+		label = 'ISSN',
+		mode = 'manual',
+		prefix = '//www.worldcat.org/issn/',
+		COinS = 'rft.issn',
+		encode = false,
+		separator = '&nbsp;',
+	},
+	['JFM'] = {
+		parameters = {'jfm', 'JFM'}, 
+		link = '첸트랄블라트 마트',
+		label = 'JFM',
+		mode = 'external',
+		prefix = '//zbmath.org/?format=complete&q=an:',
+		COinS = 'pre',															-- use prefix value
+		encode = true,
+		separator = '&nbsp;',
+	},
+	['JSTOR'] = {
+		parameters = {'jstor', 'JSTOR'}, 
+		link = 'JSTOR',
+		label = 'JSTOR',
+		mode = 'external',
+		prefix = '//www.jstor.org/stable/', 									-- protocol relative tested 2013-09-04
+		COinS = 'pre',															-- use prefix value
+		encode = false,
+		separator = '&nbsp;',
+	},
+	['LCCN'] = {
+		parameters = {'LCCN', 'lccn'}, 
+		link = '미국 의회도서관 제어 번호',
+		label = 'LCCN',
+		mode = 'manual',
+		prefix = '//lccn.loc.gov/', 											-- protocol relative tested 2015-12-28
+		COinS = 'info:lccn',													-- use prefix value
+		encode = false,
+		separator = '&nbsp;',
+	},
+	['MR'] = {
+		parameters = {'MR', 'mr'}, 
+		link = '수학 리뷰',
+		label = 'MR',
+		mode = 'external',
+		prefix = '//www.ams.org/mathscinet-getitem?mr=', 						-- protocol relative tested 2013-09-04
+		COinS = 'pre',															-- use prefix value
+		encode = true,
+		separator = '&nbsp;',
+	},
+	['OCLC'] = {
+		parameters = {'OCLC', 'oclc'}, 
+		link = '온라인 컴퓨터 도서관 센터',
+		label = 'OCLC',
+		mode = 'manual',
+		prefix = '//www.worldcat.org/oclc/',
+		COinS = 'info:oclcnum',
+		encode = true,
+		separator = '&nbsp;',
+	},
+	['OL'] = {
+		parameters = { 'ol', 'OL' },
+		link = '오픈 라이브러리',
+		label = 'OL',
+		mode = 'manual',
+		prefix = '//openlibrary.org/',
+		COinS = nil,															-- no COinS for this id (needs thinking on implementation because /authors/books/works/OL)
+		separator = '&nbsp;',
+		encode = true,
+	},
+	['OSTI'] = {
+		parameters = {'OSTI', 'osti'}, 
+		link = '미국 과학기술정보국',
+		label = 'OSTI',
+		mode = 'external',
+		prefix = '//www.osti.gov/energycitations/product.biblio.jsp?osti_id=',	-- protocol relative tested 2013-09-04
+		COinS = 'pre',															-- use prefix value
+		encode = true,
+		separator = '&nbsp;',
+	},
+	['PMC'] = {
+		parameters = {'PMC', 'pmc'}, 
+		link = '펍메드 센트럴',
+		label = 'PMC',
+		mode = 'manual',
+		prefix = '//www.ncbi.nlm.nih.gov/pmc/articles/PMC', 
+		suffix = " ",
+		COinS = 'pre',															-- use prefix value
+		encode = true,
+		separator = '&nbsp;',
+	},
+	['PMID'] = {
+		parameters = {'PMID', 'pmid'}, 
+		link = '펍메드',
+		label = 'PMID',
+		mode = 'manual',
+		prefix = '//www.ncbi.nlm.nih.gov/pubmed/',
+		COinS = 'info:pmid',
+		encode = false,
+		separator = '&nbsp;',
+	},
+	['RFC'] = {
+		parameters = {'RFC', 'rfc'}, 
+		link = 'RFC',
+		label = 'RFC',
+		mode = 'external',
+		prefix = '//tools.ietf.org/html/rfc',
+		COinS = 'pre',															-- use prefix value
+		encode = false,
+		separator = '&nbsp;',
+	},
+	['SSRN'] = {
+		parameters = {'SSRN', 'ssrn'}, 
+		link = '사회 과학 연구 네트워크',
+		label = 'SSRN',
+		mode = 'external',
+		prefix = '//ssrn.com/abstract=', 										-- protocol relative tested 2013-09-04
+		COinS = 'pre',															-- use prefix value
+		encode = true,
+		separator = '&nbsp;',
+	},
+	['USENETID'] = {
+		parameters = {'message-id'},
+		link = '유즈넷',
+		label = 'Usenet:',
+		mode = 'manual',
+		prefix = 'news:',
+		encode = false,
+		COinS = 'pre',															-- use prefix value
+		separator = '&nbsp;',
+	},
+	['ZBL'] = {
+		parameters = {'ZBL', 'zbl'}, 
+		link = '첸트랄블라트 마트',
+		label = 'Zbl',
+		mode = 'external',
+		prefix = '//zbmath.org/?format=complete&q=an:',
+		COinS = 'pre',															-- use prefix value
+		encode = true,
+		separator = '&nbsp;',
+	},
+}
+
+return 	{
+	aliases = aliases,
+	defaults = defaults,
+	error_conditions = error_conditions,
+	id_handlers = id_handlers,
+	keywords = keywords,
+	stripmarkers=stripmarkers,
+	invisible_chars = invisible_chars,
+	maint_cats = maint_cats,
+	messages = messages,
+	presentation = presentation,
+	prop_cats = prop_cats,
+	title_types = title_types,
+	uncategorized_namespaces = uncategorized_namespaces,
+	uncategorized_subpages = uncategorized_subpages,
+	templates_using_volume = templates_using_volume,
+	templates_using_issue = templates_using_issue,
+	templates_not_using_page = templates_not_using_page,
+	}
