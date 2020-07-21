@@ -1,0 +1,121 @@
+--[[
+This module was originally on https://ko.wikipedia.org/wiki/모듈:Hangul and forked by Legunto
+(https://github.com/lens0021/legunto).
+]]
+--[[
+    한글 처리 관련 함수 모듈
+    
+    josa: 자동 조사 처리 함수
+      this function is inspired by
+          hanp extension: bugzilla:13712
+          korean library: http://pythonhosted.org/korean/
+--]]
+
+local func = {}
+
+local ustring = mw.ustring
+
+local handata = mw.loadData('Module:@ko/Hangul-data')
+
+-- load to local variables
+local final_map = handata.final_map
+
+local final_vowel = handata.final_vowel
+local final_consonant = handata.final_consonant
+local final_rieul = handata.final_rieul
+local final_unknown = handata.final_unknown
+
+local finalform_basic = handata.finalform_basic
+local finalform_vowel = handata.finalform_vowel
+local finalform_consonant = handata.finalform_consonant
+local finalform_rieul = handata.finalform_rieul
+
+ 
+-- Helper Functions
+--[[
+    Helper Function to interpret boolean strings. From Module:String
+--]]
+
+local function getBoolean( boolean_str )
+    local boolean_value;
+ 
+    if type( boolean_str ) == 'string' then
+        boolean_str = boolean_str:lower();
+        if boolean_str == 'false' or boolean_str == 'no' or boolean_str == '0'
+                or boolean_str == ''  or boolean_str == '아니오' then
+            boolean_value = false;
+        else
+            boolean_value = true;
+        end
+    elseif type( boolean_str ) == 'boolean' then
+        boolean_value = boolean_str;
+    else
+        error( 'No boolean value found' );
+    end    
+    return boolean_value
+end
+
+local function finalclass(str)
+    local lastchar = ustring.match(str, '.*([%w])')
+ 
+    if lastchar == nil then return final_unknown end
+ 
+    if lastchar >= '가' and lastchar <= '힣' then
+        local codepoint = ustring.codepoint(lastchar)
+        local final = (codepoint - 0xAC00) % 0x1C
+        if final == 0 then
+            return final_vowel
+        elseif final == 8 then
+            return final_rieul
+        else
+            return final_consonant
+        end
+    end
+ 
+    return final_map[lastchar] or final_unknown
+end
+
+--[[
+    사용법:
+    {{#invoke:Hangul|josa|str= |josa = | defaultjosa = | override = | josaonly= }}
+ 
+    str = 체언
+    josa = 조사
+    defaultjosa = 체언의 마지막 받침을 알 수 없는 경우에 defaultjosa 값을 쓴다.
+    override = True/False : True이면 체언의 어미에 상관없이 defaultjosa (없다면 josa) 값을 쓴다.
+    josaonly = True/False: True이면 체언 부분은 생략한다. (복잡한 틀 설계용)
+    ]]
+ 
+function func.josa(frame)
+    local input_string = frame.args.str or frame.args[1] or ''
+    local input_josa = frame.args.josa or frame.args[2] or ''
+    local input_defaultjosa = frame.args.defaultjosa
+    local override = getBoolean(frame.args.override or false)
+    local josaonly = getBoolean(frame.args.josaonly or false)
+ 
+    local output_josa
+ 
+    if override then
+        output_josa = input_defaultjosa or input_josa
+    else
+        local char_class = finalclass(input_string)
+        if char_class == final_vowel then
+            output_josa = finalform_vowel[input_josa] or input_josa
+        elseif char_class == final_consonant then
+            output_josa = finalform_consonant[input_josa] or input_josa
+        elseif char_class == final_rieul then
+            output_josa = finalform_rieul[input_josa] or input_josa
+        else -- final_unknown
+            output_josa = input_defaultjosa or finalform_basic[input_josa] or input_josa
+        end
+        -- mw.log (input_string .. '[' .. char_class .. ']' .. output_josa)
+    end
+ 
+    if josaonly then
+        return output_josa
+    else
+        return input_string .. output_josa
+    end
+end
+
+return func

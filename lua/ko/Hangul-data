@@ -1,0 +1,125 @@
+--[[
+This module was originally on https://ko.wikipedia.org/wiki/모듈:Hangul/data and forked by Legunto
+(https://github.com/lens0021/legunto).
+]]
+-- data definition
+ 
+local final_vowel = 1
+local final_consonant = 2
+local final_rieul = 3
+local final_unknown = 4
+
+final_map = {
+    ["ㄱ"]= final_consonant,    --기역/기윽
+    ["ㄴ"]= final_consonant,    --니은
+    ["ㄷ"]= final_consonant,    --디귿/디읃
+    ["ㄹ"]= final_rieul,        --리을
+    ["ㅁ"]= final_consonant,    --미음
+    ["ㅂ"]= final_consonant,    --비읍
+    ["ㅅ"]= final_consonant,    --시옷/시읏
+    ["ㅇ"]= final_consonant,    --이응
+    ["ㅈ"]= final_consonant,    --지읒
+    ["ㅊ"]= final_consonant,    --치읓
+    ["ㅋ"]= final_consonant,    --키읔
+    ["ㅌ"]= final_consonant,    --티읕
+    ["ㅍ"]= final_consonant,    --피읖
+    ["ㅎ"]= final_consonant,    --히읗
+    ["ㄲ"]= final_consonant,    --쌍기역/된기윽
+    ["ㄸ"]= final_consonant,    --쌍디귿/된디읃
+    ["ㅃ"]= final_consonant,    --쌍비읍/된비읍
+    ["ㅆ"]= final_consonant,    --쌍시옷/된시읏
+    ["ㅉ"]= final_consonant,    --씽지읒/된지읒
+ 
+    ["0"] = final_consonant,    -- 영, 십, 백, 천, 만, 억 (조 이상은 에러)
+    ["1"] = final_rieul,        -- 일
+    ["2"] = final_vowel,        -- 이
+    ["3"] = final_consonant,    -- 삼
+    ["4"] = final_vowel,        -- 사
+    ["5"] = final_vowel,        -- 오
+    ["6"] = final_consonant,    -- 육
+    ["7"] = final_rieul,        -- 칠
+    ["8"] = final_rieul,        -- 팔
+    ["9"] = final_vowel,        -- 구
+ 
+    ["A"] = final_vowel,        -- 에이
+    ["B"] = final_vowel,        -- 비
+    ["C"] = final_vowel,        -- 시
+    ["D"] = final_vowel,        -- 디
+    ["E"] = final_vowel,        -- 이
+    ["F"] = final_vowel,        -- 에프
+    ["G"] = final_vowel,        -- 지
+    ["H"] = final_vowel,        -- 에이치
+    ["I"] = final_vowel,        -- 아이
+    ["J"] = final_vowel,        -- 제이
+    ["K"] = final_vowel,        -- 케이
+    ["L"] = final_rieul,        -- 엘
+    ["M"] = final_consonant,    -- 엠
+    ["N"] = final_consonant,    -- 엔
+    ["O"] = final_vowel,        -- 오
+    ["P"] = final_consonant,    -- 피
+    ["Q"] = final_consonant,    -- 큐
+    ["R"] = final_vowel,        -- 아르 (알?)
+    ["S"] = final_vowel,        -- 에스
+    ["T"] = final_vowel,        -- 티
+    ["U"] = fianl_vowel,        -- 유
+    ["V"] = final_vowel,        -- 브이
+    ["W"] = final_vowel,        -- 더블유
+    ["X"] = final_vowel,        -- 엑스
+    ["Y"] = final_vowel,        -- 와이
+    ["Z"] = final_vowel,        -- 지, 제드, 제트
+}
+
+local particle_map = {
+    -- 기본형, 배~, 감~, 귤~
+    { "은(는)", "는", "은", "은"},
+    { "이(가)", "가", "이", "이"},
+    { "을(를)", "를", "을", "을"},
+    { "와(과)", "와", "과", "과"},
+    { "야(아)", "야", "아", "아"},
+    { "(으)로", "로", "으로", "로"},
+    { "(으)로서", "로서", "으로서", "로서"},
+    { "(으)로써", "로써", "으로써", "로써"},
+    { "(이)랑", "랑", "이랑", "이랑"},
+    { "(이)나", "나", "이나", "이나"},
+    { "(이)여", "여", "이여", "이여"},
+    { "(이)시여", "시여", "이시여", "이시여"},
+    { "(이)다", "다", "이다", "이다"},
+    { "(이)라고", "라고", "이라고", "이라고"},
+}
+ 
+finalform_basic = {}
+finalform_vowel = {}
+finalform_consonant = {}
+finalform_rieul = {}
+ 
+local function registerParticleMap(rules)
+    local finalform = { {}, {}, {}, {} }
+    mw.log(#rules)
+    for i = 1, #rules do
+        rule = rules[i]
+        for j = 1, 4 do
+            finalform_basic[ rule[j] ] = rule[1]
+            finalform_vowel[ rule[j] ] = rule[2]
+            finalform_consonant[ rule[j] ] = rule[3]
+            finalform_rieul[ rule[j] ] = rule[4]
+        end
+    end
+ 
+    return #rules
+end
+ 
+registerParticleMap(particle_map)
+
+return {
+    final_vowel = final_vowel,
+    final_consonant = final_consonant,
+    final_rieul = final_rieul,
+    final_unknown = final_unknown,
+
+    finalform_basic = finalform_basic,
+    finalform_vowel = finalform_vowel,
+    finalform_consonant = finalform_consonant,
+    finalform_rieul = finalform_rieul,
+    
+    final_map = final_map,
+}

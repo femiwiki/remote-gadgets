@@ -1,0 +1,108 @@
+{
+  "modules": {
+    "@ko/Hangul": {
+      "pageid": 933341,
+      "revid": 26422357,
+      "title": "\ubaa8\ub4c8:Hangul",
+      "dependencies": [
+        "@ko/Hangul/data"
+      ]
+    },
+    "@ko/Hangul/data": {
+      "pageid": 933340,
+      "revid": 13212479,
+      "title": "\ubaa8\ub4c8:Hangul/data"
+    },
+    "@en/Citation/CS1": {
+      "pageid": 38573037,
+      "revid": 967170285,
+      "title": "Module:Citation/CS1",
+      "dependencies": [
+        "@en/Citation/CS1/Suggestions/sandbox",
+        "@en/Citation/CS1/COinS",
+        "@en/Citation/CS1/Utilities",
+        "@en/Citation/CS1/Date_validation/sandbox",
+        "@en/Citation/CS1/Identifiers/sandbox",
+        "@en/Citation/CS1/Configuration/sandbox",
+        "@en/Citation/CS1/COinS/sandbox",
+        "@en/Citation/CS1/Configuration",
+        "@en/Citation/CS1/Identifiers",
+        "@en/Citation/CS1/Suggestions",
+        "@en/Citation/CS1/Whitelist",
+        "@en/Citation/CS1/Date_validation",
+        "@en/Citation/CS1/Whitelist/sandbox",
+        "@en/Citation/CS1/Utilities/sandbox"
+      ]
+    },
+    "@en/Citation/CS1/Utilities/sandbox": {
+      "pageid": 49108446,
+      "revid": 951883912,
+      "title": "Module:Citation/CS1/Utilities/sandbox"
+    },
+    "@en/Citation/CS1/Whitelist/sandbox": {
+      "pageid": 40216980,
+      "revid": 967982399,
+      "title": "Module:Citation/CS1/Whitelist/sandbox"
+    },
+    "@en/Citation/CS1/Date_validation": {
+      "pageid": 42164542,
+      "revid": 967295434,
+      "title": "Module:Citation/CS1/Date validation"
+    },
+    "@en/Citation/CS1/Whitelist": {
+      "pageid": 39013723,
+      "revid": 967154988,
+      "title": "Module:Citation/CS1/Whitelist"
+    },
+    "@en/Citation/CS1/Suggestions": {
+      "pageid": 39043607,
+      "revid": 967154977,
+      "title": "Module:Citation/CS1/Suggestions"
+    },
+    "@en/Citation/CS1/Identifiers": {
+      "pageid": 48812124,
+      "revid": 967154982,
+      "title": "Module:Citation/CS1/Identifiers"
+    },
+    "@en/Citation/CS1/Configuration": {
+      "pageid": 39043527,
+      "revid": 967154995,
+      "title": "Module:Citation/CS1/Configuration"
+    },
+    "@en/Citation/CS1/COinS/sandbox": {
+      "pageid": 49108448,
+      "revid": 957254826,
+      "title": "Module:Citation/CS1/COinS/sandbox"
+    },
+    "@en/Citation/CS1/Configuration/sandbox": {
+      "pageid": 39066555,
+      "revid": 967982340,
+      "title": "Module:Citation/CS1/Configuration/sandbox"
+    },
+    "@en/Citation/CS1/Identifiers/sandbox": {
+      "pageid": 49108437,
+      "revid": 967155819,
+      "title": "Module:Citation/CS1/Identifiers/sandbox"
+    },
+    "@en/Citation/CS1/Date_validation/sandbox": {
+      "pageid": 42164168,
+      "revid": 967295144,
+      "title": "Module:Citation/CS1/Date validation/sandbox"
+    },
+    "@en/Citation/CS1/Utilities": {
+      "pageid": 48808487,
+      "revid": 935243617,
+      "title": "Module:Citation/CS1/Utilities"
+    },
+    "@en/Citation/CS1/COinS": {
+      "pageid": 48828620,
+      "revid": 913814839,
+      "title": "Module:Citation/CS1/COinS"
+    },
+    "@en/Citation/CS1/Suggestions/sandbox": {
+      "pageid": 47721336,
+      "revid": 967155816,
+      "title": "Module:Citation/CS1/Suggestions/sandbox"
+    }
+  }
+}
