@@ -81,7 +81,7 @@ def edit_pages_on_wiki(targets, wiki):
         if search(r'^lua/.+/.+', FILE):
             # Lua modules fetched by Legunto
             _, prefix, title = FILE.split('/')
-            title = f'module:@{prefix}/title'
+            title = f'module:@{prefix}/{title}'
         elif FILE.startswith('lua/'):
             # Lua modules
             title = 'module:'+basename(FILE)
