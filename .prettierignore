@@ -1,4 +1,7 @@
 *.py
 *.md
 *.yml
-*.yml
+
+# Legunto
+scribunto.json
+scribunto.lock
