@@ -2,7 +2,7 @@
 local cs1 ={};
 
 local ISOdate = require('모듈:ISOdate')._ISOdate								-- 로컬: 날짜 변환을 위해 추가
-local langdata = mw.loadData('Module:Langname/data')							-- 로컬: 언어 이름 지역화 
+local langdata = mw.loadData('Module:Langname-data')							-- 로컬: 언어 이름 지역화 
 local lang_name = langdata.lang_name
 
 --[[--------------------------< F O R W A R D   D E C L A R A T I O N S >--------------------------------------
@@ -3152,20 +3152,20 @@ function cs1.citation(frame)
 	local validation, utilities, identifiers, metadata;
 	
 	if nil ~= string.find (frame:getTitle(), 'sandbox', 1, true) then			-- did the {{#invoke:}} use sandbox version?
-		cfg = mw.loadData ('Module:Citation/CS1/Configuration/sandbox');		-- load sandbox versions of support modules
-		whitelist = mw.loadData ('Module:Citation/CS1/Whitelist/sandbox');
-		utilities = require ('Module:Citation/CS1/Utilities/sandbox');
-		validation = require ('Module:Citation/CS1/Date_validation/sandbox');
-		identifiers = require ('Module:Citation/CS1/Identifiers/sandbox');
-		metadata = require ('Module:Citation/CS1/COinS/sandbox');
+		cfg = mw.loadData ('Module:Citation-CS1-Configuration-sandbox');		-- load sandbox versions of support modules
+		whitelist = mw.loadData ('Module:Citation-CS1-Whitelist-sandbox');
+		utilities = require ('Module:Citation-CS1-Utilities-sandbox');
+		validation = require ('Module:Citation-CS1-Date_validation-sandbox');
+		identifiers = require ('Module:Citation-CS1-Identifiers-sandbox');
+		metadata = require ('Module:Citation-CS1-COinS-sandbox');
 		
 	else																		-- otherwise
-		cfg = mw.loadData ('Module:Citation/CS1/Configuration');				-- load live versions of support modules
-		whitelist = mw.loadData ('Module:Citation/CS1/Whitelist');
-		utilities = require ('Module:Citation/CS1/Utilities');
-		validation = require ('Module:Citation/CS1/Date_validation');
-		identifiers = require ('Module:Citation/CS1/Identifiers');
-		metadata = require ('Module:Citation/CS1/COinS');
+		cfg = mw.loadData ('Module:Citation-CS1-Configuration');				-- load live versions of support modules
+		whitelist = mw.loadData ('Module:Citation-CS1-Whitelist');
+		utilities = require ('Module:Citation-CS1-Utilities');
+		validation = require ('Module:Citation-CS1-Date_validation');
+		identifiers = require ('Module:Citation-CS1-Identifiers');
+		metadata = require ('Module:Citation-CS1-COinS');
 	end
 
 	utilities.set_selected_modules (cfg);										-- so that functions in Utilities can see the cfg tables
@@ -3224,9 +3224,9 @@ function cs1.citation(frame)
 				else
 					if nil == suggestions.suggestions then						-- if this table is nil then we need to load it
 						if nil ~= string.find (frame:getTitle(), 'sandbox', 1, true) then			-- did the {{#invoke:}} use sandbox version?
-							suggestions = mw.loadData( 'Module:Citation/CS1/Suggestions/sandbox' );	-- use the sandbox version
+							suggestions = mw.loadData( 'Module:Citation-CS1-Suggestions-sandbox' );	-- use the sandbox version
 						else
-							suggestions = mw.loadData( 'Module:Citation/CS1/Suggestions' );			-- use the live version
+							suggestions = mw.loadData( 'Module:Citation-CS1-Suggestions' );			-- use the live version
 						end
 					end
 					for pattern, param in pairs (suggestions.patterns) do		-- loop through the patterns to see if we can suggest a proper parameter
