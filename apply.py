@@ -30,10 +30,6 @@ def sanitize_args(arr):
         exit(1)
 
 
-def modified_files_exists():
-    return len(argv) == 1
-
-
 def get_modified_files(wiki):
     '''return empty array if previous applied commit does not exist'''
     latest_commit = environ['GITHUB_SHA']
