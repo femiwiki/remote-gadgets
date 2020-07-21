@@ -70,15 +70,23 @@ def validate_files(arr):
     return [f for f in arr if is_target(f)]
 
 
-def edit_pages_on_wiki(target, wiki):
-    logging.info('target files:' + ' / '.join(target))
+def edit_pages_on_wiki(targets, wiki):
+    logging.info('target files:' + ' / '.join(targets))
 
     SUMMARY = "Github @" + environ['GITHUB_ACTOR'] + "의 " + \
         "https://github.com/" + environ['GITHUB_REPOSITORY'] + "/commit/" + \
         environ['GITHUB_SHA'][:8]
 
-    for i, FILE in enumerate(target):
-        title = basename(FILE)
+    for i, FILE in enumerate(targets):
+        if search(r'^lua/.+/.+', FILE):
+            # Lua modules fetched by Legunto
+            _, prefix, title = FILE.split('/')
+            title = f'module:@{prefix}/title'
+        elif FILE.startswith('lua/'):
+            # Lua modules
+            title = 'module:'+basename(FILE)
+        else:
+            title = basename(FILE)
         page = wiki.pages[title]
         try:
             f = open(FILE, "r")
