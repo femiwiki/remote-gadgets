@@ -1,0 +1,837 @@
+--[[
+This module was originally on https://ko.wikipedia.org/wiki/모듈:Citation/CS1/Whitelist and forked by Legunto
+(https://github.com/lens0021/legunto).
+]]
+
+--[[--------------------------< P A R A M E T E R S   N O T   S U P P O R T E D >------------------------------
+
+This is a list of parameters that once were but now are no longer supported:
+
+	['albumlink'] = nil,														-- unique alias of titlelink used by old cite AV media notes
+	['albumtype'] = nil,														-- controled inappropriate functionality in the old cite AV media notes
+	['artist'] = nil,															-- unique alias of others used by old cite AV media notes
+	['ARXIV'] = nil,															-- not an initialization
+	['Author'] = nil,															-- non-standard capitalization
+	['authorformat'] = nil,														-- primarily used to support Vancouver format which functionality now part of name-list-format
+	['author-format'] = nil,													-- primarily used to support Vancouver format which functionality now part of name-list-format
+	['author-name-separator'] = nil,											-- primarily used to support Vancouver format which functionality now part of name-list-format
+	['author-separator'] = nil,													-- primarily used to support Vancouver format which functionality now part of name-list-format
+	['began'] = nil,															-- module handles date ranges; cite episode and cite series
+	['BIBCODE'] = nil,															-- not an initialization
+	['callsign'] = nil,															-- cite interview removed
+	['call-sign'] = nil,														-- cite interview removed
+	['chapterlink'] = nil,														-- if ever necessary to link to a chapter article, |chapter= can be wikilinked 
+	['chapter-link'] = nil,														-- 
+	['city'] = nil,																-- cite interview removed
+	['coauthor'] = nil,															-- redundant to |authorn=; not made part of metadata
+	['coauthors'] = nil,														-- redundant to |authorn=; not made part of metadata
+	['cointerviewers'] = nil,													-- unique alias of others used by old cite interview
+	['day'] = nil,																-- deprecated in {{citation/core}} and somehow undeprecated in Module:Citation/CS1 and now finally removed
+	['director'] = nil,															-- unique alias of author used by old cite DVD-notes
+	['doi_brokendate'] = nil,    												-- alias of doi-broken-date
+	['doi_inactivedate'] = nil,													-- alias of doi-inactive-date
+	['DoiBroken'] = nil,														-- not used, non-standard captialization
+	['Editor'] = nil,															-- non-standard capitalization
+	['editorformat'] = nil,														-- primarily used to support Vancouver format which functionality now part of name-list-format
+	['EditorSurname'] = nil,													-- non-standard capitalization
+	['editor-format'] = nil,													-- primarily used to support Vancouver format which functionality now part of name-list-format
+	['EditorGiven'] = nil,														-- non-standard capitalization
+	['editor-name-separator'] = nil,											-- primarily used to support Vancouver format which functionality now part of name-list-format
+	['editor-separator'] = nil,													-- primarily used to support Vancouver format which functionality now part of name-list-format
+	['Embargo'] = nil,															-- not used, non-standard capitalization
+	['ended'] = nil,															-- module handles date ranges; cite episode and cite series
+	['in'] = nil,																-- ambiguous between use for language, appearance of a lesser work in an edited work
+	['interviewers'] = nil,														-- only need InterviewerList support
+	['month'] = nil,															-- functionality supported by |date=
+	['name-separator'] = nil,													-- primarily used to support Vancouver format which functionality now part of name-list-format
+	['notestitle'] = nil,														-- unique alias of chapter used by old cite AV media notes
+	['PPrefix'] = nil,															-- non-standard capitalization
+	['PPPrefix'] = nil,															-- not used, non-standard capitalization
+	['pp-prefix'] = nil,														-- not used, not documented
+	['p-prefix'] = nil,															-- not used, not documented
+	['program'] = nil,															-- cite interview removed
+	['publisherid'] = nil,														-- unique alias of id used by old cite AV media notes and old cite DVD-notes
+	['Ref'] = nil,																-- non-standard capitalization
+	['separator'] = nil,														-- this functionality now provided by |mode=
+	['template doc demo'] = nil,												-- alias of template doc demo
+	['titleyear'] = nil,														-- unique alias of origyear used by old cite DVD-notes
+	['trans_chapter'] = nil,													-- alias of trans-chapter
+	['trans_title'] = nil,														-- alias of trans-title
+
+	['Author#'] = nil,															-- non-standard capitalization
+	['authors#'] = nil,															-- no need for multiple lists of author names
+	['Editor#'] = nil,															-- non-standard capitalization
+	['editors#'] = nil,															-- no need for multiple lists of editor names
+	['EditorGiven#'] = nil,														-- non-standard capitalization
+	['EditorSurname#'] = nil,													-- non-standard capitalization
+
+]]
+
+--[[--------------------------< S U P P O R T E D   P A R A M E T E R S >--------------------------------------
+
+Because a steady-state signal conveys no useful information, whitelist.basic_arguments[] list items can have three values:
+	true - these parameters are valid and supported parameters
+	false - these parameters are deprecated but still supported
+	nil - these parameters are no longer supported (when setting a parameter to nil, leave a comment stating the reasons for invalidating the parameter)
+	
+]]
+
+local whitelist = {}
+
+local basic_arguments = {
+	['accessdate'] = true,
+	['access-date'] = true,
+	['agency'] = true,
+	['airdate'] = true,
+	['air-date'] = true,
+	['archivedate'] = true,
+	['archive-date'] = true,
+	['archive-format'] = true,
+	['archiveurl'] = true,
+	['archive-url'] = true,
+	['article'] = true,
+	['article-format'] = true,
+	['article-url'] = true,
+	['article-url-access'] = true,
+	['arxiv'] = true,
+	['ARXIV'] = true, -- duplicate?
+	['asin'] = true,
+	['ASIN'] = true,
+	['asin-tld'] = true,
+	['ASIN-TLD'] = false,														-- not an identifier but an identifier-modifier
+	['at'] = true,
+	['author'] = true,
+	['author-first'] = true,
+	['author-last'] = true,
+	['authorlink'] = true,
+	['author-link'] = true,
+	['authormask'] = true,
+	['author-mask'] = true,
+	['authors'] = true,
+	['bibcode'] = true,
+	['BIBCODE'] = true, -- duplicate?
+	['bibcode-access'] = true,
+	['biorxiv'] = true,
+	['booktitle'] = true,
+	['book-title'] = true,
+	['callsign'] = true,			-- cite interview -- DEPRECATED
+	['call-sign'] = true,			-- cite interview -- DEPRECATED
+	['cartography'] = true,
+	['chapter'] = true,
+	['chapter-format'] = true,
+	['chapterurl'] = true,
+	['chapter-url'] = true,
+	['city'] = true,				-- cite interview -- DEPRECATED
+	['citeseerx'] = true,
+	['class'] = false,															-- cite arxiv only; general use deprecated
+	['coauthor'] = false,			-- deprecated
+	['coauthors'] = false,			-- deprecated
+	['collaboration'] = true,
+	['conference'] = true,
+	['conference-format'] = true,
+	['conferenceurl'] = true,
+	['conference-url'] = true,
+	['contribution'] = true,
+	['contribution-format'] = true,
+	['contributionurl'] = true,
+	['contribution-url'] = true,
+	['contribution-url-access'] = true,
+	['contributor'] = true,
+	['contributor-first'] = true,
+	['contributor-last'] = true,
+	['contributor-given'] = true,
+	['contributor-surname'] = true,
+	['contributor-link'] = true,
+	['contributor-mask'] = true,
+	['credits'] = true,				-- cite episode, cite serial
+	['date'] = true,
+	['deadurl'] = false,
+	['dead-url'] = false,
+	['degree'] = true,
+	['department'] = true,
+	['df'] = true,
+	['dictionary'] = true,
+	['displayauthors'] = true,
+	['display-authors'] = true,
+	['display-contributors'] = true,
+	['displayeditors'] = true,
+	['display-editors'] = true,
+	['display-interviewers'] = true,
+	['display-translators'] = true,
+	['docket'] = true,
+	['doi'] = true,
+	['DOI'] = true,
+	['doi-access'] = true,
+	['doi-broken'] = true,
+	['doi_brokendate'] = true, -- DEPRECATED
+	['doi-broken-date'] = true,
+	['doi_inactivedate'] = true, -- DEPRECATED
+	['doi-inactive-date'] = true,
+	['edition'] = true,
+	['editor'] = true,
+	['editor-first'] = true,
+	['editor-given'] = true,
+	['editor-last'] = true,
+	['editorlink'] = true,
+	['editor-link'] = true,
+	['editormask'] = true,
+	['editor-mask'] = true,
+	['editors'] = true,
+	['editor-surname'] = true,
+	['eissn'] = true,
+	['EISSN'] = true,
+	['embargo'] = true,
+	['encyclopaedia'] = true,
+	['encyclopedia'] = true,
+	['entry'] = true,
+	['entry-format'] = true,
+	['entry-url'] = true,
+	['entry-url-access'] = true,
+	['episode'] = true,															-- cite serial only TODO: make available to cite episode?
+	['episodelink'] = true,														-- cite episode and cite serial
+	['episode-link'] = true,													-- cite episode and cite serial
+	['eprint'] = true,															-- cite arxiv and arxiv identifiers
+	['event'] = true,
+	['event-format'] = true,
+	['eventurl'] = true,
+	['event-url'] = true,
+	['first'] = true,
+	['format'] = true,
+	['given'] = true,
+	['hdl'] = true,
+	['HDL'] = true,
+	['hdl-access'] = true,
+	['host'] = true,
+	['id'] = true,
+	['ID'] = true,
+	['ignoreisbnerror'] = true,
+	['ignore-isbn-error'] = true,
+	['in'] = true, -- DEPRECATED
+	['inset'] = true,
+	['institution'] = true,
+	['interviewer'] = true,				--cite interview
+	['interviewers'] = true,			--cite interview -- DEPRECATED
+	['interviewer-first'] = true,
+	['interviewer-last'] = true,
+	['interviewerlink'] = true,
+	['interviewer-link'] = true,
+	['interviewermask'] = true,
+	['interviewer-mask'] = true,
+	['isbn'] = true,
+	['ISBN'] = true,
+	['isbn13'] = true,
+	['ISBN13'] = true,
+	['ismn'] = true,
+	['ISMN'] = true,
+	['issn'] = true,
+	['ISSN'] = true,
+	['issue'] = true,
+	['jfm'] = true,
+	['JFM'] = true,
+	['journal'] = true,
+	['jstor'] = true,
+	['JSTOR'] = true,
+	['jstor-access'] = true,
+	['lang'] = true,
+	['language'] = true,
+	['last'] = true,
+	['lastauthoramp'] = true,
+	['last-author-amp'] = true,
+	['laydate'] = true,
+	['lay-date'] = true,
+	['laysource'] = true,
+	['lay-source'] = true,
+	['laysummary'] = false,
+	['lay-summary'] = false,
+	['lay-format'] = true,
+	['layurl'] = true,
+	['lay-url'] = true,
+	['lccn'] = true,
+	['LCCN'] = true,
+	['location'] = true,
+	['magazine'] = true,
+	['mailinglist'] = true,				-- cite mailing list only
+	['mailing-list'] = true,			-- cite mailing list only
+	['map'] = true,						-- cite map only
+	['map-format'] = true,				-- cite map only
+	['mapurl'] = true,					-- cite map only
+	['map-url'] = true,					-- cite map only
+	['map-url-access'] = true,													-- cite map only
+	['medium'] = true,
+	['message-id'] = true,			-- cite newsgroup
+	['minutes'] = true,
+	['mode'] = true,
+	['mr'] = true,
+	['MR'] = true,
+	['name-list-format'] = true,
+	['network'] = true,
+	['newsgroup'] = true,
+	['newspaper'] = true,
+	['nocat'] = true,
+	['no-cat'] = true,
+	['nopp'] = true,
+	['no-pp'] = true,
+	['notracking'] = true,
+	['no-tracking'] = true,
+	['number'] = true,
+	['oclc'] = true,
+	['OCLC'] = true,
+	['ol'] = true,
+	['OL'] = true,
+	['ol-access'] = true,
+	['origyear'] = true,
+	['orig-year'] = true,
+	['osti'] = true,
+	['OSTI'] = true,
+	['osti-access'] = true,
+	['others'] = true,
+	['p'] = true,
+	['page'] = true,
+	['pages'] = true,
+	['people'] = true,
+	['periodical'] = true,
+	['place'] = true,
+	['pmc'] = true,
+	['PMC'] = true,
+	['pmid'] = true,
+	['PMID'] = true,
+	['postscript'] = true,
+	['pp'] = true,
+	['program'] = true,				-- cite interview -- DEPRECATED
+	['publicationdate'] = true,
+	['publication-date'] = true,
+	['publicationplace'] = true,
+	['publication-place'] = true,
+	['publisher'] = true,
+	['quotation'] = true,
+	['quote'] = true,
+	['ref'] = true,
+	['registration'] = false,
+	['rfc'] = true,
+	['RFC'] = true,
+	['scale'] = true,
+	['script-article'] = true,
+	['script-chapter'] = true,
+	['script-contribution'] = true,
+	['script-entry'] = true,
+	['script-journal'] = true,
+	['script-magazine'] = true,
+	['script-newspaper'] = true,
+	['script-periodical'] = true,
+	['script-section'] = true,
+	['script-title'] = true,
+	['script-website'] = true,
+	['script-work'] = true,
+	['season'] = true,
+	['section'] = true,
+	['section-format'] = true,
+	['sections'] = true,					-- cite map only
+	['sectionurl'] = true,
+	['section-url'] = true,
+	['series'] = true,
+	['serieslink'] = true,
+	['series-link'] = true,
+	['seriesno'] = true,
+	['series-no'] = true,
+	['seriesnumber'] = true,
+	['series-number'] = true,
+	['series-separator'] = true,
+	['sheet'] = true,															-- cite map only
+	['sheets'] = true,															-- cite map only
+	['ssrn'] = true,
+	['SSRN'] = true,
+	['station'] = true,
+	['subject'] = true,
+	['subjectlink'] = true,
+	['subject-link'] = true,
+	['subscription'] = false,
+	['surname'] = true,
+	['template doc demo'] = true, -- DEPRECATED
+	['template-doc-demo'] = true,
+	['time'] = true,
+	['timecaption'] = true,
+	['time-caption'] = true,
+	['title'] = true,
+	['titlelink'] = true,
+	['title-link'] = true,
+	['trans_chapter'] = true, -- DEPRECATED
+	['trans-chapter'] = true, -- DEPRECATED
+	['trans-map'] = true,
+	['transcript'] = true,
+	['transcript-format'] = true,
+	['transcripturl'] = true,
+	['transcript-url'] = true,
+	['trans_title'] = true, -- DEPRECATED
+	['trans-title'] = true, -- DEPRECATED
+	['translator'] = true,
+	['translator-first'] = true,
+	['translator-last'] = true,
+	['translator-given'] = true,
+	['translator-surname'] = true,
+	['translator-link'] = true,
+	['translator-mask'] = true,
+	['trans-article'] = true,
+	['trans-chapter'] = true,
+	['trans-contribution'] = true,
+	['trans-entry'] = true,
+	['trans-journal'] = true,
+	['trans-magazine'] = true,
+	['trans-newspaper'] = true,
+	['trans-periodical'] = true,
+	['trans-section'] = true,
+	['trans-title'] = true,
+	['trans-website'] = true,
+	['trans-work'] = true,
+	['type'] = true,
+	['url'] = true,
+	['URL'] = true,
+	['url-access'] = true,
+	['url-status'] = true,
+	['vauthors'] = true,
+	['veditors'] = true,
+	['version'] = true,
+	['via'] = true,
+	['volume'] = true,
+	['website'] = true,
+	['work'] = true,
+	['year'] = true,
+	['zbl'] = true,
+	['ZBL'] = true,
+	['doi_깨진날짜'] = true,
+	['isbn오류무시'] = true,
+	['경유'] = true,
+	['구독'] = true,
+	['권'] = true,
+	['기타'] = true,
+	['깨진url'] = false,
+	['깨진링크'] = false,
+	['날짜'] = true,
+	['네트워크'] = true,
+	['년'] = true,
+	['년도'] = true,
+	['뉴스'] = true,
+	['뉴스그룹'] = true,
+	['대본'] = true,
+	['대본url'] = true,
+	['대상'] = true,
+	['대상고리'] = true,
+	['대상링크'] = true,
+	['도시'] = true,
+	['등록'] = true,
+	['매체'] = true,
+	['메시지id'] = true,
+	['메일링리스트'] = true,
+	['면'] = true,
+	['모드'] = true,
+	['방송국'] = true,
+	['방송날짜'] = true,
+	['방송일자'] = true,
+	['방영날짜'] = true,
+	['방영일자'] = true,
+	['백과사전'] = true,
+	['백과사전'] = true,
+	['번역자'] = true,
+	['번역자고리'] = true,
+	['번역자링크'] = true,
+	['번역자성'] = true,
+	['번역자-성'] = true,
+	['번역자-이름'] = true,
+	['번역자이름'] = true,
+	['번역장'] = true,
+	['번역제목'] = true,
+	['보존url'] = true,
+	['보존날짜'] = true,
+	['보존일자'] = true,
+	['분'] = true,
+	['분류'] = true,
+	['분류없음'] = true,
+	['삽화'] = true,
+	['성'] = true,
+	['시간'] = true,
+	['시리즈'] = true,
+	['시리즈고리'] = true,
+	['시리즈링크'] = true,
+	['시리즈번호'] = true,
+	['시즌'] = true,
+	['신문'] = true,
+	['언어'] = true,
+	['에피소드'] = true,
+	['엠바고'] = true,
+	['연'] = true,
+	['연도'] = true,
+	['요약문'] = true,
+	['요약문url'] = true,
+	['요약문날짜'] = true,
+	['요약문출처'] = true,
+	['원본연도'] = true,
+	['웹사이트'] = true,
+	['위치'] = true,
+	['이름'] = true,
+	['이름목록형식'] = true,
+	['이탤릭체'] = true,
+	['인물'] = true,
+	['인용'] = true,
+	['인용문'] = true,
+	['인터뷰어'] = true,
+	['일자'] = true,
+	['작품'] = true,
+	['잡지'] = true,
+	['장'] = true,
+	['장url'] = true,
+	['장소'] = true,
+	['저널'] = true,
+	['저자'] = true,
+	['저자고리'] = true,
+	['저자링크'] = true,
+	['저자숨김'] = true,
+	['저자앰퍼샌드'] = true,
+	['저자표시'] = true,
+	['전자문서'] = true,
+	['제목'] = true,
+	['제목고리'] = true,
+	['제목링크'] = true,
+	['제작진'] = true,
+	['종류'] = true,
+	['죽은url'] = false,
+	['죽은링크'] = false,
+	['지도'] = true,
+	['지도url'] = true,
+	['지도제작'] = true,
+	['쪽'] = true,
+	['쪽기타'] = true,
+	['쪽숨김'] = true,
+	['초판연도'] = true,
+	['총서'] = true,
+	['추신'] = true,
+	['축척'] = true,
+	['출판날짜'] = true,
+	['출판사'] = true,
+	['출판위치'] = true,
+	['출판일자'] = true,
+	['출판장소'] = true,
+	['컨퍼런스'] = true,
+	['컨퍼런스url'] = true,
+	['콘퍼런스'] = true,
+	['콘퍼런스url'] = true,
+	['콜사인'] = true,
+	['통신사'] = true,
+	['판'] = true,
+	['페이지'] = true,
+	['편집자'] = true,
+	['편집자고리'] = true,
+	['편집자링크'] = true,
+	['편집자성'] = true,
+	['편집자-성'] = true,
+	['편집자이름'] = true,
+	['편집자-이름'] = true,
+	['편집자표시'] = true,
+	['포맷'] = true,
+	['프로그램'] = true,
+	['학위'] = true,
+	['항목'] = true,
+	['행사'] = true,
+	['형식'] = true,
+	['호'] = true,
+	['호출부호'] = true,
+	['화'] = true,
+	['확인날짜'] = true,
+	['확인일자'] = true,
+	['회'] = true,
+	['공저자'] = false,
+	['month'] = false,
+	['월'] = false,
+	['달'] = false,
+	['작성월'] = false,
+	['발행월'] = false,
+}
+
+local numbered_arguments = {
+	['author#'] = true,
+	['author-first#'] = true,
+	['author#-first'] = true,
+	['author-last#'] = true,
+	['author#-last'] = true,
+	['author-link#'] = true,
+	['author#link'] = true,
+	['author#-link'] = true,
+	['authorlink#'] = true,
+	['author-mask#'] = true,
+	['author#mask'] = true,
+	['author#-mask'] = true,
+	['authormask#'] = true,
+	['contributor#'] = true,
+	['contributor-first#'] = true,
+	['contributor#-first'] = true,
+	['contributor-last#'] = true,
+	['contributor#-last'] = true,
+	['contributor-given#'] = true,
+	['contributor#-given'] = true,
+	['contributor-surname#'] = true,
+	['contributor#-surname'] = true,
+	['contributor-link#'] = true,
+	['contributor#-link'] = true,
+	['contributor-mask#'] = true,
+	['contributor#-mask'] = true,
+	['editor#'] = true,
+	['editor-first#'] = true,
+	['editor#-first'] = true,
+	['editor#-given'] = true,
+	['editor-given#'] = true,
+	['editor-last#'] = true,
+	['editor#-last'] = true,
+	['editor-link#'] = true,
+	['editor#link'] = true,
+	['editor#-link'] = true,
+	['editorlink#'] = true,
+	['editor-mask#'] = true,
+	['editor#mask'] = true,
+	['editor#-mask'] = true,
+	['editormask#'] = true,
+	['editor#-surname'] = true,
+	['editor-surname#'] = true,
+	['first#'] = true,
+	['given#'] = true,
+	['host#'] = true,
+	['interviewer#'] = true,
+	['interviewer-first#'] = true,
+	['interviewer#-first'] = true,
+	['interviewer-last#'] = true,
+	['interviewer#-last'] = true,
+	['interviewer-link#'] = true,
+	['interviewer#-link'] = true,
+	['interviewer-mask#'] = true,
+	['interviewer#-mask'] = true,
+	['last#'] = true,
+	['subject#'] = true,
+	['subject-link#'] = true,
+	['subject#link'] = true,
+	['subject#-link'] = true,
+	['subjectlink#'] = true,
+	['surname#'] = true,
+	['translator#'] = true,
+	['translator-first#'] = true,
+	['translator#-first'] = true,
+	['translator-last#'] = true,
+	['translator#-last'] = true,
+	['translator-given#'] = true,
+	['translator#-given'] = true,
+	['translator-surname#'] = true,
+	['translator#-surname'] = true,
+	['translator-link#'] = true,
+	['translator#-link'] = true,
+	['translator-mask#'] = true,
+	['translator#-mask'] = true,
+	['대상#'] = true,
+	['대상#고리'] = true,
+	['대상#링크'] = true,
+	['대상고리#'] = true,
+	['대상링크#'] = true,
+	['성#'] = true,
+	['이름#'] = true,
+	['저자#'] = true,
+	['저자#고리'] = true,
+	['저자#링크'] = true,
+	['저자#-숨김'] = true,
+	['저자#숨김'] = true,
+	['저자고리#'] = true,
+	['저자링크#'] = true,
+	['저자숨김#'] = true,
+	['편집자#'] = true,
+	['편집자#고리'] = true,
+	['편집자#-고리'] = true,
+	['편집자#링크'] = true,
+	['편집자#-링크'] = true,
+	['편집자#-성'] = true,
+	['편집자#성'] = true,
+	['편집자#이름'] = true,
+	['편집자#-이름'] = true,
+	['편집자고리#'] = true,
+	['편집자-고리#'] = true,
+	['편집자고리'] = true,
+	['편집자링크#'] = true,
+	['편집자-링크#'] = true,
+	['편집자-성#'] = true,
+	['편집자성#'] = true,
+	['편집자성'] = true,
+	['편집자이름#'] = true,
+	['편집자-이름#'] = true,
+	['편집자이름'] = true,
+	['편집자#-숨김'] = true,
+	['편집자-숨김#'] = true,
+	['편집자#숨김'] = true,
+	['편집자숨김#'] = true,
+	['번역자#'] = true,
+	['번역자#고리'] = true,
+	['번역자#-고리'] = true,
+	['번역자#링크'] = true,
+	['번역자#-링크'] = true,
+	['번역자#-성'] = true,
+	['번역자#성'] = true,
+	['번역자#이름'] = true,
+	['번역자#-이름'] = true,
+	['번역자고리#'] = true,
+	['번역자-고리#'] = true,
+	['번역자고리'] = true,
+	['번역자링크#'] = true,
+	['번역자-링크#'] = true,
+	['번역자-성#'] = true,
+	['번역자성#'] = true,
+	['번역자성'] = true,
+	['번역자이름#'] = true,
+	['번역자-이름#'] = true,
+	['번역자이름'] = true,
+	['번역자#-숨김'] = true,
+	['번역자-숨김#'] = true,
+	['번역자#숨김'] = true,
+	['번역자숨김#'] = true,
+}
+
+
+--[[--------------------------< P R E P R I N T   S U P P O R T E D   P A R A M E T E R S >--------------------
+
+Cite arXiv, cite biorxiv, cite citeseerx, and cite ssrn are preprint templates that use the limited set of parameters
+defined in the limited_basic_arguments and limited_numbered_arguments tables.  Those lists are supplemented with a
+template-specific list of parameters that are required by the particular template and may be exclusive to one of the
+proeprint templates.  Some of these parameters may also be available to the general cs1|2 templates.
+
+Because a steady-state signal conveys no useful information, whitelist.basic_arguments[] list items can have three values:
+	true - these parameters are valid and supported parameters
+	false - these parameters are deprecated but still supported
+	nil - these parameters are no longer supported (when setting a parameter to nil, leave a comment stating the reasons for invalidating the parameter)
+	
+]]
+
+--[[--------------------------< C I T E   A R X I V >----------------------------------------------------------
+
+This is a list of parameters that once were but now are no longer supported:
+	['ARXIV'] = nil,															-- not an initialization
+	['version'] = nil,															-- this is the cite arxiv parameter; |version= still supported by other cs1|2 templates
+
+]]
+
+local arxiv_basic_arguments = {
+	['arxiv'] = true,															-- cite arxiv and arxiv identifiers
+	['class'] = true,															-- cite arxiv only
+	['eprint'] = true,															-- cite arxiv and arxiv identifiers
+}
+
+
+--[[--------------------------< C I T E   B I O R X I V >------------------------------------------------------
+
+]]
+
+local biorxiv_basic_arguments = {
+	['biorxiv'] = true,
+}
+
+
+--[[--------------------------< C I T E   C I T E S E E R X >--------------------------------------------------
+
+]]
+
+local citeseerx_basic_arguments = {
+	['citeseerx'] = true,
+}
+
+
+--[[--------------------------< C I T E   S S R N >------------------------------------------------------------
+
+]]
+
+local ssrn_basic_arguments = {
+	['ssrn'] = true,
+	['SSRN'] = true,
+}
+
+
+--[[--------------------------< L I M I T E D   S U P P O R T E D   P A R A M E T E R S >----------------------
+
+This is an experiment that attempts to use validate() and a limited list of valid parameters to validate the
+parameters provided in a cite arxiv, cite biorxiv, or cite citeseerx templates.  These parameters are common to
+all three templates
+
+Because a steady-state signal conveys no useful information, whitelist.basic_arguments[] list items can have three values:
+	true - these parameters are valid and supported parameters
+	false - these parameters are deprecated but still supported
+	nil - these parameters are no longer supported (when setting a parameter to nil, leave a comment stating the reasons for invalidating the parameter)
+	
+]]
+
+local limited_basic_arguments = {
+	['at'] = true,
+	['author'] = true,
+	['author-first'] = true,
+	['author-last'] = true,
+	['authorlink'] = true,
+	['author-link'] = true,
+	['authormask'] = true,
+	['author-mask'] = true,
+	['authors'] = true,
+	['collaboration'] = true,
+	['date'] = true,
+	['df'] = true,
+	['displayauthors'] = true,
+	['display-authors'] = true,
+	['first'] = true,
+	['given'] = true,
+	['language'] = true,
+	['last'] = true,
+	['lastauthoramp'] = true,
+	['last-author-amp'] = true,
+	['mode'] = true,
+	['name-list-format'] = true,
+	['nocat'] = true,
+	['no-cat'] = true,
+	['notracking'] = true,
+	['no-tracking'] = true,
+	['p'] = true,
+	['page'] = true,
+	['pages'] = true,
+	['postscript'] = true,
+	['pp'] = true,
+	['quotation'] = true,
+	['quote'] = true,
+	['ref'] = true,
+	['surname'] = true,
+	['template-doc-demo'] = true,
+	['title'] = true,
+	['url'] = true,
+	['URL'] = true,
+	['vauthors'] = true,
+	['year'] = true,
+}
+
+local limited_numbered_arguments = {
+	['author#'] = true,
+	['author-first#'] = true,
+	['author#-first'] = true,
+	['author-last#'] = true,
+	['author#-last'] = true,
+	['author-link#'] = true,
+	['author#link'] = true,
+	['author#-link'] = true,
+	['authorlink#'] = true,
+	['author-mask#'] = true,
+	['author#mask'] = true,
+	['author#-mask'] = true,
+	['authormask#'] = true,
+	['first#'] = true,
+	['given#'] = true,
+	['last#'] = true,
+	['surname#'] = true,
+}
+
+
+--[[--------------------------< E X P O R T E D   T A B L E S >------------------------------------------------
+]]
+
+return {
+	basic_arguments = basic_arguments,
+	numbered_arguments = numbered_arguments,
+	limited_basic_arguments = limited_basic_arguments,
+	limited_numbered_arguments = limited_numbered_arguments,
+	arxiv_basic_arguments = arxiv_basic_arguments,
+	biorxiv_basic_arguments = biorxiv_basic_arguments,
+	citeseerx_basic_arguments = citeseerx_basic_arguments,
+	ssrn_basic_arguments = ssrn_basic_arguments
+};

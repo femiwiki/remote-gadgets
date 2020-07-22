@@ -1,7 +1,7 @@
 {
   "dependencies": [
-    "@en/Citation/CS1",
     "@en/Infobox",
+    "@ko/Citation/CS1",
     "@ko/Hangul"
   ]
 }

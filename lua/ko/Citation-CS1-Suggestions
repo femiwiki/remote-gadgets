@@ -1,0 +1,161 @@
+--[[
+This module was originally on https://ko.wikipedia.org/wiki/모듈:Citation/CS1/Suggestions and forked by Legunto
+(https://github.com/lens0021/legunto).
+]]
+--Please insert new suggestions in alphabetical order
+--The form is ['incorrect'] = 'correct',
+
+suggestions = {
+--	['acccessdate'] = 'access-date',
+--	['accesdate'] = 'access-date',
+--	['access date'] = 'access-date',
+--	['accessate'] = 'access-date',
+--	['accessdare'] = 'access-date',
+--	['accessdatte'] = 'access-date',
+--	['accessddate'] = 'access-date',
+--	['accessdte'] = 'access-date',
+--	['accessed'] = 'access-date',
+--	['accessedate'] = 'access-date',
+--	['accesssdate'] = 'access-date',
+--	['accssdate'] = 'access-date',
+--	['acessdate'] = 'access-date',
+	['address'] = 'location',
+	['année'] = 'year', -- French
+	['año'] = 'year',
+	['año-original'] = 'orig-year',
+	['añoacceso'] = 'access-date', -- Spanish, Italian
+	['apellido'] = 'last', -- Spanish, Italian
+	['archive date'] = 'archive-date',
+	['archive url'] = 'archive-url', -- Spanish, Italian
+	['artist'] = 'others',
+	['auteur'] = 'author', -- French
+	['auther'] = 'author',
+	['authorformat'] = 'name-list-format',										-- remove after 2016-01-01
+	['author-format'] = 'name-list-format',										-- remove after 2016-01-01
+	['author link'] = 'author-link',
+--	['autor'] = 'author', -- Spanish, Italian
+--	['autor2'] = 'author2', -- Spanish, Italian
+	['autthor'] = 'author',
+	['began'] = 'date',															-- remove after 2016-01-01
+	['chapter_title'] = 'chapter',
+	['cita'] = 'quote', -- Spanish, Italian
+	['coautores'] = 'coauthors', -- Spanish, Italian
+	['consulté le'] = 'access-date', -- French
+	['deadlink'] = 'dead-url',
+	['distributor'] = 'publisher',
+	['éditeur'] = 'editor', -- French
+	['editon'] = 'edition',
+	['editoin'] = 'edition',
+	['editorformat'] = 'name-list-format',										-- remove after 2016-01-01
+	['editor-format'] = 'name-list-format',										-- remove after 2016-01-01
+	['editorgiven'] = 'editor-given',											-- remove after 2016-01-01
+	['editorial'] = 'publisher',
+	['editorsurname'] = 'editor-surname',										-- remove after 2016-01-01
+	['en ligne le'] = 'archive-date', -- French
+	['ended'] = 'date',															-- remove after 2016-01-01
+	['enlaceautor'] = 'author-link', -- Spanish, Italian
+	['fecha'] = 'date', -- Spanish, Italian
+	['fechaacceso'] = 'access-date', -- Spanish, Italian
+	['fechaarchivo'] = 'archive-date', -- Spanish, Italian
+	['filetype'] = 'format',
+	['first 1'] = 'first1',
+	['foramt'] = 'format',
+	['formato'] = 'format', -- Spanish, Italian
+	['frist'] = 'first',
+	['idioma'] = 'language', -- Spanish, Italian
+	['isnb'] = 'isbn',
+	['lang'] = 'language',
+	['langauge'] = 'language',
+	['langue'] = 'language', -- French
+	['last 1'] = 'last1',
+	['lieu'] = 'location', -- French
+	['lire en ligne'] = 'url', -- French
+	['loaction'] = 'location',
+	['locatoin'] = 'location',
+	['lugar'] = 'location',														--Spanish
+	['mois'] = 'month', -- French
+--	['name'] = 'author', -- 'name' is often erroneously used for 'title' and 'work' as well, so no suggestion is better than a wrong suggestion
+	['nespaper'] = 'newspaper',
+	['newpaper'] = 'newspaper',
+	['news'] = 'newspaper',
+	['nom'] = 'last', -- French
+	['nom1'] = 'last1', -- French
+	['nombre'] = 'first', -- Spanish, Italian
+	['obra'] = 'work', -- Spanish, Italian
+	['origdate'] = 'orig-year',
+	['other'] = 'others',
+	['pagees'] = 'pages',
+	['página'] = 'page', -- Spanish, Italian
+	['páginas'] = 'pages', -- Spanish, Italian
+	['passage'] = 'pages', -- French
+	['périodique'] = 'publisher', -- French
+	['plublisher'] = 'publisher',
+	['pmcid'] = 'pmc',
+	['prénom'] = 'first', -- French
+	['prénom1'] = 'first1', -- French
+	['ps'] = 'postscript',
+	['pub'] = 'publisher',
+--	['pubisher'] = 'publisher',
+--	['publiser'] = 'publisher',
+--	['publishers'] = 'publisher',
+--	['publsher'] = 'publisher',
+--	['publsiher'] = 'publisher',
+	['pulbication-place'] = 'publication-place',
+--	['pulbisher'] = 'publisher',
+--	['pulisher'] = 'publisher',
+	['retrieved'] = 'access-date',
+	['separator'] = 'mode',														-- remove after 2016-01-01
+	['série'] = 'work', -- French
+	['service'] = 'agency',
+	['suscripción'] = 'subscription', -- Spanish, Italian
+	['tile'] = 'title',
+	['tite'] = 'title',
+	['titolo'] = 'title', -- Spanish, Italian
+	['titre'] = 'title', -- French
+	['títle'] = 'title',
+	['título'] = 'title', -- Spanish, Italian
+	['transchapter'] = 'trans-chapter',
+	['translator'] = 'others',
+	['transtitle'] = 'trans-title',
+	['ubicación'] = 'location', -- Spanish, Italian
+	['urlarchivo'] = 'archive-url', -- Spanish, Italian
+	['vol'] = 'volume', 
+	['volumen'] = 'volume', 													-- Spanish
+	['꺠진url'] = '깨진url',
+	['꺠진링크'] = '깨진링크',
+	['날자'] = '날짜',
+	['일짜'] = '일자',
+	['재목'] = '제목',
+	['확인날자'] = '확인날짜',
+	['확인일짜'] = '확인날짜',
+	['꺽쇠표없음'] = '이탤릭체',
+	['꺾쇠표없음'] = '이탤릭체',
+	['작품명'] = '작품',
+}
+
+
+--[[--------------------------< P A T T E R N S >--------------------------------------------------------------
+
+Here we use Lua patterns to make suggestions.  The form is ['pattern'] = 'correct',
+
+Lua patterns are not regex though they are similar.  The escape character is '%', not '\'.  For more information about
+lua patterns, see: Extension:Scribunto/Lua_reference_manual#Patterns
+
+Patterns should probably always include the '^' and '$' anchor assertions to prevent a partial match from incorrectly
+suggesting the wrong parameter name.  For instance, the pattern 'a[utho]+r' matches 'author' in the no-longer-supported
+parameter |author-separator= so the code suggests '|author='; the same pattern also matches the no-longer-supported
+parameter |separator= (returning 'ator') so again, the code suggests '|author='.
+
+One capture is supported, typically the enumerator from an enumerated parameter (the '6' in |author6=, etc.)  The value from the
+capture replaces $1 in the 'correct' value.
+
+]]
+
+local patterns = {
+	['^ac+es+ ?d?a?t?e?$'] = 'access-date',
+	['^a[utho]+r$'] = 'author',
+	['^a[utho]+r(%d+)$'] = 'author$1',											-- enumerated
+	['^pu[blish]+ers?$'] = 'publisher',
+	}
+
+return {suggestions = suggestions, patterns=patterns};

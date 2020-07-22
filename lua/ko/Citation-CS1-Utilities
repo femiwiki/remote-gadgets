@@ -1,13 +1,7 @@
 --[[
-This module was originally on https://en.wikipedia.org/wiki/Module:Citation/CS1/Utilities/sandbox and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/모듈:Citation/CS1/Utilities and forked by Legunto
 (https://github.com/lens0021/legunto).
 ]]
---[[
-History of changes since last sync: 2020-01-11
-
-
-]]
-
 
 local z = {
 	error_categories = {};														-- for categorizing citations that contain errors
@@ -343,19 +337,21 @@ local function is_wikilink (str)
 	local D, L
 	local wl_type = 2;															-- assume that str is a complex wikilink [[L|D]]
 
-	if not str:match ('^%[%[[^%]]+%]%]$') then									-- is str some sort of a wikilink (must have some sort of content)
-		return 0, str, '';														-- not a wikilink; return wl_type as 0, str as D, and empty string as L
-	end
-	
 	L, D = str:match ('^%[%[([^|]+)|([^%]]+)%]%]$');							-- get L and D from [[L|D]] 
 
-	if not is_set (D) then														-- if no separate display
-		D = str:match ('^%[%[([^%]]*)|*%]%]$');									-- get D from [[D]] or [[D|]]
+	if not is_set (D) then														-- if no separate link
+		D = str:match ('^%[%[([^%]]*)|*%]%]$');									-- get D from [[D]]
 		wl_type = 1; 
 	end
 	
+	if not is_set (D) then														-- no wikilink markup
+		D = str;																-- return the string as D
+		wl_type = 0;															-- but say that it is not a wikilink
+	end
+	
 	D = mw.text.trim (D, '%s|');												-- trim white space and pipe characters 
---	L = L and mw.text.trim (L, '%s|');
+	L = L and mw.text.trim (L, '%s|');
+	
 	return wl_type, D, L or '';
 end
 

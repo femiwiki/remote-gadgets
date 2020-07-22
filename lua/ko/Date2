@@ -1,0 +1,179 @@
+--[[
+This module was originally on https://ko.wikipedia.org/wiki/모듈:Date2 and forked by Legunto
+(https://github.com/lens0021/legunto).
+]]
+--[[  
+ 
+This module is intended for processing of date strings.
+
+Please do not modify this code without applying the changes first at Module:Date/sandbox and testing 
+at Module:Date/sandbox/testcases and Module talk:Date/sandbox/testcases.
+
+Authors and maintainers:
+* User:Parent5446 - original version of the function mimicking template:ISOdate
+* User:Jarekt - original version of the functions mimicking template:Date and template:ISOyear
+
+]]
+
+ 
+local p = {}
+
+-- =======================================
+-- === Dependencies ======================
+-- =======================================
+--local i18n     = require('Module:@ko/I18n-date')		-- get localized translations of date formats
+--local Fallback = require('Module:@ko/Fallback')			-- get fallback functions
+local yesno    = require('Module:@ko/Yesno')
+
+local i18n = {
+	DateLang = {
+		['ko'] = 'ko-form'
+	},
+	DateFormat = {
+		['ko-form'] = {
+		YMD   ='Y년 F j일',		
+		YM    ='Y년 F',		
+		Y     ='Y',
+		}
+	}
+}
+
+--[[
+Date
+ 
+This function is the core part of the ISOdate template. 
+ 
+Usage:
+{#invoke:Date|Date|year=|month=|day=|hour=|minute=|second=|lang=en}}
+ 
+Parameters:
+     year,month,day,hour,minute,second: broken down date-time component strings
+  lang: The language to display it in
+  case: Language format (genitive, etc.) for some languages
+ class: CSS class for the <time> node, use "" for no metadata at all
+
+ Error Handling:
+
+]]
+function p.Date(frame)
+	return p._Date(	
+		{ 
+			frame.args["year"] or '', 
+			frame.args["month"] or '',
+			frame.args["day"] or '', 
+		},
+		frame.args["lang"] or 'ko',          -- language
+		frame.args["trim_year"] or '100-999' -- by default pad one and 2 digit years to be 4 digit long, while keeping 3 digit years as is
+	)	
+end
+
+
+function p._Date(datevec, lang, trim_year)	
+	-- make sure inputs are in the right format
+	if #datevec<6 then 
+		for i=#datevec,6,1 do datevec[i]='' end 
+	end
+	if  not trim_year then trim_year = '100-999' end
+
+	-- if language is not provided than look up users language
+	-- WARNING: This step should be done by the template as it does not seem to work as well here (cache issues?)
+	if not lang or  not mw.language.isValidCode( lang ) then
+		lang = 'ko'
+	end
+	
+	-- Just in case someone broke the internationalization code than fix the english defaults
+	if i18n.DateLang['ko'] == nil then
+		i18n.DateLang['ko'] = 'ko-form'
+	end	
+	if i18n.DateFormat['ko-form'] == nil then
+		i18n.DateFormat['ko-form'] =  {
+		YMD   ='Y년 F j일',		
+		YM    ='Y년 F',		
+		Y     ='Y',
+	}
+	end
+
+	-- create datecode based on which variables are provided and check for out of bound values
+	local maxval = {9999, 12, 31} -- max values for year, month, ...
+	local c = {'Y', 'M', 'D'}
+	local datecode = '' -- a string signifying which combination of variables was provided
+	local datenum = {}  -- date-time encoded as a vector = [year, month, ... , second]
+	for i, v in ipairs( datevec ) do
+		if v~=nil and v~='' then
+			datecode = datecode .. c[i]
+			datenum[i] = tonumber(v)
+			if datenum[i]==nil and i==2 then
+				-- month is not a number -> check if it is a month name in English
+				v = mw.language.new('en'):formatDate( "n", v)
+				datenum[i] = tonumber(v)
+			end
+			if datenum[i]==nil or datenum[i]>maxval[i] then
+				-- Some numbers are out of range -> abort and return the empty string
+				return ''
+			end
+		end
+	end
+	
+	-- create time stamp string (for example 2000-02-20 02:20:20) based on which variables were provided
+	local timeStamp
+	if datecode:sub(1,3)=='YMD' then
+		timeStamp = string.format('%04i-%02i-%02i', datenum[1], datenum[2], datenum[3] )
+		datecode = 'YMD' -- 'YMD', 'YMDHMS' and 'YMDHM' are the only supported format starting with 'YMD'. All others will be converted to 'YMD'
+	elseif datecode == 'YM' then
+		timeStamp = string.format('%04i-%02i', datenum[1], datenum[2] )
+	elseif datecode:sub(1,1)=='Y' then
+		timeStamp = string.format('%04i', datenum[1] )
+		datecode = 'Y' 
+	else
+		return ''  -- format not supported
+	end
+
+	-- ==========================================================
+	-- === Create Date String using in chosen language
+	-- ==========================================================
+	
+	-- which form should the date take? 
+	-- Use Fallback module to handle rare languages which are more likely to use different for than default EN form
+	local langDateForm = 'ko-form'
+	
+	-- Look up country specific format input to {{#time}} function
+	local dFormat = i18n.DateFormat[langDateForm][datecode]
+	
+	-- Lua only date formating using {{#time}} parser function (new)
+		-- prefered call which gives "Lua error: too many language codes requested." on the [[Module talk:Date/sandbox/testcases]] page
+		--local datestr = mw.language.new(lang):formatDate( dFormat, timeStamp) 
+	local datestr = mw.getCurrentFrame():callParserFunction( "#time", { dFormat, timeStamp, lang } )
+	
+	-- If year<1000 than either keep it padded to the length of 4 digits or trim it
+	-- decide if the year will stay padded with zeros (for years in 0-999 range)
+	if datenum[1]~= nil and datenum[1]<1000 then
+		local trim = yesno(trim_year,nil)
+		if trim == nil then
+			local YMin, YMax = trim_year:match( '(%d+)-(%d+)' )
+			trim = (YMin~=nil and datenum[1]>=tonumber(YMin) and datenum[1]<=tonumber(YMax)) 
+		end
+	
+		-- If the date form isn't the Thai solar calendar, don't zero pad years in the range of 100-999.  
+		-- If at some point support for Islamic/Hebrew/Japanese years is added, they may need to be skipped as well. 
+		if trim then
+			--local yearStr1 = mw.language.new(lang):formatDate( 'Y', timeStamp)
+			local yearStr1 = mw.getCurrentFrame():callParserFunction( "#time", { 'Y', timeStamp, lang } )
+			--local yearStr1 = datestr:match( '%d%d%d%d' ) -- 4 digits in a row (in any language) - that must be a year
+			local yearStr2 = yearStr1
+			local zeroStr = mw.ustring.sub(yearStr1,1,1)
+			for i=1,3 do -- trim leading zeros
+				if mw.ustring.sub(yearStr2,1,1)==zeroStr then
+					yearStr2 = mw.ustring.sub(yearStr2, 2, 5-i)
+				else
+					break
+				end
+			end
+			datestr = datestr:gsub( yearStr1, yearStr2 )
+			--datestr = string.format('%s (%s, %s)', datestr, yearStr1, yearStr2 )
+		end
+	end
+	
+	return datestr
+end
+
+return p
