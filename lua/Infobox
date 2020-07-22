@@ -4,17 +4,16 @@ local p = {}
 
 
 local function _infobox(frame, template)
-  local origArgs = {}
+  local originArgs = {}
 
   if not template then
     if frame == mw.getCurrentFrame() then
-      origArgs = frame:getParent().args
+      originArgs = frame:getParent().args
     else
-      origArgs = frame
+      originArgs = frame
     end
   else
-    origArgs = {}
-    for k,v in pairs(frame.args) do origArgs[k] = mw.text.trim(v) end
+    for k,v in pairs(frame.args) do originArgs[k] = mw.text.trim(v) end
   end
 
   local singleParamsL10nMap = {
@@ -77,33 +76,44 @@ local function _infobox(frame, template)
     ['행id'] = 'rowid',
   }
 
-  local argsClone = {}
+  local traslatedArgs = {}
 
   -- 시간복잡도 O(n) (n은 #singleParamsL10nMap)
   for localParam, enParam in pairs(singleParamsL10nMap) do
-    if origArgs[localParam] ~= '' then
-      argsClone[enParam] = origArgs[localParam]
+    if originArgs[localParam] ~= nil and originArgs[localParam] ~= '' then
+      traslatedArgs[enParam] = originArgs[localParam]
     end
   end
 
   -- 시간복잡도 O(m*n) (m은 #originArgs, n은 #generalParamsL10nMap)
-  for k, v in pairs(origArgs) do
+  for k, v in pairs(originArgs) do
     for localParam, enParam in pairs(generalParamsL10nMap) do
       local num = tostring(k):match('^' .. localParam .. '([1-9]%d*)$')
       if num then
-        argsClone[enParam .. num] = origArgs[localParam .. num]
+        traslatedArgs[enParam .. num] = v
         break
       end
     end
   end
 
-  frame.args = argsClone
+  newArgs = {}
+
+  for k, v in pairs(frame.args) do
+    newArgs[k] = v
+  end
+
+  for k, v in pairs(traslatedArgs) do
+    newArgs[k] = v
+  end
+
+  frame.args = newArgs
+
   return infobox.infoboxTemplate(frame)
 end
 
 
 function p.infobox(frame)
-  return _infobox(frame)
+  return _infobox(frame, false)
 end
 
 function p.infoboxTemplate(frame)
