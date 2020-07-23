@@ -1,6 +1,6 @@
 local mArguments --initialize lazily
-local mHatnote = require('Module:Hatnote')
-local mHatList = require('Module:Hatnote list')
+local mHatnote = require('Module:@en/Hatnote')
+local mHatList = require('Module:@en/Hatnote list')
 local libraryUtil = require('libraryUtil')
 local checkType = libraryUtil.checkType
 local p = {}
@@ -8,7 +8,7 @@ local p = {}
 function p.about (frame)
 	-- A passthrough that gets args from the frame and all
 
-	mArguments = require('Module:Arguments')
+	mArguments = require('Module:@en/Arguments')
 	args = mArguments.getArgs(frame)
 	return p._about(args)
 end
