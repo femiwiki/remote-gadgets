@@ -1,6 +1,10 @@
 {
   "dependencies": [
+    "@en/Arguments",
+    "@en/Hatnote list",
+    "@en/Hatnote",
     "@en/Infobox",
+    "@en/String",
     "@ko/Citation/CS1",
     "@ko/Hangul"
   ]

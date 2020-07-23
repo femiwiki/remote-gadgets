@@ -134,6 +134,11 @@
       "revid": 25257087,
       "title": "\ubaa8\ub4c8:Citation/CS1/Identifiers"
     },
+    "@en/String": {
+      "pageid": 38569505,
+      "revid": 924313232,
+      "title": "Module:String"
+    },
     "@en/Infobox": {
       "pageid": 38808424,
       "revid": 964480912,
@@ -168,6 +173,29 @@
       "pageid": 41298065,
       "revid": 948472485,
       "title": "Module:Arguments"
+    },
+    "@en/Hatnote": {
+      "pageid": 42498502,
+      "revid": 967664662,
+      "title": "Module:Hatnote",
+      "dependencies": [
+        "@en/Yesno",
+        "@en/Arguments"
+      ]
+    },
+    "@en/Yesno": {
+      "pageid": 38665046,
+      "revid": 948473803,
+      "title": "Module:Yesno"
+    },
+    "@en/Hatnote list": {
+      "pageid": 50085079,
+      "revid": 962885277,
+      "title": "Module:Hatnote list",
+      "dependencies": [
+        "@en/Arguments",
+        "@en/Hatnote"
+      ]
     }
   }
 }
