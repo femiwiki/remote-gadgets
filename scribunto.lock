@@ -1,5 +1,47 @@
 {
   "modules": {
+    "@ko/Navbox": {
+      "pageid": 930488,
+      "revid": 25306127,
+      "title": "\ubaa8\ub4c8:Navbox",
+      "dependencies": [
+        "@ko/Color contrast",
+        "@ko/Arguments",
+        "@ko/Navbar"
+      ]
+    },
+    "@ko/Navbar": {
+      "pageid": 930485,
+      "revid": 26078697,
+      "title": "\ubaa8\ub4c8:Navbar",
+      "dependencies": [
+        "@ko/Arguments",
+        "@ko/TableTools"
+      ]
+    },
+    "@ko/TableTools": {
+      "pageid": 1103423,
+      "revid": 25041102,
+      "title": "\ubaa8\ub4c8:TableTools"
+    },
+    "@ko/Arguments": {
+      "pageid": 1080666,
+      "revid": 16832182,
+      "title": "\ubaa8\ub4c8:Arguments"
+    },
+    "@ko/Color contrast": {
+      "pageid": 1364284,
+      "revid": 21192393,
+      "title": "\ubaa8\ub4c8:Color contrast",
+      "dependencies": [
+        "@ko/Color contrast/colors"
+      ]
+    },
+    "@ko/Color contrast/colors": {
+      "pageid": 1364285,
+      "revid": 14883158,
+      "title": "\ubaa8\ub4c8:Color contrast/colors"
+    },
     "@ko/Hangul": {
       "pageid": 933341,
       "revid": 26422357,
