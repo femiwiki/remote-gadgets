@@ -1,0 +1,45 @@
+name: Update mirrors
+
+on:
+  schedule:
+    - cron:  '0 0 1 * *' # Monthly
+jobs:
+
+  update_mirrors:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.x'
+
+    - name: Cache python modules
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install Legunto
+      env:
+        LEGUNTO_VERSION: '0.2.0'
+      run: |
+        curl -L "https://github.com/femiwiki/legunto/releases/download/v${LEGUNTO_VERSION}/legunto-${LEGUNTO_VERSION}-py3-none-any.whl" \
+          -o "$HOME/legunto.whl"
+        pip install "$HOME/legunto.whl"
+
+    - name: Check & download for module updates
+      run: legunto update
+
+    - name: Create a pull pequest
+      uses: peter-evans/create-pull-request@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: Update Scribunto module(s)
+        title: Update Scribunto module(s)
+        branch: bump-scribunto
