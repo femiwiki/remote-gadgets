@@ -1,11 +1,11 @@
 {
   "modules": {
-    "@ko/Navbox": {
-      "pageid": 930488,
-      "revid": 25306127,
-      "title": "\ubaa8\ub4c8:Navbox",
+    "@ko/Sidebar": {
+      "pageid": 945357,
+      "revid": 24929734,
+      "title": "\ubaa8\ub4c8:Sidebar",
       "dependencies": [
-        "@ko/Color contrast",
+        "@ko/No globals",
         "@ko/Arguments",
         "@ko/Navbar"
       ]
@@ -28,6 +28,35 @@
       "pageid": 1080666,
       "revid": 16832182,
       "title": "\ubaa8\ub4c8:Arguments"
+    },
+    "@ko/No globals": {
+      "pageid": 1149293,
+      "revid": 12865081,
+      "title": "\ubaa8\ub4c8:No globals"
+    },
+    "@ko/Official website": {
+      "pageid": 1921209,
+      "revid": 25623969,
+      "title": "\ubaa8\ub4c8:Official website",
+      "dependencies": [
+        "@ko/Arguments",
+        "@ko/URL"
+      ]
+    },
+    "@ko/URL": {
+      "pageid": 947620,
+      "revid": 21411274,
+      "title": "\ubaa8\ub4c8:URL"
+    },
+    "@ko/Navbox": {
+      "pageid": 930488,
+      "revid": 25306127,
+      "title": "\ubaa8\ub4c8:Navbox",
+      "dependencies": [
+        "@ko/Color contrast",
+        "@ko/Arguments",
+        "@ko/Navbar"
+      ]
     },
     "@ko/Color contrast": {
       "pageid": 1364284,

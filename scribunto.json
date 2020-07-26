@@ -7,6 +7,8 @@
     "@en/String",
     "@ko/Citation/CS1",
     "@ko/Hangul",
-    "@ko/Navbox"
+    "@ko/Navbox",
+    "@ko/Official website",
+    "@ko/Sidebar"
   ]
 }
