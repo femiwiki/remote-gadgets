@@ -5,7 +5,7 @@
     "lint-filename-etc": "test -z \"$(yarn run --silent find-filename-etc)\" || (yarn run find-filename-etc && false)",
     "find-filename-etc": "find pages/ gadgets/ -not -regex \".+/\\([a-z\\._/:-]+\\)?\"",
     "lint-filename-lua": "test -z \"$(yarn run --silent find-filename-lua)\" || (yarn run find-filename-lua && false)",
-    "find-filename-lua": "find lua/ -type f -not -regex \".+/\\([A-Z][A-Za-z0-9\\._/: -]+\\)?\"",
+    "find-filename-lua": "find lua/ -type f -not -regex \".+/\\([A-Z가-힣][A-Za-z0-9가-힣\\._/: -]+\\)?\"",
     "lint": "prettier . --check && yarn run lint-filename",
     "fix": "prettier . --write"
   },

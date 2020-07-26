@@ -1,0 +1,229 @@
+local p = {}
+
+--- 주어진 분류들로 문서를 분류하고 분류들을 표시하기 위한 위키텍스트를 만듭니다.
+-- 만약 '{{#invoke:Category|categorize|성격/단체, 성향/페미니즘}}'과 같이
+-- 호출되었다면 다음 작업을 수행합니다:
+-- 1. 반환값에 '[[분류:성격/단체]]'를 추가합니다.
+-- 2. '분류:성격/단체'라는 문서가 있는지, 있다면 상위분류가 있는지를 확인합니다.
+--     둘다 맞다면 반환값에 '분류:성격/단체'를 전개하여 추가합니다.
+--     (해당 틀은 이 함수를 재귀호출합니다.)
+-- 3. '성향/페미니즘'에 대해서도 같은 작업을 수행합니다.
+-- @param frame 호출되면서 자동으로 만들어진 frame 객체.
+-- @return 문서를 분류해 주는 위키텍스트, 오류가 있었다면 빈 문자열.
+function p.categorize(frame)
+	local args = safeArgs(frame)
+	if args[1] == nil or args[1] == '' then
+		return error('분류를 입력해 주세요', 0)
+	end
+	return _categorize(safeCategories(args), true, frame)
+end
+
+--- 다면분류에서 패싯을 찾습니다. 예를 들어 'A/B'를 인자로 받으면 A를 반환합니다.
+-- @param frame 호출되면서 자동으로 만들어진 frame 객체.
+-- @return 패싯 문자열.
+function p.facet(frame)
+	local text = ''
+	if type(frame) == 'string' then text = frame 
+	else text = frame.args[1] end
+	local slash = string.find(text, '/')
+	if slash == nil then return text end 
+	return string.sub(text, 1, slash-1)
+end
+
+--- 다면분류에서 멤버를 찾습니다. 예를 들어 'A/B'를 인자로 받으면 B를 반환합니다.
+-- @param frame 호출되면서 자동으로 만들어진 frame 객체.
+-- @return 멤버 문자열.
+function p.member(frame)
+	local text = ''
+	if type(frame) == 'string' then text = frame 
+	else text = frame.args[1] end
+	local slash = string.find(text, '/')
+	if slash == nil then return text end
+	return string.sub(text, slash+1, #text)
+end
+
+--- 주어진 분류들로 문서를 분류하고 분류들을 표시하기 위한 위키텍스트를 만듭니다.
+-- @param categories 표시할 분류들.
+-- @param showCatlinksDisplay 반환 문자열에 분류 표시 문단을 포함할지의 여부.
+-- @param frame 호출되면서 자동으로 만들어진 frame 객체.
+-- @return 문서를 분류해 주는 위키텍스트, 오류가 있었다면 빈 문자열.
+function _categorize(categories, showCatlinksDisplay, frame)
+	local returnText, redirected = '', false
+	
+	local title, superCategories, content  = '', '', ''
+	for i, v in ipairs(categories) do
+		if v == nil then
+			error('사용하신 분류 문법이 잘못되었습니다.' ..
+				'[[도움말:문서 분류하기]]를 참고해 주세요', 0)
+			return ''
+		elseif v == mw.title.getCurrentTitle().text then
+			error('자기자신으로 분류할 수 없습니다.' ..
+				'[[도움말:문서 분류하기]]를 참고해 주세요', 0)
+		end
+
+		title = mw.title.new('분류:' .. v)
+		if title.exists and title.isRedirect then
+			if not redirected then redirected = true end
+			title = mw.title.new(
+				string.match(title:getContent(),
+				'%[%[([^%[%]|]-)%]%]')
+			) or title
+			v = title.text
+			categories[i] = title.text
+		end
+
+		returnText = returnText .. '[[분류:' .. v .. ']]'
+
+		if title.exists then
+			content = title:getContent()
+			superCategories = string.match(
+				content,
+				'%{%{%s*분류%s*|%s*([^}]-)%s*%}%}'
+			)
+			if superCategories ~= nil and
+				not hasValue(categories, superCategories) then
+				returnText = returnText ..
+					_categorize(safeCategories(superCategories), false, frame)
+			end
+
+			if string.match(content, '%[%[분류:접힌 분류%]%]') ~= nil then
+				categories[i] = ''
+			end
+		end
+	end
+
+	if showCatlinksDisplay then
+		returnText = makeCatlinks(categories, frame) .. returnText
+		if redirected then
+			returnText = returnText .. '[[분류:분류가 넘겨주기 된 문서]]'
+		end
+	end
+
+	return returnText
+end
+
+--- 주어진 분류들을 표시하기 위한 HTML 코드를 만듭니다.
+-- @param categories 표시할 분류들의 이름들(문자열)을 담은 배열.
+-- @param frame 호출되면서 자동으로 만들어진 frame 객체.
+-- @return string 만들어진 HTML 문자열.
+function makeCatlinks(categories, frame)
+	local listItems = ''
+	for i, v in ipairs(categories) do
+		if v ~= '' then 
+			listItems =
+				listItems ..
+				frame:callParserFunction(
+					'#tag:li',
+					'[[:분류:'..categories[i]..'|'..categories[i]..']]'
+				)
+		end
+	end
+
+	return frame:callParserFunction {
+		name = '#tag:div', 
+		args = {
+			id = 'fw-catlinks', 
+			class = 'fw-catlinks catlinks', 
+			['data-mw'] = 'interface', 
+			frame:callParserFunction{
+				name = '#tag:div', args = {
+					class = 'mw-normal-catlinks',
+					'[[특수:다면분류|분류]]:' ..
+					frame:callParserFunction(
+						'#tag:ul',
+						listItems
+					)
+				}
+			}
+		}
+	}
+end
+
+--- 전달인자들이 포함하고 있는 분류 정보를 묶어 정해진 형태의 배열로 만듭니다.
+-- @param args args은 다음 중 하나의 형태일 수 있습니다.
+-- { 'A/B' } (권장)
+-- { 'A/B, C/D' } (권장)
+-- { 'A/B|C/D' }
+-- { 'A|B|C|D' }
+-- { 'A', 'B', 'C', 'D' }
+-- { 'A/B', 'C/D' }
+-- @return 'A/B' 형식의 문자열들을 담은 배열.
+function safeCategories(args)
+	if type( args ) == 'string' then args = { args } end
+
+	local temp = {}
+	-- 첫 번재 전달인자에 '|'가 있다면 '|'를 기준으로 분리시킵니다
+	-- (예: 'A|B|C|D'이나 'A|B')
+	if string.match(args[1], '|') ~= nil then
+		for word in string.gmatch(args[1], '%s*([^%|]+)%s*') do
+			temp[#temp+1] = word
+		end
+		args = temp
+	end
+
+	--1. 첫 번재 전달인자에 슬래시가 없는데 전달인자가 하나라면 오류(예: 'A')
+	--2. 첫 번재 전달인자에 슬래시가 없으면서 여럿이라면
+	--	슬래시를 추가하여 둘씩 묶습니다(예: 'A', 'B', 'C', 'D').
+	if string.find(args[1], '/') == nil then
+		if #args == 1 then
+			error(
+				'사용하신 구문은 다면분류가 아닙니다.' .. 
+				'[[도움말:문서 분류하기]]를 참고해 주세요',
+				0)
+		else
+			temp = {}
+			for i, v in ipairs(args) do
+				if i % 2 ~= 0 then
+					temp[#temp+1] = string.match(v, '^%s*(.-)%s*$')
+				else
+					temp[#temp] = temp[#temp] .. '/' ..
+						string.match(v, '^%s*(.-)%s*$')
+				end
+			end
+			args = temp
+		end
+	end
+
+	-- 첫 번재 전달인자에 쉼표가 있다면 쉼표를 기준으로 각각을 분리합니다.
+	-- 예시: 'A/B, C/D'
+	if string.match(args[1], ',') ~= nil then
+		temp = {}
+		for word in string.gmatch(args[1], '%s*([^,]+)%s*') do
+			temp[#temp+1] = word
+		end
+		args = temp
+	end
+
+	--전체적으로 trim 합니다.
+	for i in ipairs(args) do
+		args[i] = string.match(args[i], '^%s*(.-)%s*$')
+	end
+
+	return args
+end
+
+function hasValue(tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
+
+    return false
+end
+
+--- frame 객체가 틀에서 호출되어 생긴 frame인지 바로 모듈이 호출되어 생긴
+-- frame인지와 무관하게 args를 찾습니다.
+-- @param frame 호출되면서 자동으로 만들어진 frame 객체.
+-- @return args 호출되면서 전달받은 전달인자.
+function safeArgs(frame)
+	--frame은 metatable이라 next(frame.args)가 안 된다고 합니다.
+	--@reference https://www.mediawiki.org/wiki/Extension:Scribunto/Lua_reference_manual#frame.args
+	if frame.args[1] ~= nil then
+		return frame.args
+	else
+		return frame:getParent().args
+	end
+end
+
+return p

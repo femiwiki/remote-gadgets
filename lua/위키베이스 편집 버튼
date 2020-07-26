@@ -1,0 +1,12 @@
+p = {}
+
+function p.main(frame)
+  local args = frame.args[1] ~= nil and frame.args or frame:getParent().args
+  
+  local id = mw.wikibase.getEntityIdForCurrentPage()
+  if not id then return end
+  
+  return '[[Item:' .. id .. '|정보 수정]]'
+end
+
+return p

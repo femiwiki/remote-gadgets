@@ -1,0 +1,30 @@
+p = {}
+
+function p.getRandomByWeekNumber(frame)
+  local args = frame.args[1] ~= nil and frame.args or frame:getParent().args
+
+  local numberOfItems = args[1]
+
+  local items = {}
+  for item in string.gmatch(args[2], "\b\* (.-)\n") do
+    table.insert( items,  item )
+  end
+
+  -- 주에 따라 랜덤 값이 바뀌도록 합니다.
+  math.randomseed( tonumber( os.date( "%V") ) )
+
+  local shuffled = {}
+  for i, v in ipairs(items) do
+    local pos = math.random(1, #shuffled+1)
+    table.insert(shuffled, pos, v)
+  end
+
+  local sliced = {}
+  for i = 1, numberOfItems, 1 do
+    sliced[i] = shuffled[i]
+  end
+
+  return '* ' .. table.concat(sliced, '\n* ') .. '\n'
+end
+
+return p

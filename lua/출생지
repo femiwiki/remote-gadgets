@@ -1,0 +1,42 @@
+p = {}
+
+local entity, qid
+
+local function makeLink(id)
+  local wt = mw.wikibase.getLabel(id)
+  local title = mw.wikibase.getSitelink( id )
+
+  if title then
+    wt = '[[' .. title .. '|' .. wt .. ']]'
+  end
+
+  return wt
+end
+
+local function getCountry( placeId )
+  local country = mw.wikibase.getBestStatements(placeId, 'P11')[1]
+  if not country then return nil end
+  local countryId = country.mainsnak.datavalue.value.id
+
+  return makeLink(countryId)
+end
+
+function p.main(frame)
+  local args = frame.args[1] ~= nil and frame.args or frame:getParent().args
+  
+  entity = mw.wikibase.getEntity()
+  qid = mw.wikibase.getEntityIdForCurrentPage()
+  local place = entity:getBestStatements( 'P10' )[1]
+  if not place then return '' end
+  local placeId = place.mainsnak.datavalue.value.id
+
+  local placeId = place.mainsnak.datavalue.value.id
+  local country = getCountry(placeId)
+  
+  if country then
+    return country .. ', ' .. makeLink(placeId)
+  end
+  return makeLink(placeId)
+end
+
+return p

@@ -1,0 +1,73 @@
+p = {}
+
+local function age(y1, m1, d1, y2, m2, d2)
+  local age = y2 - y1
+  if m2 < m1 or ( m2 == m1 and d2 < d1 ) then
+    age = age - 1
+  end
+  
+  return age
+end
+
+local function koreanAge(y1, y2)
+  return y2-y1+1
+end
+
+function p.main(frame)
+  local args = frame.args[1] ~= nil and frame.args or frame:getParent().args
+  -- unpack(args)이 불가하여 하드코딩
+  local y1 = tonumber(args[1])
+  local m1 = tonumber(args[2])
+  local d1 = tonumber(args[3])
+  local y2 = tonumber(args[4])
+  local m2 = tonumber(args[5])
+  local d2 = tonumber(args[6])
+  local entity = mw.wikibase.getEntity()
+  
+  -- 입력된 출생일이 없다면
+  if not args[1] then
+    if entity then
+      local birth = entity:getBestStatements('태어난 날')
+      
+      y1, m1, d1 = string.match(
+        birth[1].mainsnak.datavalue.value.time,
+        '(%d+)\-(%d+)\-(%d+)'
+      )
+      y1 = tonumber(y1)
+      m1 = tonumber(m1)
+      d1 = tonumber(d1)
+    else
+      error('출생일을 입력하지 않았지만 관련 위키베이스 항목을 찾을 수 없습니다.')
+    end
+  end
+
+  -- 입력된 사망일이 없다면  
+  if not args[4] then
+    local death = entity and entity:getBestStatements('사망한 날')
+
+    if death and death[1] then
+      y2, m2, d2 = string.match(
+        death[1].mainsnak.datavalue.value.time,
+        '(%d+)\-(%d+)\-(%d+)'
+      )
+      y2 = tonumber(y2)
+      m2 = tonumber(m2)
+      d2 = tonumber(d2)
+    -- 사망일을 위키베이스에서 못 가져왔다면 오늘을 기준으로 삼기
+    else
+      local date = os.date( '*t' )
+      y2 = date.year
+      m2 = date.month
+      d2 = date.day
+    end
+  end
+
+  local country = entity and frame:callParserFunction( '#property', '국적' )
+  
+  if country and country == '대한민국' then
+    return koreanAge(y1,y2)  .. '세' .. ', 만 ' .. age(y1, m1, d1, y2, m2, d2) .. '세'
+  end
+  return age(y1, m1, d1, y2, m2, d2) .. '세'
+end
+
+return p

@@ -1,0 +1,97 @@
+local p = {}
+
+--틀에서 호출되거나 바로 모듈이 호출되거나 상관없이 매개변수에 접근할 수 있도록 합니다.
+local function safeArgs(frame)
+	if frame ~= nil and frame.args[1] ~= nil then
+		return frame.args
+	else
+		return frame:getParent().args
+	end
+end
+
+function p.embedvideo(service, frame)
+  local args = safeArgs(frame)
+  local id = args[1]
+  local dimensions = ''
+  local alignment = ''
+  local description = ''
+  local container = ''
+  local urlargs = 'rel=0'
+  local autoresize = '' --사용안함
+  local valignment = '' --사용안함
+  local thumb = false
+
+  for k,v in pairs(args) do
+    if k == 1 then --do nothing
+    elseif v=='프레임' or v=='frame' then
+      container = 'frame'
+    elseif v=='섬네일' or v=='thumb' or v=='thumbnail' then
+      thumb = true
+      container = 'frame'
+      dimensions = '300' 
+    elseif v=='왼쪽' or v=='left' then
+      alignment = 'left'
+    elseif v=='오른쪽' or v=='right' then
+      alignment = 'right'
+    elseif v=='가운데' or v=='center' then
+      alignment = 'center'
+    elseif k~='시작점' and k~='끝점' and string.find(v,"^%d*x?%d*$")~=nil then
+      if dimensions=='' then dimensions = v end
+    --elseif v == '프레임없음' then --do nothing
+    elseif k=='시작점' then
+      urlargs = urlargs..'&start='..v
+    elseif k=='끝점' then
+      urlargs = urlargs..'&end='..v
+    elseif k=='추가인자' then
+      urlargs = urlargs..'&'..v
+    elseif v~='' then
+      description = description..v
+    end
+    args[k] = nil
+  end
+
+  local tag = frame:callParserFunction{
+    name = "#ev",
+    args = {
+      service,
+      id,
+      dimensions,
+      alignment,
+      description,
+      container,
+      urlargs,
+      autoresize,
+      valignment
+    }
+  }
+
+  if thumb then
+    tag = frame:callParserFunction{
+      name = '#tag:div',
+      args = {
+        tag,
+        class = 'thumb tright'
+      }
+    }
+  end
+
+  return tag
+end
+
+function p.youtube(frame)
+  return p.embedvideo('youtube', frame)
+end
+
+function p.kakaotv(frame)
+  return p.embedvideo('tvpot', frame)
+end
+
+function p.vimeo(frame)
+  return p.embedvideo('vimeo', frame)
+end
+
+function p.ted(frame)
+  return p.embedvideo('ted', frame)
+end
+
+return p

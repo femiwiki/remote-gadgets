@@ -1,0 +1,82 @@
+local p = {}
+
+local function is_leap_year(year)
+  return year % 4 == 0 and (year % 100 ~= 0 or year % 400 == 0)
+end
+
+local function get_days_in_month(year, month)
+  if month == 2 and is_leap_year(year) then
+    return 29
+  end
+
+  local days_in_month = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+  return days_in_month[month]
+end
+
+function p.tabular(frame)
+  local year = frame.args.year + 0
+  local month = frame.args.month + 0
+  local previous_month = month - 1
+  if(previous_month<=0) then previous_month = previous_month + 12 end
+  local next_month = month + 1
+  if(next_month >12) then next_month  = next_month - 12 end
+  local days = get_days_in_month(year, month)
+  local first_day_of_week = os.date("*t", os.time{year=year,month=month,day=1})["wday"]
+  local n_cells = first_day_of_week - 1 + days
+  local n_trailing_cells = 7 - (n_cells % 7)
+
+  -- Generate date cells
+  local cells = {}
+  -- 1. Prepend place holders if needed
+  for i = 1, first_day_of_week - 1 do
+    table.insert(cells, "X")
+  end
+  -- 2. Insert date cells
+  for i = 1, days do
+    table.insert(cells, i)
+  end
+  -- 3. Append place holders if needed
+  for i = 1, n_trailing_cells do
+    table.insert(cells, "X")
+  end
+
+  -- Render as a table
+  local html = {
+    '<table class="fw-calendar">\n',
+    '<tr>',
+    '<td colspan=\"2\"  style=\'border-top: 0;border-left: 0;border-right: 0\'>' .. '[[' .. previous_month  .. '월]]</td>',
+    '<td colspan=\"3\"  style=\'border-top: 0;border-left: 0;border-right: 0\'>' .. '[[' .. month .. '월|\'\'\'' .. month .. '월\'\'\']]</td>',
+    '<td colspan=\"2\"  style=\'border-top: 0;border-left: 0;border-right: 0\'>' .. '[[' .. next_month .. '월]]</td>',
+    '</tr>\n',
+    '<tr>',
+    '<th class="sun">일</th>',
+    '<th class="mon">월</th>',
+    '<th class="tue">화</th>',
+    '<th class="wed">수</th>',
+    '<th class="thu">목</th>',
+    '<th class="fri">금</th>',
+    '<th class="sat">토</th>',
+    '</tr>\n'
+  }
+  local day_names = {'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'}
+  local index = 1
+  while cells[index] do
+    table.insert(html, '<tr>')
+    for i = 1, 7 do
+      local cell = cells[index]
+      local is_placeholder = cell == "X"
+      if is_placeholder then
+        table.insert(html, '<td class="placeholder ' .. day_names[i] .. '"> </td>')
+      else
+        table.insert(html, '<td class="' .. day_names[i] .. '">[[' .. month .. '월 ' .. cell .. '일|' .. cell .. ']]</td>')
+      end
+      index = index + 1
+    end
+    table.insert(html, '</tr>\n')
+  end
+  table.insert(html, '</table>\n')
+
+  return table.concat(html, "")
+end
+
+return p

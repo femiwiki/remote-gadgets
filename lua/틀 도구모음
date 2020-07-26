@@ -1,0 +1,52 @@
+--- [[틀:틀 도구모음]]을 위한 모듈
+
+local p = {}
+
+--- 문서 이름을 입력받아 틀 도구모음을 반환합니다.
+-- @param table frame
+-- @param text frame.getParent().args[1] 문서 이름. 이름공간의 기본값은 '틀:'
+-- @return text 틀 도구모음
+function p.main(frame)
+	local args = frame:getParent().args
+	local title = mw.title.new ( args[1], 'Template' )
+	local rt = ''
+	
+	rt = rt .. '[[' ..
+		title.fullText .. '|' ..
+		textWithTootip( 'v' , '이 틀을 보기' ) ..
+	']]'
+	
+	rt = rt .. '[[' ..
+		title.talkPageTitle.fullText .. '|' ..
+		textWithTootip( 'd' , '이 틀에 대한 토론' ) ..
+	']]'
+	
+	rt = rt .. '[' ..
+		title:fullUrl( 'veaction=editsource' ) .. ' ' ..
+		'e' ..
+	']'
+	
+	rt = rt .. '[' ..
+		title:fullUrl( 'action=history' ) .. ' ' ..
+		'h' ..
+	']'
+	
+	return tostring(
+		mw.html.create( 'span' )
+		:addClass( '틀-도구모음' )
+		:wikitext( rt )
+	)
+end
+
+--- 문자열을 받아 title attribute로 툴팁을 포함시킨 span을 반환합니다.
+-- @param text text
+-- @param text tooltip
+-- @return text 위키텍스트
+function textWithTootip( text, tooltip )
+	return tostring( mw.html.create('span')
+		:attr( 'title', tooltip )
+		:wikitext( text )
+	)
+end
+
+return p
