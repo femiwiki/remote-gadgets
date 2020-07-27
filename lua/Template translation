@@ -1,1 +1,75 @@
-return require('Module:@mediawikiwiki/Template translation')
+this = require('Module:@mediawikiwiki/Template translation')
+
+--[[If on a translation subpage (like Foobar/de), this function returns
+    a given template in the same language, if the translation is available.
+    Otherwise, the template is returned in its default language, without
+    modification.
+    This is aimed at replacing the current implementation of Template:TNTN.
+
+    This version does not expand the returned template name: this solves the
+    problem of self-recursion in TNT when translatable templates need themselves
+    to transclude other translable templates (such as Tnavbar).
+    ]]
+function this.getTranslatedTemplate(frame, withStatus)
+    local args = frame.args
+    local pagename = args['template']
+
+    --[[Check whether the pagename is actually in the Template namespace, or
+        if we're transcluding a main-namespace page.
+        (added for backward compatibility of Template:TNT)
+        ]]
+    local title
+    local namespace = args['tntns'] or ''
+    if (namespace ~= '') -- Checks for tntns parameter for custom ns.
+    then
+        title = this.title(namespace, pagename) -- Costly
+    else -- Supposes that set page is in ns10.
+      namespace = 'Template'
+        title = this.title(namespace, pagename) -- Costly
+        if title.id == nil
+        then -- not found in the Template namespace, assume the main namespace (for backward compatibility)
+          namespace = ''
+            title = this.title(namespace, pagename) -- Costly
+        end
+    end
+
+    -- Get the last subpage and check if it matches a known language code.
+    local subpage = args['uselang'] or ''
+    if (subpage == '')
+    then
+        subpage = this.getCurrentLanguageSubpage()
+    end
+    if (subpage == '')
+    then
+        -- Check if a translation of the pagename exists in Korean
+        local newtitle = this.title(namespace, pagename, 'ko') -- Costly
+        -- Use the translation when it exists
+        if newtitle.id ~= nil
+        then
+            title = newtitle
+        end
+    else
+        -- Check if a translation of the pagename exists in that language
+        local newtitle = this.title(namespace, pagename, subpage) -- Costly
+        if newtitle.id == nil
+        then
+            -- Check if a translation of the pagename exists in Korean
+            newtitle = this.title(namespace, pagename, 'ko') -- Costly
+        end
+        -- Use the translation when it exists
+        if newtitle.id ~= nil
+        then
+            title = newtitle
+        end
+    end
+    -- At this point the title should exist
+    if withStatus then
+      -- status returned to Lua function below
+        return title.prefixedText, title.id ~= nil
+    else
+      -- returned directly to MediaWiki
+        return title.prefixedText
+    end
+end
+
+return this
