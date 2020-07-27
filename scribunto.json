@@ -10,6 +10,7 @@
     "@ko/Hangul",
     "@ko/Navbox",
     "@ko/Official website",
-    "@ko/Sidebar"
+    "@ko/Sidebar",
+    "@mediawikiwiki/Template translation"
   ]
 }

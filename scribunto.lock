@@ -1,5 +1,10 @@
 {
   "modules": {
+    "@mediawikiwiki/Template translation": {
+      "pageid": 131816,
+      "revid": 3497223,
+      "title": "Module:Template translation"
+    },
     "@ko/Sidebar": {
       "pageid": 945357,
       "revid": 24929734,
