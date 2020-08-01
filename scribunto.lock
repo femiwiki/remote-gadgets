@@ -257,7 +257,7 @@
     },
     "@en/Hatnote": {
       "pageid": 42498502,
-      "revid": 967664662,
+      "revid": 970298780,
       "title": "Module:Hatnote",
       "dependencies": [
         "@en/Yesno",

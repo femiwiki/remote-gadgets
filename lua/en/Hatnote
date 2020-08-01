@@ -1,6 +1,6 @@
 --[[
 This module was originally on https://en.wikipedia.org/wiki/Module:Hatnote and forked by Legunto
-(https://github.com/lens0021/legunto).
+(https://github.com/femiwiki/legunto).
 ]]
 --------------------------------------------------------------------------------
 --                              Module:Hatnote                                --
@@ -133,7 +133,7 @@ end
 -- Makes a wikilink from the given link and display values. Links are escaped
 -- with colons if necessary, and links to sections are detected and displayed
 -- with " § " as a separator rather than the standard MediaWiki "#". Used in
--- the {{format hatnote link}} template.
+-- the {{format link}} template.
 --------------------------------------------------------------------------------
 
 function p.formatLink(frame)
@@ -144,7 +144,7 @@ function p.formatLink(frame)
 	if not link then
 		return p.makeWikitextError(
 			'no link specified',
-			'Template:Format hatnote link#Errors',
+			'Template:Format link#Errors',
 			args.category
 		)
 	end
@@ -184,9 +184,23 @@ local function parseLink(link)
 	local prePipe, display = link:match('^(.-)|(.*)$')
 	link = prePipe or link
 
+	-- Find the page, if it exists.
+	-- For links like [[#Bar]], the page will be nil.
+	local preHash, postHash = link:match('^(.-)#(.*)$')
+	local page
+	if not preHash then
+		-- We have a link like [[Foo]].
+		page = link
+	elseif preHash ~= '' then
+		-- We have a link like [[Foo#Bar]].
+		page = preHash
+	end
+
 	-- Find the section, if it exists.
-	local page, section = link:match('^(.-)#(.*)$')
-	page = page or link
+	local section
+	if postHash and postHash ~= '' then
+		section = postHash
+	end
 	
 	return {
 		link = link,
@@ -234,7 +248,9 @@ function p._formatLink(options)
 	if not display then
 		local page = maybeItalicize(parsed.page, options.italicizePage)
 		local section = maybeItalicize(parsed.section, options.italicizeSection)
-		if section then
+		if not page then
+			display = string.format('§&nbsp;%s', section)
+		elseif section then
 			display = string.format('%s §&nbsp;%s', page, section)
 		else
 			display = page
