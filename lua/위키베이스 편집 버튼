@@ -14,14 +14,12 @@ function p.main(frame)
   if yesno(args.noicon) == true then
     return '[[Item:' .. qid .. '|정보 수정]]'
   else
-    return '<span data-bridge-edit-flow="overwrite">' ..
-      "[[File:OOjs UI icon edit-ltr-colored.svg |frameless |text-top |10px |alt=" ..
-      "위키베이스 항목 수정하기" ..
-      " |link=Item:" ..
-      qid ..
-      (pid == "" and "" or ("#" .. pid)) ..
-      "]]" ..
-      "</span>"
+    return "[[File:OOjs UI icon edit-ltr-colored.svg |frameless |text-top |10px |alt=" ..
+    "위키베이스 항목 수정하기" ..
+    " |link=Item:" ..
+    qid ..
+    (pid == "" and "" or ("#" .. pid)) ..
+    "]]"
   end
 end
 
