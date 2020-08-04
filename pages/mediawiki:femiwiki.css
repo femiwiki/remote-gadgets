@@ -126,3 +126,16 @@ div.dialog input[type='reset'] {
     content: none;
   }
 }
+
+/*
+ * https://github.com/femiwiki/FemiwikiSkin/issues/201
+ */
+.mw-parser-output > pre:not(.CodeMirror-line) {
+  font-family: inherit;
+  overflow: hidden;
+  border: none;
+  background-color: #f0f0f0;
+  color: #000000;
+  padding: 1em;
+  white-space: pre-wrap;
+}
