@@ -217,8 +217,11 @@
     },
     "@en/String": {
       "pageid": 38569505,
-      "revid": 924313232,
-      "title": "Module:String"
+      "revid": 970815276,
+      "title": "Module:String",
+      "dependencies": [
+        "@en/String"
+      ]
     },
     "@en/Infobox": {
       "pageid": 38808424,

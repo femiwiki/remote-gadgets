@@ -1,6 +1,6 @@
 --[[
 This module was originally on https://en.wikipedia.org/wiki/Module:String and forked by Legunto
-(https://github.com/lens0021/legunto).
+(https://github.com/femiwiki/legunto).
 ]]
 --[[
 
@@ -110,16 +110,14 @@ function str.sublength( frame )
 end
 
 --[[
-match
+_match
 
 This function returns a substring from the source string that matches a
-specified pattern.
+specified pattern. It is exported for use in other modules
 
 Usage:
-{{#invoke:String|match|source_string|pattern_string|start_index|match_number|plain_flag|nomatch_output}}
-OR
-{{#invoke:String|match|s=source_string|pattern=pattern_string|start=start_index
-    |match=match_number|plain=plain_flag|nomatch=nomatch_output}}
+strmatch = require("Module:@en/String")._match
+sresult = strmatch( s, pattern, start, match, plain, nomatch )
 
 Parameters
     s: The string to search
@@ -134,15 +132,6 @@ Parameters
     plain: A flag indicating that the pattern should be understood as plain
         text.  Defaults to false.
     nomatch: If no match is found, output the "nomatch" value rather than an error.
-
-If invoked using named parameters, Mediawiki will automatically remove any leading or
-trailing whitespace from each string.  In some circumstances this is desirable, in
-other cases one may want to preserve the whitespace.
-
-If the match_number or start_index are out of range for the string being queried, then
-this function generates an error.  An error is also generated if no match is found.
-If one adds the parameter ignore_errors=true, then the error will be suppressed and
-an empty string will be returned on any failure.
 
 For information on constructing Lua patterns, a form of [regular expression], see:
 
@@ -212,6 +201,49 @@ function str._match( s, pattern, start, match_index, plain_flag, nomatch )
 		return result
 	end
 end
+
+--[[
+match
+
+This function returns a substring from the source string that matches a
+specified pattern.
+
+Usage:
+{{#invoke:String|match|source_string|pattern_string|start_index|match_number|plain_flag|nomatch_output}}
+OR
+{{#invoke:String|match|s=source_string|pattern=pattern_string|start=start_index
+    |match=match_number|plain=plain_flag|nomatch=nomatch_output}}
+
+Parameters
+    s: The string to search
+    pattern: The pattern or string to find within the string
+    start: The index within the source string to start the search.  The first
+        character of the string has index 1.  Defaults to 1.
+    match: In some cases it may be possible to make multiple matches on a single
+        string.  This specifies which match to return, where the first match is
+        match= 1.  If a negative number is specified then a match is returned
+        counting from the last match.  Hence match = -1 is the same as requesting
+        the last match.  Defaults to 1.
+    plain: A flag indicating that the pattern should be understood as plain
+        text.  Defaults to false.
+    nomatch: If no match is found, output the "nomatch" value rather than an error.
+
+If invoked using named parameters, Mediawiki will automatically remove any leading or
+trailing whitespace from each string.  In some circumstances this is desirable, in
+other cases one may want to preserve the whitespace.
+
+If the match_number or start_index are out of range for the string being queried, then
+this function generates an error.  An error is also generated if no match is found.
+If one adds the parameter ignore_errors=true, then the error will be suppressed and
+an empty string will be returned on any failure.
+
+For information on constructing Lua patterns, a form of [regular expression], see:
+
+* http://www.lua.org/manual/5.1/manual.html#5.4.1
+* http://www.mediawiki.org/wiki/Extension:Scribunto/Lua_reference_manual#Patterns
+* http://www.mediawiki.org/wiki/Extension:Scribunto/Lua_reference_manual#Ustring_patterns
+
+]]
 -- This is the entry point for #invoke:String|match
 function str.match( frame )
 	local new_args = str._getParameters( frame.args, {'s', 'pattern', 'start', 'match', 'plain', 'nomatch'} )
