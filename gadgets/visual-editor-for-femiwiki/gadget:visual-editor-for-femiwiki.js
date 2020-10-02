@@ -274,7 +274,7 @@
         'android'
       ] = null;
     } catch (e) {
-      console.log("Error", e.stack);
+      console.log('Error', e.stack);
     }
   });
 })(mediaWiki, jQuery);
