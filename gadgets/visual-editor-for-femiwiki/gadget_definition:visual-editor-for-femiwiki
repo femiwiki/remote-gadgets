@@ -1,7 +1,7 @@
 {
   "settings": {
     "rights": [],
-    "default": true,
+    "default": false,
     "hidden": false,
     "skins": [],
     "category": "edit"
