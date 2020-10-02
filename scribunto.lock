@@ -55,12 +55,12 @@
     },
     "@ko/Navbox": {
       "pageid": 930488,
-      "revid": 25306127,
+      "revid": 27556220,
       "title": "\ubaa8\ub4c8:Navbox",
       "dependencies": [
-        "@ko/Color contrast",
+        "@ko/Navbar",
         "@ko/Arguments",
-        "@ko/Navbar"
+        "@ko/Color contrast"
       ]
     },
     "@ko/Color contrast": {
