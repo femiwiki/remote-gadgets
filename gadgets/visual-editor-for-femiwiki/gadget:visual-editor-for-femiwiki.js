@@ -266,12 +266,16 @@
    * https://github.com/femiwiki/mediawiki/issues/262
    */
   mw.libs.ve.addPlugin(function () {
-    ve.init.mw.DesktopArticleTarget.static.compatibility.whitelist[
-      'iphone'
-    ] = null;
-    ve.init.mw.DesktopArticleTarget.static.compatibility.whitelist[
-      'android'
-    ] = null;
+    try {
+      ve.init.mw.DesktopArticleTarget.static.compatibility.supportedList[
+        'iphone'
+      ] = null;
+      ve.init.mw.DesktopArticleTarget.static.compatibility.supportedList[
+        'android'
+      ] = null;
+    } catch (e) {
+      console.log("Error", e.stack);
+    }
   });
 })(mediaWiki, jQuery);
 // </nowiki>
