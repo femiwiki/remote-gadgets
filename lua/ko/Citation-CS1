@@ -1,6 +1,6 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Citation/CS1 and forked by Legunto
-(https://github.com/lens0021/legunto).
+This module was originally on https://ko.wikipedia.org/wiki/Module:Citation/CS1 and forked by Legunto
+(https://github.com/femiwiki/legunto).
 ]]
 
 local cs1 ={};
@@ -1202,9 +1202,9 @@ local function language_parameter (lang)
 	
 	code = #language_list														-- reuse code as number of languages in the list
 	if 2 >= code then
-		name = table.concat (language_list, ' and ')							-- insert '<space>and<space>' between two language names
+		name = table.concat (language_list, ', ')							-- insert '<space>and<space>' between two language names
 	elseif 2 < code then
-		language_list[code] = 'and ' .. language_list[code];					-- prepend last name with 'and<space>'
+		language_list[code] = ', ' .. language_list[code];					-- prepend last name with 'and<space>'
 		name = table.concat (language_list, ', ')								-- and concatenate with '<comma><space>' separators
 	end
 	if this_wiki_name == name then
