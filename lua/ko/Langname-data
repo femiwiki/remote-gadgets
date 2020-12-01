@@ -1,6 +1,6 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Langname/data and forked by Legunto
-(https://github.com/lens0021/legunto).
+This module was originally on https://ko.wikipedia.org/wiki/Module:Langname/data and forked by Legunto
+(https://github.com/femiwiki/legunto).
 ]]
 --[[ Module:Langname 의 데이터 파일.
      언어 코드와 언어 이름의 대응 관계가 저장된다.
@@ -246,6 +246,7 @@ langdata.lang_name = {
     ["qya"] = "꿰냐",
     ["rap"] = "라파누이어",
     ["rgn"] = "로마냐어",
+    ["rhg"] = "로힝야어",
     ["rm"] = "로만슈어",
     ["rml"] = "발트 롬어",
     ["rmn"] = "발칸 롬어",
