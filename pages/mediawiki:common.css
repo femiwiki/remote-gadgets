@@ -51,3 +51,22 @@ html.ve-active #catlinks {
 .mw-ck-members-join {
   display: none;
 }
+
+/*
+ * [[특수:도전과제뱃지공유]]에 이미지 아이콘 표시
+ */
+.mw-special-ShareAchievementBadge .share-media a {
+  display: inline-block;
+  width: 2em;
+  height: 2em;
+  background-size: 2em;
+}
+.mw-special-ShareAchievementBadge .share-media span {
+  display: none;
+}
+.mw-special-ShareAchievementBadge #share-achievement-facebook {
+  background-image: url(https://upload.wikimedia.org/wikipedia/commons/c/c2/F_icon.svg);
+}
+.mw-special-ShareAchievementBadge #share-achievement-twitter {
+  background-image: url(https://femiwiki-uploaded-files.s3.amazonaws.com/b/bb/Twitter_Social_Icon_Rounded_Square_Color.svg);
+}
