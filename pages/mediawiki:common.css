@@ -60,6 +60,7 @@ html.ve-active #catlinks {
   width: 2em;
   height: 2em;
   background-size: 2em;
+  border-radius: 0.4em;
 }
 .mw-special-ShareAchievementBadge .share-media span {
   display: none;
