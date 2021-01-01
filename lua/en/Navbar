@@ -1,122 +1,166 @@
 --[[
 This module was originally on https://en.wikipedia.org/wiki/Module:Navbar and forked by Legunto
-(https://github.com/lens0021/legunto).
+(https://github.com/femiwiki/legunto).
 ]]
 local p = {}
+local cfg = mw.loadData('Module:@en/Navbar-configuration')
 
-local getArgs
-local ul
+local function get_title_arg(is_collapsible, template)
+	local title_arg = 1
+	if is_collapsible then title_arg = 2 end
+	if template then title_arg = 'template' end
+	return title_arg
+end
 
-function p.addItem (mini, full, link, descrip, args, url)
+local function choose_links(template, args)
+	-- The show table indicates the default displayed items.
+	-- view, talk, edit, hist, move, watch
+	-- TODO: Move to configuration.
+	local show = {true, true, true, false, false, false}
+	if template then
+		show[2] = false
+		show[3] = false
+		local index = {t = 2, d = 2, e = 3, h = 4, m = 5, w = 6,
+			talk = 2, edit = 3, hist = 4, move = 5, watch = 6}
+		-- TODO: Consider removing TableTools dependency.
+		for _, v in ipairs(require ('Module:@en/TableTools').compressSparseArray(args)) do
+			local num = index[v]
+			if num then show[num] = true end
+		end
+	end
+
+	local remove_edit_link = args.noedit
+	if remove_edit_link then show[3] = false end
+	
+	return show
+	
+end
+
+local function add_link(link_description, ul, is_mini, font_style)
 	local l
-	if url then
+	if link_description.url then
 		l = {'[', '', ']'}
 	else
 		l = {'[[', '|', ']]'}
 	end
 	ul:tag('li')
-		:addClass('nv-'..full)
-		:wikitext(l[1] .. link .. l[2])
-		:tag(args.mini and 'abbr' or 'span')
-			:attr('title', descrip..' this template')
-			:cssText(args.fontstyle)
-			:wikitext(args.mini and mini or full)
+		:addClass('nv-' .. link_description.full)
+		:wikitext(l[1] .. link_description.link .. l[2])
+		:tag(is_mini and 'abbr' or 'span')
+			:attr('title', link_description.html_title)
+			:cssText(font_style)
+			:wikitext(is_mini and link_description.mini or link_description.full)
 			:done()
 		:wikitext(l[3])
+		:done()
 end
 
-function p.brackets (position, c, args, div)
-	if args.brackets then
-		div
-			:tag('span')
-				:css('margin-'..position, '-0.125em')
-				:cssText(args.fontstyle)
-				:wikitext(c)
-	end
-end
-
-function p._navbar(args)
-	local show = {true, true, true, false, false, false}
-	local titleArg = 1
+local function make_list(title_text, has_brackets, displayed_links, is_mini, font_style)
 	
-	if args.collapsible then
-		titleArg = 2
-		if not args.plain then args.mini = 1 end
-		if args.fontcolor then
-			args.fontstyle = 'color:' .. args.fontcolor .. ';'
-		end
-		args.style = 'float:left; text-align:left'
-	end
-	
-	if args.template then
-		titleArg = 'template'
-		show = {true, false, false, false, false, false}
-		local index = {t = 2, d = 2, e = 3, h = 4, m = 5, w = 6, talk = 2, edit = 3, hist = 4, move = 5, watch = 6}
-		for k,v in ipairs(require ('Module:@en/TableTools').compressSparseArray(args)) do
-			local num = index[v]
-			if num then show[num] = true end
-		end
-	end
-	
-	if args.noedit then show[3] = false end
-	
-	local titleText = args[titleArg] or (':' .. mw.getCurrentFrame():getParent():getTitle())
-	local title = mw.title.new(mw.text.trim(titleText), 'Template')
+	local title = mw.title.new(mw.text.trim(title_text), cfg.title_namespace)
 	if not title then
-		error('Invalid title ' .. titleText)
+		error(cfg.invalid_title .. title_text)
 	end
 	local talkpage = title.talkPageTitle and title.talkPageTitle.fullText or ''
 	
+	-- TODO: Get link_descriptions and show into the configuration module.
+	-- link_descriptions should be easier...
+	local link_descriptions = {
+		{ ['mini'] = 'v', ['full'] = 'view', ['html_title'] = 'View this template',
+			['link'] = title.fullText, ['url'] = false },
+		{ ['mini'] = 't', ['full'] = 'talk', ['html_title'] = 'Discuss this template',
+			['link'] = talkpage, ['url'] = false },
+		{ ['mini'] = 'e', ['full'] = 'edit', ['html_title'] = 'Edit this template',
+			['link'] = title:fullUrl('action=edit'), ['url'] = true },
+		{ ['mini'] = 'h', ['full'] = 'hist', ['html_title'] = 'History of this template',
+			['link'] = title:fullUrl('action=history'), ['url'] = true },
+		{ ['mini'] = 'm', ['full'] = 'move', ['html_title'] = 'Move this template',
+			['link'] = mw.title.new('Special:Movepage'):fullUrl('target='..title.fullText), ['url'] = true },
+		{ ['mini'] = 'w', ['full'] = 'watch', ['html_title'] = 'Watch this template', 
+			['link'] = title:fullUrl('action=watch'), ['url'] = true }
+	}
+
+	local ul = mw.html.create('ul')
+	if has_brackets then
+		ul:addClass(cfg.classes.brackets)
+			:cssText(font_style)
+	end
+	
+	for i, _ in ipairs(displayed_links) do
+		if displayed_links[i] then add_link(link_descriptions[i], ul, is_mini, font_style) end
+	end
+	return ul:done()
+	
+end
+
+function p._navbar(args)
+	
+	-- TODO: We probably don't need both fontstyle and fontcolor...
+	local font_style = args.fontstyle
+	local font_color = args.fontcolor
+	local is_collapsible = args.collapsible
+	local is_mini = args.mini
+	local is_plain = args.plain
+	
+	local collapsible_class = nil
+	if is_collapsible then
+		collapsible_class = cfg.classes.collapsible
+		if not is_plain then is_mini = 1 end
+		if font_color then
+			font_style = (font_style or '') .. '; color: ' .. font_color .. ';'
+		end
+	end
+	
+	local navbar_style = args.style
 	local div = mw.html.create():tag('div')
 	div
-		:addClass('plainlinks')
-		:addClass('hlist')
-		:addClass('navbar')
-		:cssText(args.style)
+		:addClass(cfg.classes.navbar)
+		:addClass(cfg.classes.plainlinks)
+		:addClass(cfg.classes.horizontal_list)
+		:addClass(collapsible_class) -- we made the determination earlier
+		:cssText(navbar_style)
 
-	if args.mini then div:addClass('mini') end
+	if is_mini then div:addClass(cfg.classes.mini) end
 
-	if not (args.mini or args.plain) then
+	local box_text = (args.text or cfg.box_text) .. ' '
+	 -- the concatenated space guarantees the box text is separated
+	if not (is_mini or is_plain) then
 		div
 			:tag('span')
-				:css('word-spacing', 0)
-				:cssText(args.fontstyle)
-				:wikitext(args.text or 'This box:')
-				:wikitext(' ')
+				:addClass(cfg.classes.box_text)
+				:cssText(font_style)
+				:wikitext(box_text)
 	end
 	
-	p.brackets('right', '&#91; ', args, div)
-	
-	ul = div:tag('ul')
-	if show[1] then p.addItem('v', 'view', title.fullText, 'View', args) end
-	if show[2] then p.addItem('t', 'talk', talkpage, 'Discuss', args) end
-	if show[3] then p.addItem('e', 'edit', title:fullUrl('action=edit'), 'Edit', args, true) end
-	if show[4] then p.addItem('h', 'hist', title:fullUrl('action=history'), 'History of', args, true) end
-	if show[5] then
-		local move = mw.title.new ('Special:Movepage')
-		p.addItem('m', 'move', move:fullUrl('target='..title.fullText), 'Move', args, true) end
-	if show[6] then p.addItem('w', 'watch', title:fullUrl('action=watch'), 'Watch', args, true) end
-	
-	p.brackets('left', ' &#93;', args, div)
-	
-	if args.collapsible then
-		div
-			:done()
-		:tag('div')
-			:css('font-size', '114%')
-			:css('margin', args.mini and '0 4em' or '0 7em')
-			:cssText(args.fontstyle)
+	local template = args.template
+	local displayed_links = choose_links(template, args)
+	local has_brackets = args.brackets
+	local title_arg = get_title_arg(is_collapsible, template)
+	local title_text = args[title_arg] or (':' .. mw.getCurrentFrame():getParent():getTitle())
+	local list = make_list(title_text, has_brackets, displayed_links, is_mini, font_style)
+	div:node(list)
+
+	if is_collapsible then
+		local title_text_class
+		if is_mini then
+			title_text_class = cfg.classes.collapsible_title_mini
+		else
+			title_text_class = cfg.classes.collapsible_title_full
+		end
+		div:done()
+			:tag('div')
+			:addClass(title_text_class)
+			:cssText(font_style)
 			:wikitext(args[1])
 	end
-
-	return tostring(div:done())
+	
+	return mw.getCurrentFrame():extensionTag{
+		name = 'templatestyles', args = { src = cfg.templatestyles }
+	} .. tostring(div:done())
 end
 
 function p.navbar(frame)
-	if not getArgs then
-		getArgs = require('Module:@en/Arguments').getArgs
-	end
-	return p._navbar(getArgs(frame))
+	return p._navbar(require('Module:@en/Arguments').getArgs(frame))
 end
 
 return p
