@@ -233,12 +233,23 @@
     },
     "@en/Navbar": {
       "pageid": 38827227,
-      "revid": 948473991,
+      "revid": 992953067,
       "title": "Module:Navbar",
       "dependencies": [
-        "@en/Arguments",
-        "@en/TableTools"
+        "@en/TableTools",
+        "@en/Navbar/configuration",
+        "@en/Arguments"
       ]
+    },
+    "@en/Arguments": {
+      "pageid": 41298065,
+      "revid": 948472485,
+      "title": "Module:Arguments"
+    },
+    "@en/Navbar/configuration": {
+      "pageid": 66010105,
+      "revid": 992950717,
+      "title": "Module:Navbar/configuration"
     },
     "@en/TableTools": {
       "pageid": 41371028,
@@ -252,11 +263,6 @@
       "pageid": 45500622,
       "revid": 920258706,
       "title": "Module:Exponential search"
-    },
-    "@en/Arguments": {
-      "pageid": 41298065,
-      "revid": 948472485,
-      "title": "Module:Arguments"
     },
     "@en/Hatnote": {
       "pageid": 42498502,

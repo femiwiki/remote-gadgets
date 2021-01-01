@@ -1,0 +1,26 @@
+--[[
+This module was originally on https://en.wikipedia.org/wiki/Module:Navbar/configuration and forked by Legunto
+(https://github.com/femiwiki/legunto).
+]]
+local configuration = {
+	['templatestyles'] = 'Module:Navbar/styles.css',
+	['box_text'] = 'This box: ',			-- default text box when not plain or mini
+	['title_namespace'] = 'Template',		-- namespace to default to for title
+	['invalid_title'] = 'Invalid title ',
+	['classes'] = { -- set a line to nil if you don't want it
+		['navbar'] = 'navbar',
+		['plainlinks'] = 'plainlinks', -- plainlinks
+		['horizontal_list'] = 'hlist', -- horizontal list class
+		['mini'] = 'navbar-mini', -- class indicating small links in the navbar
+		['this_box'] = 'navbar-boxtext',
+		['brackets'] = 'navbar-brackets',
+		-- 'collapsible' is the key for a class to indicate the navbar is
+		-- setting up the collapsible element in addition to the normal
+		-- navbar.
+		['collapsible'] = 'navbar-collapse',
+		['collapsible_title_mini'] = 'navbar-ct-mini',
+		['collapsible_title_full'] = 'navbar-ct-full'
+	}
+}
+
+return configuration
