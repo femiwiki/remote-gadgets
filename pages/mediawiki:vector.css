@@ -4,3 +4,17 @@
 .fw-catlinks {
   display: none;
 }
+
+/* .mw-wiki-logo, */
+.mw-logo-wordmark {
+  background-color: #aca6e4;
+}
+
+.mw-logo-icon {
+  display: none;
+}
+
+.mw-logo-wordmark {
+  width: 5em;
+  height: auto;
+}
