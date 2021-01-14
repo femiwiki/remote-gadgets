@@ -32,11 +32,6 @@
   background-color: initial;
 }
 
-.mw-gallery-traditional .thumb > div {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
-
 @media screen and (max-width: 480px) {
   .mw-parser-output ul.mw-gallery-traditional {
     box-sizing: border-box;
