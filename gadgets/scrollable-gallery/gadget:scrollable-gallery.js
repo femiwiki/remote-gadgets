@@ -1,15 +1,25 @@
 //<nowiki>
 (function () {
-  $('.mw-gallery-traditional').each(function () {
-    if ($(this).get(0).scrollWidth > $(this).innerWidth())
-      $(this).addClass('scroll-right');
+  'use strict';
+  document.querySelectorAll('.mw-gallery-traditional').forEach(function (ele) {
+    var maxScrollLeft = ele.scrollWidth - ele.clientWidth;
 
-    var maxScrollLeft = $(this).get(0).scrollWidth - $(this).innerWidth();
-    $(this).scroll(function () {
-      if ($(this).scrollLeft() < maxScrollLeft)
-        $(this).addClass('scroll-right');
-      else $(this).removeClass('scroll-right');
-    });
+    function drawShadow() {
+      if (ele.scrollLeft < maxScrollLeft) {
+        ele.classList.add('scroll-right');
+      } else {
+        ele.classList.remove('scroll-right');
+      }
+
+      if (ele.scrollLeft > 0) {
+        ele.classList.add('scroll-left');
+      } else {
+        ele.classList.remove('scroll-left');
+      }
+    }
+
+    drawShadow();
+    ele.addEventListener('scroll', drawShadow);
   });
 })();
 //</nowiki>
