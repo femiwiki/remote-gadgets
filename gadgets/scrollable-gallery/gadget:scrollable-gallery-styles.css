@@ -33,11 +33,6 @@
   background-color: initial;
 }
 
-li.gallerybox div.thumb img {
-  margin-left: 0;
-  margin-right: 0;
-}
-
 @media screen and (max-width: 480px) {
   .mw-parser-output ul.mw-gallery-traditional {
     box-sizing: border-box;
