@@ -1,20 +1,21 @@
 .mw-gallery-traditional {
   overflow-x: scroll;
   white-space: nowrap;
-  padding: 0 1.3rem;
   text-align: center;
   -webkit-overflow-scrolling: touch;
+}
+
+.mw-parser-output ul.mw-gallery-traditional {
+  padding: 0 1.3rem;
   margin-bottom: 3.2rem;
 }
 
 .mw-gallery-traditional.scroll-right {
   box-shadow: -17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
 }
-
 .mw-gallery-traditional.scroll-left {
   box-shadow: 17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
 }
-
 .mw-gallery-traditional.scroll-left.scroll-right {
   box-shadow: -17px 0 16px -16px rgba(0, 0, 0, 0.4) inset,
     17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
@@ -30,6 +31,11 @@
   margin: 0;
   border: none;
   background-color: initial;
+}
+
+li.gallerybox div.thumb img {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 @media screen and (max-width: 480px) {
