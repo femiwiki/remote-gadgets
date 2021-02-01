@@ -17,7 +17,7 @@
     },
     "@ko/Navbar": {
       "pageid": 930485,
-      "revid": 26078697,
+      "revid": 28573476,
       "title": "\ubaa8\ub4c8:Navbar",
       "dependencies": [
         "@ko/Arguments",
