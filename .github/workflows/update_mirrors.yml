@@ -36,10 +36,11 @@ jobs:
     - name: Check & download for module updates
       run: legunto update
 
-    - name: Create a pull pequest
+    - name: Create a pull request
       uses: peter-evans/create-pull-request@v3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
+        author: GitHub <noreply@github.com>
         commit-message: Update Scribunto module(s)
         title: Update Scribunto module(s)
         branch: bump-scribunto
