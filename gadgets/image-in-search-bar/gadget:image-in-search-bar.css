@@ -4,7 +4,7 @@
 }
 #p-search #anniversary-icon {
   display: block;
-  position: absolute;
+  position: fixed;
   right: 0.3rem;
   bottom: 0.3rem;
   height: 1.8rem;
