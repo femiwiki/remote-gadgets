@@ -225,7 +225,7 @@
     },
     "@en/Infobox": {
       "pageid": 38808424,
-      "revid": 964480912,
+      "revid": 1015312088,
       "title": "Module:Infobox",
       "dependencies": [
         "@en/Navbar"

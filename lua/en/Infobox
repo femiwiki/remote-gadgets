@@ -1,22 +1,17 @@
 --[[
 This module was originally on https://en.wikipedia.org/wiki/Module:Infobox and forked by Legunto
-(https://github.com/lens0021/legunto).
+(https://github.com/femiwiki/legunto).
 ]]
---
--- This module implements {{Infobox}}
---
-
 local p = {}
-
-local navbar = require('Module:@en/Navbar')._navbar
-
 local args = {}
 local origArgs = {}
 local root
-
-local function notempty( s ) return s and s:match( '%S' ) end
+local empty_row_categories = {}
+local category_in_empty_row_pattern = '%[%[%s*[Cc][Aa][Tt][Ee][Gg][Oo][Rr][Yy]%s*:[^]]*]]'
 
 local function fixChildBoxes(sval, tt)
+	local function notempty( s ) return s and s:match( '%S' ) end
+	
 	if notempty(sval) then
 		local marker = '<span class=special_infobox_marker>'
 		local s = sval
@@ -42,18 +37,20 @@ local function fixChildBoxes(sval, tt)
 				elseif k == #subcells then
 					local rowstyle = ' style="display:none"'
 					if notempty(subcells[k]) then rowstyle = ''	end
-					s = s .. '<tr' .. rowstyle ..'><' .. tt .. ' colspan=2>\n' .. subcells[k]
+					s = s .. '<tr' .. rowstyle ..'><' .. tt .. ' colspan=2>\n' ..
+						subcells[k]
 				elseif notempty(subcells[k]) then
 					if (k % 2) == 0 then
 						s = s .. subcells[k]
 					else
-						s = s .. '<tr><' .. tt .. ' colspan=2>\n' .. subcells[k] .. '</' .. tt .. '></tr>'
+						s = s .. '<tr><' .. tt .. ' colspan=2>\n' ..
+							subcells[k] .. '</' .. tt .. '></tr>'
 					end
 				end
 			end
 		end
 		-- the next two lines add a newline at the end of lists for the PHP parser
-		-- https://en.wikipedia.org/w/index.php?title=Template_talk:Infobox_musical_artist&oldid=849054481
+		-- [[Special:Diff/849054481]]
 		-- remove when [[:phab:T191516]] is fixed or OBE
 		s = mw.ustring.gsub(s, '([\r\n][%*#;:][^\r\n]*)$', '%1\n')
 		s = mw.ustring.gsub(s, '^([%*#;:][^\r\n]*)$', '%1\n')
@@ -65,8 +62,9 @@ local function fixChildBoxes(sval, tt)
 	end
 end
 
+-- Returns the union of the values of two tables, as a sequence.
 local function union(t1, t2)
-	-- Returns the union of the values of two tables, as a sequence.
+
 	local vals = {}
 	for k, v in pairs(t1) do
 		vals[v] = true
@@ -81,10 +79,10 @@ local function union(t1, t2)
 	return ret
 end
 
+-- Returns a table containing the numbers of the arguments that exist
+-- for the specified prefix. For example, if the prefix was 'data', and
+-- 'data1', 'data2', and 'data5' exist, it would return {1, 2, 5}.
 local function getArgNums(prefix)
-	-- Returns a table containing the numbers of the arguments that exist
-	-- for the specified prefix. For example, if the prefix was 'data', and
-	-- 'data1', 'data2', and 'data5' exist, it would return {1, 2, 5}.
 	local nums = {}
 	for k, v in pairs(args) do
 		local num = tostring(k):match('^' .. prefix .. '([1-9]%d*)$')
@@ -94,40 +92,41 @@ local function getArgNums(prefix)
 	return nums
 end
 
+-- Adds a row to the infobox, with either a header cell
+-- or a label/data cell combination.
 local function addRow(rowArgs)
-	-- Adds a row to the infobox, with either a header cell
-	-- or a label/data cell combination.
+	
 	if rowArgs.header and rowArgs.header ~= '_BLANK_' then
 		root
 			:tag('tr')
 				:addClass(rowArgs.rowclass)
 				:cssText(rowArgs.rowstyle)
-				:attr('id', rowArgs.rowid)
 				:tag('th')
-					:attr('colspan', 2)
-					:attr('id', rowArgs.headerid)
+					:attr('colspan', '2')
+					:addClass('infobox-header')
 					:addClass(rowArgs.class)
 					:addClass(args.headerclass)
-					:css('text-align', 'center')
+					-- @deprecated next; target .infobox-<name> .infobox-header
 					:cssText(args.headerstyle)
 					:cssText(rowArgs.rowcellstyle)
 					:wikitext(fixChildBoxes(rowArgs.header, 'th'))
 		if rowArgs.data then
-			root:wikitext('[[Category:Pages which use infobox templates with ignored data cells]]')
+			root:wikitext(
+				'[[Category:Pages which use infobox templates with ignored data cells]]'
+			)
 		end
-	elseif rowArgs.data then
-		if not rowArgs.data:gsub('%[%[%s*[Cc][Aa][Tt][Ee][Gg][Oo][Rr][Yy]%s*:[^]]*]]', ''):match('^%S') then
-			rowArgs.rowstyle = 'display:none'
-		end
+	elseif rowArgs.data and rowArgs.data:gsub(
+		category_in_empty_row_pattern, ''
+		):match('^%S') then
 		local row = root:tag('tr')
 		row:addClass(rowArgs.rowclass)
 		row:cssText(rowArgs.rowstyle)
-		row:attr('id', rowArgs.rowid)
 		if rowArgs.label then
 			row
 				:tag('th')
 					:attr('scope', 'row')
-					:attr('id', rowArgs.labelid)
+					:addClass('infobox-label')
+					-- @deprecated next; target .infobox-<name> .infobox-label
 					:cssText(args.labelstyle)
 					:cssText(rowArgs.rowcellstyle)
 					:wikitext(rowArgs.label)
@@ -135,17 +134,16 @@ local function addRow(rowArgs)
 		end
 
 		local dataCell = row:tag('td')
-		if not rowArgs.label then
-			dataCell
-				:attr('colspan', 2)
-				:css('text-align', 'center')
-		end
 		dataCell
-			:attr('id', rowArgs.dataid)
+			:attr('colspan', not rowArgs.label and '2' or nil)
+			:addClass(not rowArgs.label and 'infobox-full-data' or 'infobox-data')
 			:addClass(rowArgs.class)
+			-- @deprecated next; target .infobox-<name> .infobox(-full)-data
 			:cssText(rowArgs.datastyle)
 			:cssText(rowArgs.rowcellstyle)
 			:wikitext(fixChildBoxes(rowArgs.data, 'td'))
+	else
+		table.insert(empty_row_categories, rowArgs.data or '')
 	end
 end
 
@@ -154,7 +152,9 @@ local function renderTitle()
 
 	root
 		:tag('caption')
+			:addClass('infobox-title')
 			:addClass(args.titleclass)
+			-- @deprecated next; target .infobox-<name> .infobox-title
 			:cssText(args.titlestyle)
 			:wikitext(args.title)
 end
@@ -165,11 +165,10 @@ local function renderAboveRow()
 	root
 		:tag('tr')
 			:tag('th')
-				:attr('colspan', 2)
+				:attr('colspan', '2')
+				:addClass('infobox-above')
 				:addClass(args.aboveclass)
-				:css('text-align', 'center')
-				:css('font-size', '125%')
-				:css('font-weight', 'bold')
+				-- @deprecated next; target .infobox-<name> .infobox-above
 				:cssText(args.abovestyle)
 				:wikitext(fixChildBoxes(args.above,'th'))
 end
@@ -181,10 +180,30 @@ local function renderBelowRow()
 		:tag('tr')
 			:tag('td')
 				:attr('colspan', '2')
+				:addClass('infobox-below')
 				:addClass(args.belowclass)
-				:css('text-align', 'center')
+				-- @deprecated next; target .infobox-<name> .infobox-below
 				:cssText(args.belowstyle)
 				:wikitext(fixChildBoxes(args.below,'td'))
+end
+
+local function addSubheaderRow(subheaderArgs)
+	if subheaderArgs.data and
+		subheaderArgs.data:gsub(category_in_empty_row_pattern, ''):match('^%S') then
+		local row = root:tag('tr')
+		row:addClass(subheaderArgs.rowclass)
+
+		local dataCell = row:tag('td')
+		dataCell
+			:attr('colspan', '2')
+			:addClass('infobox-subheader')
+			:addClass(subheaderArgs.class)
+			:cssText(subheaderArgs.datastyle)
+			:cssText(subheaderArgs.rowcellstyle)
+			:wikitext(fixChildBoxes(subheaderArgs.data, 'td'))
+	else
+		table.insert(empty_row_categories, subheaderArgs.data or '')
+	end
 end
 
 local function renderSubheaders()
@@ -196,13 +215,34 @@ local function renderSubheaders()
 	end
 	local subheadernums = getArgNums('subheader')
 	for k, num in ipairs(subheadernums) do
-		addRow({
+		addSubheaderRow({
 			data = args['subheader' .. tostring(num)],
+			-- @deprecated next; target .infobox-<name> .infobox-subheader
 			datastyle = args.subheaderstyle,
 			rowcellstyle = args['subheaderstyle' .. tostring(num)],
 			class = args.subheaderclass,
 			rowclass = args['subheaderrowclass' .. tostring(num)]
 		})
+	end
+end
+
+local function addImageRow(imageArgs)
+
+	if imageArgs.data and
+		imageArgs.data:gsub(category_in_empty_row_pattern, ''):match('^%S') then
+		
+		local row = root:tag('tr')
+		row:addClass(imageArgs.rowclass)
+
+		local dataCell = row:tag('td')
+		dataCell
+			:attr('colspan', '2')
+			:addClass('infobox-image')
+			:addClass(imageArgs.class)
+			:cssText(imageArgs.datastyle)
+			:wikitext(fixChildBoxes(imageArgs.data, 'td'))
+	else
+		table.insert(empty_row_categories, imageArgs.data or '')
 	end
 end
 
@@ -220,11 +260,14 @@ local function renderImages()
 		if caption then
 			data
 				:tag('div')
+					:addClass('infobox-caption')
+					-- @deprecated next; target .infobox-<name> .infobox-caption
 					:cssText(args.captionstyle)
 					:wikitext(caption)
 		end
-		addRow({
+		addImageRow({
 			data = tostring(data),
+			-- @deprecated next; target .infobox-<name> .infobox-image
 			datastyle = args.imagestyle,
 			class = args.imageclass,
 			rowclass = args['imagerowclass' .. tostring(num)]
@@ -232,9 +275,10 @@ local function renderImages()
 	end
 end
 
+-- When autoheaders are turned on, preprocesses the rows
 local function preprocessRows()
-	-- Gets the union of the header and data argument numbers,
-	-- and renders them all in order using addRow.
+	if not args.autoheaders then return end
+	
 	local rownums = union(getArgNums('header'), getArgNums('data'))
 	table.sort(rownums)
 	local lastheader
@@ -244,9 +288,12 @@ local function preprocessRows()
 				args['header' .. tostring(lastheader)] = nil
 			end
 			lastheader = num
-		elseif args['data' .. tostring(num)] and args['data' .. tostring(num)]:gsub('%[%[%s*[Cc][Aa][Tt][Ee][Gg][Oo][Rr][Yy]%s*:[^]]*]]', ''):match('^%S') then
+		elseif args['data' .. tostring(num)] and
+			args['data' .. tostring(num)]:gsub(
+				category_in_empty_row_pattern, ''
+			):match('^%S') then
 			local data = args['data' .. tostring(num)]
-			if data:gsub('%[%[%s*[Cc][Aa][Tt][Ee][Gg][Oo][Rr][Yy]%s*:[^]]*]]', ''):match('%S') then
+			if data:gsub(category_in_empty_row_pattern, ''):match('%S') then
 				lastheader = nil
 			end
 		end
@@ -256,9 +303,10 @@ local function preprocessRows()
 	end
 end
 
+-- Gets the union of the header and data argument numbers,
+-- and renders them all in order
 local function renderRows()
-	-- Gets the union of the header and data argument numbers,
-	-- and renders them all in order using addRow.
+
 	local rownums = union(getArgNums('header'), getArgNums('data'))
 	table.sort(rownums)
 	for k, num in ipairs(rownums) do
@@ -269,12 +317,9 @@ local function renderRows()
 			datastyle = args.datastyle,
 			class = args['class' .. tostring(num)],
 			rowclass = args['rowclass' .. tostring(num)],
+			-- @deprecated next; target .infobox-<name> rowclass
 			rowstyle = args['rowstyle' .. tostring(num)],
-			rowcellstyle = args['rowcellstyle' .. tostring(num)],
-			dataid = args['dataid' .. tostring(num)],
-			labelid = args['labelid' .. tostring(num)],
-			headerid = args['headerid' .. tostring(num)],
-			rowid = args['rowid' .. tostring(num)]
+			rowcellstyle = args['rowcellstyle' .. tostring(num)]
 		})
 	end
 end
@@ -286,8 +331,8 @@ local function renderNavBar()
 		:tag('tr')
 			:tag('td')
 				:attr('colspan', '2')
-				:css('text-align', 'right')
-				:wikitext(navbar{
+				:addClass('infobox-navbar')
+				:wikitext(require('Module:@en/Navbar')._navbar{
 					args.name,
 					mini = 1,
 				})
@@ -300,44 +345,85 @@ local function renderItalicTitle()
 	end
 end
 
-local function renderTrackingCategories()
-	if args.decat ~= 'yes' then
-		if args.child == 'yes' then
-			if args.title then
-				root:wikitext('[[Category:Pages which use embedded infobox templates with the title parameter]]')
-			end
-		elseif #(getArgNums('data')) == 0 and mw.title.getCurrentTitle().namespace == 0 then
-			root:wikitext('[[Category:Articles which use infobox templates with no data rows]]')
-		end
+-- Categories in otherwise empty rows are collected in empty_row_categories.
+-- This function adds them to the module output. It is not affected by
+-- args.decat because this module should not prevent module-external categories
+-- from rendering.
+local function renderEmptyRowCategories()
+	for _, s in ipairs(empty_row_categories) do
+		root:wikitext(s)
 	end
 end
 
+-- Render tracking categories. args.decat == turns off tracking categories.
+local function renderTrackingCategories()
+	if args.decat == 'yes' then return end
+	if args.child == 'yes' then
+		if args.title then
+			root:wikitext(
+				'[[Category:Pages which use embedded infobox templates with the title parameter]]'
+			)
+		end
+	elseif #(getArgNums('data')) == 0 and mw.title.getCurrentTitle().namespace == 0 then
+		root:wikitext('[[Category:Articles which use infobox templates with no data rows]]')
+	end
+end
+
+--[=[
+Loads the templatestyles for the infobox.
+
+TODO: load base templatestyles here rather than in MediaWiki:Common.css
+We aren't doing it here yet because there are 4-5000 pages with 'raw' infobox
+tables. See [[Mediawiki_talk:Common.css/to_do#Infobox]] and/or come help :).
+When we do this we should clean up the inline CSS below too.
+Will have to do some bizarre conversion category like with sidebar.
+	
+]=]
+local function loadTemplateStyles()
+	local frame = mw.getCurrentFrame()
+	
+-- See function description
+--	local base_templatestyles = frame:extensionTag{
+--		name = 'templatestyles', args = { src = cfg.i18n.templatestyles }
+--	}
+	
+	local templatestyles = ''
+	if args['templatestyles'] then templatestyles = frame:extensionTag{
+			name = 'templatestyles', args = { src = args['templatestyles'] }
+		}
+	end
+	
+	local child_templatestyles = ''
+	if args['child templatestyles'] then child_templatestyles = frame:extensionTag{
+			name = 'templatestyles', args = { src = args['child templatestyles'] }
+		}
+	end
+	
+	local grandchild_templatestyles = ''
+	if args['grandchild templatestyles'] then grandchild_templatestyles = frame:extensionTag{
+			name = 'templatestyles', args = { src = args['grandchild templatestyles'] }
+		}
+	end
+
+	return table.concat({
+--		base_templatestyles, -- see function description
+		templatestyles,
+		child_templatestyles,
+		grandchild_templatestyles
+	})	
+	
+end
+
+-- Specify the overall layout of the infobox, with special settings if the
+-- infobox is used as a 'child' inside another infobox.
 local function _infobox()
-	-- Specify the overall layout of the infobox, with special settings
-	-- if the infobox is used as a 'child' inside another infobox.
 	if args.child ~= 'yes' then
 		root = mw.html.create('table')
 
 		root
-			:addClass((args.subbox ~= 'yes') and 'infobox' or nil)
+			:addClass(args.subbox == 'yes' and 'infobox-subbox' or 'infobox')
 			:addClass(args.bodyclass)
-
-			if args.subbox == 'yes' then
-				root
-					:css('padding', '0')
-					:css('border', 'none')
-					:css('margin', '-3px')
-					:css('width', 'auto')
-					:css('min-width', '100%')
-					:css('font-size', '100%')
-					:css('clear', 'none')
-					:css('float', 'none')
-					:css('background-color', 'transparent')
-			else
-				root
-					:css('width', '22em')
-			end
-		root
+			-- @deprecated next; target .infobox-<name>
 			:cssText(args.bodystyle)
 
 		renderTitle()
@@ -351,33 +437,33 @@ local function _infobox()
 
 	renderSubheaders()
 	renderImages()
-	if args.autoheaders then
-		preprocessRows()
-	end
+	preprocessRows()
 	renderRows()
 	renderBelowRow()
 	renderNavBar()
 	renderItalicTitle()
+	renderEmptyRowCategories()
 	renderTrackingCategories()
 
-	return tostring(root)
+	return loadTemplateStyles() .. tostring(root)
 end
 
+-- If the argument exists and isn't blank, add it to the argument table.
+-- Blank arguments are treated as nil to match the behaviour of ParserFunctions.
 local function preprocessSingleArg(argName)
-	-- If the argument exists and isn't blank, add it to the argument table.
-	-- Blank arguments are treated as nil to match the behaviour of ParserFunctions.
 	if origArgs[argName] and origArgs[argName] ~= '' then
 		args[argName] = origArgs[argName]
 	end
 end
 
+-- Assign the parameters with the given prefixes to the args table, in order, in
+-- batches of the step size specified. This is to prevent references etc. from
+-- appearing in the wrong order. The prefixTable should be an array containing
+-- tables, each of which has two possible fields, a "prefix" string and a
+-- "depend" table. The function always parses parameters containing the "prefix"
+-- string, but only parses parameters in the "depend" table if the prefix
+-- parameter is present and non-blank.
 local function preprocessArgs(prefixTable, step)
-	-- Assign the parameters with the given prefixes to the args table, in order, in batches
-	-- of the step size specified. This is to prevent references etc. from appearing in the
-	-- wrong order. The prefixTable should be an array containing tables, each of which has
-	-- two possible fields, a "prefix" string and a "depend" table. The function always parses
-	-- parameters containing the "prefix" string, but only parses parameters in the "depend"
-	-- table if the prefix parameter is present and non-blank.
 	if type(prefixTable) ~= 'table' then
 		error("Non-table value detected for the prefix table", 2)
 	end
@@ -387,11 +473,13 @@ local function preprocessArgs(prefixTable, step)
 
 	-- Get arguments without a number suffix, and check for bad input.
 	for i,v in ipairs(prefixTable) do
-		if type(v) ~= 'table' or type(v.prefix) ~= "string" or (v.depend and type(v.depend) ~= 'table') then
+		if type(v) ~= 'table' or type(v.prefix) ~= "string" or
+			(v.depend and type(v.depend) ~= 'table') then
 			error('Invalid input detected to preprocessArgs prefix table', 2)
 		end
 		preprocessSingleArg(v.prefix)
-		-- Only parse the depend parameter if the prefix parameter is present and not blank.
+		-- Only parse the depend parameter if the prefix parameter is present
+		-- and not blank.
 		if args[v.prefix] and v.depend then
 			for j, dependValue in ipairs(v.depend) do
 				if type(dependValue) ~= 'string' then
@@ -411,12 +499,13 @@ local function preprocessArgs(prefixTable, step)
 			for j,v in ipairs(prefixTable) do
 				local prefixArgName = v.prefix .. tostring(i)
 				if origArgs[prefixArgName] then
-					moreArgumentsExist = true -- Do another loop if any arguments are found, even blank ones.
+					-- Do another loop if any arguments are found, even blank ones.
+					moreArgumentsExist = true
 					preprocessSingleArg(prefixArgName)
 				end
-				-- Process the depend table if the prefix argument is present and not blank, or
-				-- we are processing "prefix1" and "prefix" is present and not blank, and
-				-- if the depend table is present.
+				-- Process the depend table if the prefix argument is present
+				-- and not blank, or we are processing "prefix1" and "prefix" is
+				-- present and not blank, and if the depend table is present.
 				if v.depend and (args[prefixArgName] or (i == 1 and args[v.prefix])) then
 					for j,dependValue in ipairs(v.depend) do
 						local dependArgName = dependValue .. tostring(i)
@@ -429,11 +518,12 @@ local function preprocessArgs(prefixTable, step)
 	end
 end
 
+-- Parse the data parameters in the same order that the old {{infobox}} did, so
+-- that references etc. will display in the expected places. Parameters that
+-- depend on another parameter are only processed if that parameter is present,
+-- to avoid phantom references appearing in article reference lists.
 local function parseDataParameters()
-	-- Parse the data parameters in the same order that the old {{infobox}} did, so that
-	-- references etc. will display in the expected places. Parameters that depend on
-	-- another parameter are only processed if that parameter is present, to avoid
-	-- phantom references appearing in article reference lists.
+
 	preprocessSingleArg('autoheaders')
 	preprocessSingleArg('child')
 	preprocessSingleArg('bodyclass')
@@ -462,11 +552,7 @@ local function parseDataParameters()
 		{prefix = 'rowclass'},
 		{prefix = 'rowstyle'},
 		{prefix = 'rowcellstyle'},
-		{prefix = 'class'},
-		{prefix = 'dataid'},
-		{prefix = 'labelid'},
-		{prefix = 'headerid'},
-		{prefix = 'rowid'}
+		{prefix = 'class'}
 	}, 50)
 	preprocessSingleArg('headerclass')
 	preprocessSingleArg('headerstyle')
@@ -476,13 +562,17 @@ local function parseDataParameters()
 	preprocessSingleArg('belowclass')
 	preprocessSingleArg('belowstyle')
 	preprocessSingleArg('name')
-	args['italic title'] = origArgs['italic title'] -- different behaviour if blank or absent
+	-- different behaviour for italics if blank or absent
+	args['italic title'] = origArgs['italic title']
 	preprocessSingleArg('decat')
+	preprocessSingleArg('templatestyles')
+	preprocessSingleArg('child templatestyles')
+	preprocessSingleArg('grandchild templatestyles')
 end
 
+-- If called via #invoke, use the args passed into the invoking template.
+-- Otherwise, for testing purposes, assume args are being passed directly in.
 function p.infobox(frame)
-	-- If called via #invoke, use the args passed into the invoking template.
-	-- Otherwise, for testing purposes, assume args are being passed directly in.
 	if frame == mw.getCurrentFrame() then
 		origArgs = frame:getParent().args
 	else
@@ -494,8 +584,8 @@ function p.infobox(frame)
 	return _infobox()
 end
 
+-- For calling via #invoke within a template
 function p.infoboxTemplate(frame)
-	-- For calling via #invoke within a template
 	origArgs = {}
 	for k,v in pairs(frame.args) do origArgs[k] = mw.text.trim(v) end
 	
