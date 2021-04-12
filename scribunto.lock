@@ -220,6 +220,15 @@
       "revid": 26246987,
       "title": "\ubaa8\ub4c8:Check for unknown parameters"
     },
+    "@ko/Catalog lookup link": {
+      "pageid": 2580206,
+      "revid": 25021582,
+      "title": "\ubaa8\ub4c8:Catalog lookup link",
+      "dependencies": [
+        "@ko/No globals",
+        "@ko/Arguments"
+      ]
+    },
     "@en/String": {
       "pageid": 38569505,
       "revid": 970815276,
