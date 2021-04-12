@@ -1,6 +1,6 @@
 --[[
-This module was originally on https://en.wikipedia.org/wiki/Module:Exponential search and forked by Legunto
-(https://github.com/lens0021/legunto).
+This module was originally on https://en.wikipedia.org/wiki/Module:Exponential_search and forked by Legunto
+(https://github.com/femiwiki/legunto).
 ]]
 -- This module provides a generic exponential search algorithm.
 

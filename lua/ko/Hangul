@@ -1,6 +1,6 @@
 --[[
 This module was originally on https://ko.wikipedia.org/wiki/모듈:Hangul and forked by Legunto
-(https://github.com/lens0021/legunto).
+(https://github.com/femiwiki/legunto).
 ]]
 --[[
     한글 처리 관련 함수 모듈

@@ -1,6 +1,6 @@
 --[[
 This module was originally on https://ko.wikipedia.org/wiki/모듈:Citation/CS1/Utilities and forked by Legunto
-(https://github.com/lens0021/legunto).
+(https://github.com/femiwiki/legunto).
 ]]
 
 local z = {

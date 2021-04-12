@@ -1,6 +1,6 @@
 --[[
 This module was originally on https://en.wikipedia.org/wiki/Module:Arguments and forked by Legunto
-(https://github.com/lens0021/legunto).
+(https://github.com/femiwiki/legunto).
 ]]
 -- This module provides easy processing of arguments passed to Scribunto from
 -- #invoke. It is intended for use by other Lua modules, and should not be

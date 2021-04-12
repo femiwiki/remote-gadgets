@@ -1,6 +1,6 @@
 --[[
 This module was originally on https://ko.wikipedia.org/wiki/모듈:Yesno and forked by Legunto
-(https://github.com/lens0021/legunto).
+(https://github.com/femiwiki/legunto).
 ]]
 -- Function allowing for consistent treatment of boolean-like wikitext input.
 -- It works similarly to the template {{yesno}}.

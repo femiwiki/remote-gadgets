@@ -1,6 +1,6 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/Module:Sidebar and forked by Legunto
-(https://github.com/lens0021/legunto).
+This module was originally on https://ko.wikipedia.org/wiki/모듈:Sidebar and forked by Legunto
+(https://github.com/femiwiki/legunto).
 ]]
 --
 -- 이 모듈은 {{Sidebar}}에 적용되는 모듈입니다.

@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/Module:Navbar and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/모듈:Navbar and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 local p = {}
