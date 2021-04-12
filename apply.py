@@ -4,6 +4,7 @@ from math import log
 from ntpath import basename
 from os import environ, popen, path
 from pathlib import Path
+from urllib.parse import unquote
 from sys import argv, stdout, exit
 from time import sleep
 from re import search
@@ -81,6 +82,7 @@ def edit_pages_on_wiki(targets, wiki):
         if search(r'^lua/.+/.+', FILE):
             # Lua modules fetched by Legunto
             _, prefix, title = FILE.split('/')
+            title = unquote(title)
             title = f'module:@{prefix}/{title}'
         elif FILE.startswith('lua/'):
             # Lua modules
