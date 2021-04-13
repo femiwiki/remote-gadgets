@@ -100,7 +100,8 @@ def edit_pages_on_wiki(targets, wiki):
             try:
                 # Danger task
                 # page.delete(SUMMARY)
-                logging.debug('Deleted: '+title)
+                # logging.debug('Deleted: '+title)
+                logging.debug('Deleting is skipped: '+title)
             except mwclient.errors.APIError as e:
                 logging.info('APIError: '+str(e.info))
 
