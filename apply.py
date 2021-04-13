@@ -88,7 +88,7 @@ def edit_pages_on_wiki(targets, wiki):
             # Lua modules
             title = 'module:'+unquote(basename(FILE))
         else:
-            title = basename(FILE)
+            title = basename(unquote(FILE))
         page = wiki.pages[title]
         try:
             f = open(FILE, "r")
@@ -98,7 +98,8 @@ def edit_pages_on_wiki(targets, wiki):
         except FileNotFoundError:
             logging.debug('Deleting: '+title+'...')
             try:
-                page.delete(SUMMARY)
+                # Danger task
+                # page.delete(SUMMARY)
                 logging.debug('Deleted: '+title)
             except mwclient.errors.APIError as e:
                 logging.info('APIError: '+str(e.info))
