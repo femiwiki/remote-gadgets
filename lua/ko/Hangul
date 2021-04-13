@@ -15,7 +15,7 @@ local func = {}
 
 local ustring = mw.ustring
 
-local handata = mw.loadData('Module:@ko/Hangul-data')
+local handata = mw.loadData('Module:@ko/Hangul/data')
 
 -- load to local variables
 local final_map = handata.final_map

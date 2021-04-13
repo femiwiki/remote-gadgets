@@ -3,7 +3,7 @@ This module was originally on https://en.wikipedia.org/wiki/Module:Navbar and fo
 (https://github.com/femiwiki/legunto).
 ]]
 local p = {}
-local cfg = mw.loadData('Module:@en/Navbar-configuration')
+local cfg = mw.loadData('Module:@en/Navbar/configuration')
 
 local function get_title_arg(is_collapsible, template)
 	local title_arg = 1

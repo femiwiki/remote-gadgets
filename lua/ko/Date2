@@ -21,7 +21,7 @@ local p = {}
 -- =======================================
 -- === Dependencies ======================
 -- =======================================
---local i18n     = require('Module:@ko/I18n-date')		-- get localized translations of date formats
+--local i18n     = require('Module:@ko/I18n/date')		-- get localized translations of date formats
 --local Fallback = require('Module:@ko/Fallback')			-- get fallback functions
 local yesno    = require('Module:@ko/Yesno')
 

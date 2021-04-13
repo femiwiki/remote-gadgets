@@ -10,7 +10,7 @@ This module was originally on https://ko.wikipedia.org/wiki/모듈:Color_contras
 --  {{RGBColorToLum}}
 --
 local p = {}
-local HTMLcolor = mw.loadData( 'Module:@ko/Color contrast-colors' )
+local HTMLcolor = mw.loadData( 'Module:@ko/Color contrast/colors' )
 
 local function sRGB ( v ) 
 	if (v <= 0.03928) then 
