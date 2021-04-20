@@ -2,10 +2,6 @@ name: Apply
 
 on:
   push:
-    paths:
-      - 'pages/*'
-      - 'gadgets/**'
-      - 'lua/**'
 
 jobs:
 
