@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Langname/data and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Langname/data and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 --[[ Module:Langname 의 데이터 파일.
@@ -137,14 +137,18 @@ langdata.lang_name = {
     ["ga"] = "아일랜드어",      -- CLDR 중복
     ["gan"] = "간어",
     ["gem"] = "게르만어",
+
+    ["gez"] = "그으즈어",
+
     ["grc"] = "고대 그리스어",
+
     ["grc-gre"] = "그리스어",
     ["gre"] = "현대 그리스어",
     ["gsc"] = "가스코뉴어",
     ["gsw"] = "알레만어",
     ["gv"] = "맨어",
     ["hak"] = "하카어",
-    ["hbo"] = "구약성경 히브리어",
+    ["hbo"] = "고대 히브리어",
     ["hbs"] = "세르보크로아트어",
     ["he"] = "히브리어",        -- CLDR 중복
     ["hi"] = "힌디어",          -- CLDR 중복
