@@ -2,25 +2,26 @@ p = {}
 
 function p.getValue(frame)
   local args = frame.args[1] ~= nil and frame.args or frame:getParent().args
-  
+
   local entity = mw.wikibase.getEntity()
-  local pid = mw.text.trim(args[1] or "")
-  if not entity or not pid then return end
+  local pid = mw.text.trim(args[1]) or ''
+  if not entity or not pid then return '' end
   local props = entity:getBestStatements(pid)
 
-  if not props[1] then return end
-  
+  if not props[1] then return '' end
+
   local dt = props[1].mainsnak.datatype
-  if dt == 'string' then 
+  if dt == 'string' then
     return props[1].datavalue
   elseif dt == 'time' then
-    if props[1].mainsnak.datavalue.value.precision == 11 then
-      local y, m, d = string.match(
-        props[1].mainsnak.datavalue.value.time,
-        '(%d+)\-(%d+)\-(%d+)'
-      )
-    return string.format('%d년 %d월 %d일', y, m, d)
+    if props[1].mainsnak.datavalue.value.precision ~= 11 then
+      return props[1].datavalue
     end
+    local y, m, d = string.match(
+      props[1].mainsnak.datavalue.value.time,
+      '(%d+)\-(%d+)\-(%d+)'
+    )
+    return string.format('%d년 %d월 %d일', y, m, d)
   elseif dt == 'wikibase-item' then
     return '' -- TODO
   else
