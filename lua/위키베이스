@@ -29,4 +29,24 @@ function p.getValue(frame)
   end
 end
 
+
+--- 사용법:
+--    {{#invoke:위키베이스|getLabel}}
+--    {{#invoke:위키베이스|getLabel|Q1}} → 페미위키
+--    {{#invoke:위키베이스|getLabel|Q1|lang=ko}} → 페미위키
+--    {{#invoke:위키베이스|getLabel|lang=ko}} → Femiwiki
+function p.getLabel(frame)
+  local args = frame.args[1] ~= nil and frame.args or frame:getParent().args
+
+  local entity = mw.wikibase.getEntity()
+  local qid = ''
+  if not entity then
+    qid = mw.text.trim(args[1]) or ''
+  end
+  if not qid then return '' end
+
+  local lang = args['lang'] or self.langCode
+  return mw.wikibase.getLabelByLang(qid, lang)
+end
+
 return p
