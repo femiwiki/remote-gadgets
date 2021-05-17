@@ -6,6 +6,7 @@
     "@en/Infobox",
     "@en/String",
     "@en/Wd",
+    "@en/Wd/i18n",
     "@ko/Catalog lookup link",
     "@ko/Check for unknown parameters",
     "@ko/Check isxn",
