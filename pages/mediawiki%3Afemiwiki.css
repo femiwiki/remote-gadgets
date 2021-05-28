@@ -1,14 +1,14 @@
-/**
-  * 개인 도구의 "베타" 링크 숨기기
-  * [[주제:Uty456jw505lp6ym]]
-  */
+/*
+개인 도구의 "베타" 링크 숨기기
+[[주제:Uty456jw505lp6ym]]
+*/
 #pt-betafeatures {
   display: none;
 }
 
 /*
-  * 공유 버튼에 이미지 아이콘 추가
-  */
+공유 버튼에 이미지 아이콘 추가
+*/
 #share-facebook > a,
 #share-twitter > a {
   background-position: center left;
@@ -24,18 +24,18 @@
 }
 
 /*
-  * 뮤트 메뉴의 버튼이 잘 안 보이는 문제 수정
-  * [[주제:Ucejtawk4j2jmvx3]]
-  */
+뮤트 메뉴의 버튼이 잘 안 보이는 문제 수정
+[[주제:Ucejtawk4j2jmvx3]]
+*/
 div.dialog input[type='reset'] {
   background-color: lightgray;
   color: #252525;
 }
 
 /*
-  * 모바일로 특:차이 및 편집 역사에서 감사하기 시도 시 confirm이 잘 안 보이는 것 패치
-  * [[주제:Utxd1udaiipmza7y]]
-  */
+모바일로 특:차이 및 편집 역사에서 감사하기 시도 시 confirm이 잘 안 보이는 것 패치
+[[주제:Utxd1udaiipmza7y]]
+*/
 .mw-diff-tool .jquery-confirmable-interface,
 #pagehistory .jquery-confirmable-interface {
   display: inline;
@@ -43,49 +43,22 @@ div.dialog input[type='reset'] {
 }
 
 /*
-  * 카테고리 트리 우측의 LTR 문자가 종종 실수로 복사되는 일을 막기 위해 띄움
-  */
+카테고리 트리 우측의 LTR 문자가 종종 실수로 복사되는 일을 막기 위해 띄움
+*/
 .CategoryTreeLabel {
   margin-right: 0.5em;
 }
 
-/* */
+/**/
 #content .embedvideowrap {
   height: auto !important;
 }
 
 @media screen and (max-width: 480px) {
   /*
-    * 알림 창 이상한 문제 우회
-    * https://github.com/femiwiki/skin/issues/8
-    */
-  .mw-echo-ui-overlay {
-    margin: 0 10px;
-  }
-  .mw-echo-ui-overlay .oo-ui-popupWidget-anchored > .oo-ui-popupWidget-anchor {
-    display: none;
-  }
-  .mw-echo-ui-overlay .mw-echo-ui-notificationBadgeButtonPopupWidget-popup {
-    left: 0 !important;
-    width: 100%;
-  }
-  .mw-echo-ui-overlay
-    .mw-echo-ui-notificationBadgeButtonPopupWidget-popup
-    .oo-ui-popupWidget-popup {
-    width: initial !important;
-    max-width: 500px;
-  }
-  .mw-echo-ui-overlay
-    .mw-echo-ui-notificationBadgeButtonPopupWidget-popup
-    .oo-ui-popupWidget-popup
-    .oo-ui-clippableElement-clippable {
-    width: 100% !important;
-  }
-
-  /*
-    * ULS가 이상한 문제 우회
-    * https://github.com/femiwiki/FemiwikiSkin/issues/77
-    */
+  ULS가 이상한 문제 우회
+  https://github.com/femiwiki/FemiwikiSkin/issues/77
+  */
   .language-settings-dialog {
     left: 0 !important;
     width: 100%;
@@ -101,9 +74,9 @@ div.dialog input[type='reset'] {
   }
 
   /*
-    * 개선된 최근바뀜 필터 이상한 문제 우회
-    * https://github.com/femiwiki/skin/issues/37
-    */
+  개선된 최근바뀜 필터 이상한 문제 우회
+  https://github.com/femiwiki/skin/issues/37
+  */
   .mw-rcfilters-ui-menuSelectWidget,
   .mw-rcfilters-ui-menuSelectWidget-body,
   .mw-rcfilters-ui-filterMenuHeaderWidget-header-title {
@@ -115,9 +88,8 @@ div.dialog input[type='reset'] {
   }
 
   /*
-    * 팝업이 모바일에서 화면 밖으로 나가는 문제 우회
-    *
-    */
+  팝업이 모바일에서 화면 밖으로 나가는 문제 우회
+  */
   .mwe-popups {
     left: 0 !important;
   }
