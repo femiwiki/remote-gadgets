@@ -45,14 +45,6 @@ html.ve-active #catlinks {
 }
 
 /*
- * 콜라보레이션 허브 가입하기 버튼 숨기기
- * See https://github.com/femiwiki/docker-mediawiki/issues/375
- */
-.mw-ck-members-join {
-  display: none;
-}
-
-/*
  * [[특수:도전과제뱃지공유]]에 이미지 아이콘 표시
  */
 .mw-special-ShareAchievement .share-media a {
