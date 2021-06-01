@@ -27,7 +27,7 @@ jobs:
 
     - name: Install Legunto
       env:
-        LEGUNTO_VERSION: '1.0.2'
+        LEGUNTO_VERSION: '1.0.3'
       run: |
         curl -L "https://github.com/femiwiki/legunto/releases/download/v${LEGUNTO_VERSION}/legunto-${LEGUNTO_VERSION}-py3-none-any.whl" \
           -o "$HOME/legunto-${LEGUNTO_VERSION}-py3-none-any.whl"
