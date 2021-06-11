@@ -7,7 +7,7 @@
   function main() {
     $(
       mw.util.addPortletLink(
-        'p-actions',
+        'p-cactions',
         '#',
         '여기로 넘겨주기',
         'p-createRedirect',

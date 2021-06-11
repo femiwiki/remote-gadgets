@@ -59,7 +59,7 @@
       // 메뉴에 한줄인용 버튼 추가
       $(
         mw.util.addPortletLink(
-          'p-actions',
+          'p-cactions',
           mw.util.getUrl(DATA_TITLE),
           '한줄인용',
           'p-tweetbot',
