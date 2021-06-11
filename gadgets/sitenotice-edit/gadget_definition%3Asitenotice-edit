@@ -8,7 +8,7 @@
   },
   "module": {
     "scripts": ["sitenotice-edit.js"],
-    "styles": [],
+    "styles": ["sitenotice-edit.css"],
     "peers": [],
     "dependencies": [],
     "messages": [],

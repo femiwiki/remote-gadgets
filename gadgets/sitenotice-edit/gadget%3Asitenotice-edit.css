@@ -1,0 +1,23 @@
+.sitenotice-edit-button {
+  width: 1em;
+  height: 1em;
+  display: block;
+  background-size: 100%;
+  background-image: url('https://femiwiki-uploaded-files-thumb.s3.amazonaws.com/8/82/OOjs_UI_icon_edit-ltr-colored.svg/10px-OOjs_UI_icon_edit-ltr-colored.svg.png');
+}
+
+#localNotice .sitenotice-edit-button {
+  float: right;
+}
+
+body > .sitenotice-edit-button {
+  margin: auto;
+  margin-top: 1em;
+}
+
+body.action-edit .sitenotice-edit-button,
+html.ve-active .sitenotice-edit-button,
+html.ve-activated .sitenotice-edit-button,
+html.ve-deactivating .sitenotice-edit-button {
+  display: none;
+}
