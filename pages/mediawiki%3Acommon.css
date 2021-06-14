@@ -25,7 +25,10 @@ html.ve-active #catlinks {
   display: none;
 }
 
-/* 개인 도구 중 "토론"과  "기여"를 로그인 하지 않은 사용자에게는 보이지 않기 */
+/*
+ * 개인 도구 중 "토론"과 "기여"를 로그인 하지 않은 사용자에게는 보이지 않기
+ * 현재 익명 편집이 불가능하여 사용될 일이 없음
+ */
 #pt-anontalk,
 #pt-anoncontribs {
   display: none;
@@ -62,4 +65,35 @@ html.ve-active #catlinks {
 }
 .mw-special-ShareAchievement #share-achievement-twitter {
   background-image: url(https://femiwiki-uploaded-files.s3.amazonaws.com/b/bb/Twitter_Social_Icon_Rounded_Square_Color.svg);
+}
+
+/*
+ * 빈 편집 제안 자리 채우기
+ * https://github.com/femiwiki/femiwiki/issues/272
+ */
+body.mw-special-Homepage.growthexperiments-homepage-desktop
+  .growthexperiments-homepage-container {
+  display: block;
+}
+body.mw-special-Homepage.growthexperiments-homepage-desktop
+  .growthexperiments-homepage-container
+  .growthexperiments-homepage-group-main {
+  width: auto;
+}
+body.mw-special-Homepage.growthexperiments-homepage-desktop
+  .growthexperiments-homepage-container
+  .growthexperiments-homepage-group-main-subgroup-secondary {
+  min-height: auto;
+}
+body.mw-special-Homepage.growthexperiments-homepage-desktop
+  .growthexperiments-homepage-container
+  .growthexperiments-homepage-group-sidebar {
+  flex-wrap: nowrap;
+  width: auto;
+}
+body.mw-special-Homepage.growthexperiments-homepage-desktop
+  .growthexperiments-homepage-container
+  .growthexperiments-homepage-group-sidebar
+  .growthexperiments-homepage-module {
+  margin-right: 8px;
 }
