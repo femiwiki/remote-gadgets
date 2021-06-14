@@ -68,7 +68,7 @@ html.ve-active #catlinks {
 }
 
 /*
- * 빈 편집 제안 자리 채우기
+ * 사용자 홈페이지의 빈 편집 제안 자리 채우기
  * https://github.com/femiwiki/femiwiki/issues/272
  */
 body.mw-special-Homepage.growthexperiments-homepage-desktop
@@ -96,4 +96,14 @@ body.mw-special-Homepage.growthexperiments-homepage-desktop
   .growthexperiments-homepage-group-sidebar
   .growthexperiments-homepage-module {
   margin-right: 8px;
+}
+
+/*
+ * 사용자 홈페이지 영향 모듈의 https://pageviews.toolforge.org/ 로 향하는 링크 비활성화
+ */
+.growthexperiments-homepage-module-impact
+  .impact-row
+  .pageviews:not(.empty-pageview) {
+  pointer-events: none;
+  color: #202122;
 }
