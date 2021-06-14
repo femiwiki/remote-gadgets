@@ -107,3 +107,10 @@ body.mw-special-Homepage.growthexperiments-homepage-desktop
   pointer-events: none;
   color: #202122;
 }
+
+/*
+ * z-index가 3인 .flow-board-header에 도움말 패널이 가려지는 것 방지
+ */
+.mw-ge-help-panel-widget-overlay {
+  z-index: 4;
+}
