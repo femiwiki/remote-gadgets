@@ -1,9 +1,9 @@
 /* 이 CSS 설정은 모든 스킨에 적용됩니다 */
 
 /*
- * 영어 문서 폰트는 Arial을 우선하기
- * See 주제:V19kdq48epmrel7u
- */
+영어 문서 폰트는 Arial을 우선하기
+See 주제:V19kdq48epmrel7u
+*/
 #mw-content-text:lang(en) {
   font-family: Arial, 'Apple SD Gothic Neo', 'Noto Sans KR', '본고딕',
     'Noto Sans CJK KR', 'KoPubDotum Medium', '나눔바른고딕', '나눔고딕',
@@ -11,8 +11,8 @@
 }
 
 /*
- * 일본어 문서 폰트는 Noto Sans CJK KR, 본고딕을 우선하기
- */
+일본어 문서 폰트는 Noto Sans CJK KR, 본고딕을 우선하기
+*/
 
 #mw-content-text:lang(ja) {
   font-family: 'Noto Sans CJK KR', '본고딕', 'Noto Sans KR',
@@ -20,15 +20,17 @@
     '나눔고딕', NanumGothic, '맑은고딕', 'Malgun Gothic', Dotum, sans-serif;
 }
 
-/* 시각편집기에서 분류가 둘 나오는 것 가리기 */
+/*
+시각편집기에서 분류가 둘 나오는 것 가리기
+*/
 html.ve-active #catlinks {
   display: none;
 }
 
 /*
- * 개인 도구 중 "토론"과 "기여"를 로그인 하지 않은 사용자에게는 보이지 않기
- * 현재 익명 편집이 불가능하여 사용될 일이 없음
- */
+개인 도구 중 "토론"과 "기여"를 로그인 하지 않은 사용자에게는 보이지 않기
+현재 익명 편집이 불가능하여 사용될 일이 없음
+*/
 #pt-anontalk,
 #pt-anoncontribs {
   display: none;
@@ -40,16 +42,16 @@ html.ve-active #catlinks {
 }
 
 /*
- * 위키베이스에 의한 "링크 추가" 버튼을 숨김
- * See https://github.com/femiwiki/docker-mediawiki/issues/323
- */
+위키베이스에 의한 "링크 추가" 버튼을 숨김
+See https://github.com/femiwiki/docker-mediawiki/issues/323
+*/
 .wb-langlinks-link {
   display: none;
 }
 
 /*
- * [[특수:도전과제뱃지공유]]에 이미지 아이콘 표시
- */
+[[특수:도전과제뱃지공유]]에 이미지 아이콘 표시
+*/
 .mw-special-ShareAchievement .share-media a {
   display: inline-block;
   width: 2em;
@@ -68,9 +70,9 @@ html.ve-active #catlinks {
 }
 
 /*
- * 사용자 홈페이지의 빈 편집 제안 자리 채우기
- * https://github.com/femiwiki/femiwiki/issues/272
- */
+사용자 홈페이지의 빈 편집 제안 자리 채우기
+https://github.com/femiwiki/femiwiki/issues/272
+*/
 body.mw-special-Homepage.growthexperiments-homepage-desktop
   .growthexperiments-homepage-container {
   display: block;
@@ -99,18 +101,11 @@ body.mw-special-Homepage.growthexperiments-homepage-desktop
 }
 
 /*
- * 사용자 홈페이지 영향 모듈의 https://pageviews.toolforge.org/ 로 향하는 링크 비활성화
- */
+사용자 홈페이지 영향 모듈의 https://pageviews.toolforge.org/ 로 향하는 링크 비활성화
+*/
 .growthexperiments-homepage-module-impact
   .impact-row
   .pageviews:not(.empty-pageview) {
   pointer-events: none;
   color: #202122;
-}
-
-/*
- * z-index가 3인 .flow-board-header에 도움말 패널이 가려지는 것 방지
- */
-.mw-ge-help-panel-widget-overlay {
-  z-index: 4;
 }

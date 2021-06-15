@@ -54,6 +54,14 @@ div.dialog input[type='reset'] {
   height: auto !important;
 }
 
+/*
+z-index가 3인 .flow-board-header에 도움말 패널이 가려지는 것 우회
+https://github.com/femiwiki/FemiwikiSkin/issues/246
+*/
+.mw-ge-help-panel-widget-overlay {
+  z-index: 4;
+}
+
 @media screen and (max-width: 480px) {
   /*
   ULS가 이상한 문제 우회
