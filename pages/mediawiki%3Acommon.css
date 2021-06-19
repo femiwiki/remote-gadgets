@@ -85,9 +85,10 @@ body.mw-special-Homepage.growthexperiments-homepage-desktop
 /*
 사용자 홈페이지 영향 모듈의 https://pageviews.toolforge.org/ 로 향하는 링크 비활성화
 */
-.growthexperiments-homepage-module-impact
+#mw-content-text
+  .growthexperiments-homepage-module-impact
   .impact-row
   .pageviews:not(.empty-pageview) {
   pointer-events: none;
-  color: #202122;
+  color: #54595d;
 }
