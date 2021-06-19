@@ -1,31 +1,8 @@
-/* 이 CSS 설정은 모든 스킨에 적용됩니다 */
-
-/*
-시각편집기에서 분류가 둘 나오는 것 가리기
-*/
-html.ve-active #catlinks {
-  display: none;
-}
-
-/*
-개인 도구 중 "토론"과 "기여"를 로그인 하지 않은 사용자에게는 보이지 않기
-현재 익명 편집이 불가능하여 사용될 일이 없음
-*/
-#pt-anontalk,
-#pt-anoncontribs {
-  display: none;
-}
-
-/* <languages />의 결과물 가리기(스킨의 언어 링크와 중복되어 필요가 없음)  */
-.mw-pt-languages {
-  display: none;
-}
-
 /*
 위키베이스에 의한 "링크 추가" 버튼을 숨김
 See https://github.com/femiwiki/docker-mediawiki/issues/323
 */
-.wb-langlinks-link {
+.wb-langlinks-add {
   display: none;
 }
 
