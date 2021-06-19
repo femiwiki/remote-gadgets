@@ -32,26 +32,6 @@ See https://github.com/femiwiki/docker-mediawiki/issues/323
 }
 
 /*
-[[특수:도전과제뱃지공유]]에 이미지 아이콘 표시
-*/
-.mw-special-ShareAchievement .share-media a {
-  display: inline-block;
-  width: 2em;
-  height: 2em;
-  background-size: 2em;
-  border-radius: 0.4em;
-}
-.mw-special-ShareAchievement .share-media span {
-  display: none;
-}
-.mw-special-ShareAchievement #share-achievement-facebook {
-  background-image: url(https://upload.wikimedia.org/wikipedia/commons/c/c2/F_icon.svg);
-}
-.mw-special-ShareAchievement #share-achievement-twitter {
-  background-image: url(https://femiwiki-uploaded-files.s3.amazonaws.com/b/bb/Twitter_Social_Icon_Rounded_Square_Color.svg);
-}
-
-/*
 사용자 홈페이지의 빈 편집 제안 자리 채우기
 https://github.com/femiwiki/femiwiki/issues/272
 */
