@@ -25,7 +25,9 @@ html.ve-active #catlinks {
 위키베이스에 의한 "링크 추가" 버튼을 숨김
 See https://github.com/femiwiki/docker-mediawiki/issues/323
 */
-.wb-langlinks-link {
+.wb-langlinks-link,
+/* 모바일 보기에서도 숨김(문서 메뉴 항목과 중복) */
+.wb-langlinks-add {
   display: none;
 }
 
