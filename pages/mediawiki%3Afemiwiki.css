@@ -106,18 +106,3 @@ https://github.com/femiwiki/FemiwikiSkin/issues/246
     content: none;
   }
 }
-
-/*
-핫픽스 https://github.com/femiwiki/FemiwikiSkin/issues/258
-*/
-
-@media all and (max-width: 719px) {
-  .ext-related-articles-card-list .ext-related-articles-card {
-    width: 100%;
-  }
-
-  .ext-related-articles-card-list .ext-related-articles-card:nth-child(3n + 3),
-  .ext-related-articles-card-list .ext-related-articles-card:nth-child(2n + 2) {
-    margin-right: 0;
-  }
-}
