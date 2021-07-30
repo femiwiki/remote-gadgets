@@ -66,7 +66,7 @@ https://github.com/femiwiki/FemiwikiSkin/issues/246
 https://github.com/femiwiki/FemiwikiSkin/issues/292
 */
 .oo-ui-processDialog-title {
-	line-height: 2.5974026em;
+  line-height: 2.5974026em;
 }
 
 @media screen and (max-width: 480px) {
