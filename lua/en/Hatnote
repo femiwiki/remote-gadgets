@@ -296,7 +296,10 @@ function p._hatnote(s, options)
 		classes[#classes + 1] = 'selfref'
 	end
 	return string.format(
-		'<div role="note" class="%s">%s</div>',
+		'%s<div role="note" class="%s">%s</div>',
+		mw.getCurrentFrame():extensionTag{
+			name = 'templatestyles', args = { src = 'Module:Hatnote/styles.css' }
+		},
 		table.concat(classes, ' '),
 		s
 	)

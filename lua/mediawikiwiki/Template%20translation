@@ -41,6 +41,11 @@ function this.checkLanguage(subpage, default)
     and subpage ~= "testcases"
     and subpage ~= "init"
     and subpage ~= "preload"
+    and subpage ~= "subpage"
+    and subpage ~= "subpage2"
+    and subpage ~= "sub-subpage"
+    and subpage ~= "sub-sub-subpage"
+    and subpage ~= "sub-sub-sub-subpage"
     then
         return subpage
     end
