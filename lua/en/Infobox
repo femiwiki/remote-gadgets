@@ -8,6 +8,7 @@ local origArgs = {}
 local root
 local empty_row_categories = {}
 local category_in_empty_row_pattern = '%[%[%s*[Cc][Aa][Tt][Ee][Gg][Oo][Rr][Yy]%s*:[^]]*]]'
+local has_rows = false
 
 local function fixChildBoxes(sval, tt)
 	local function notempty( s ) return s and s:match( '%S' ) end
@@ -62,6 +63,14 @@ local function fixChildBoxes(sval, tt)
 	end
 end
 
+-- Cleans empty tables
+local function cleanInfobox()
+	root = tostring(root)
+	if has_rows == false then
+		root = mw.ustring.gsub(root, '<table[^<>]*>%s*</table>', '')
+	end
+end
+
 -- Returns the union of the values of two tables, as a sequence.
 local function union(t1, t2)
 
@@ -97,6 +106,7 @@ end
 local function addRow(rowArgs)
 	
 	if rowArgs.header and rowArgs.header ~= '_BLANK_' then
+		has_rows = true
 		root
 			:tag('tr')
 				:addClass(rowArgs.rowclass)
@@ -118,6 +128,7 @@ local function addRow(rowArgs)
 	elseif rowArgs.data and rowArgs.data:gsub(
 		category_in_empty_row_pattern, ''
 		):match('^%S') then
+		has_rows = true
 		local row = root:tag('tr')
 		row:addClass(rowArgs.rowclass)
 		row:cssText(rowArgs.rowstyle)
@@ -150,6 +161,7 @@ end
 local function renderTitle()
 	if not args.title then return end
 
+	has_rows = true
 	root
 		:tag('caption')
 			:addClass('infobox-title')
@@ -162,6 +174,7 @@ end
 local function renderAboveRow()
 	if not args.above then return end
 
+	has_rows = true
 	root
 		:tag('tr')
 			:tag('th')
@@ -176,6 +189,7 @@ end
 local function renderBelowRow()
 	if not args.below then return end
 
+	has_rows = true
 	root
 		:tag('tr')
 			:tag('td')
@@ -190,6 +204,7 @@ end
 local function addSubheaderRow(subheaderArgs)
 	if subheaderArgs.data and
 		subheaderArgs.data:gsub(category_in_empty_row_pattern, ''):match('^%S') then
+		has_rows = true
 		local row = root:tag('tr')
 		row:addClass(subheaderArgs.rowclass)
 
@@ -230,7 +245,8 @@ local function addImageRow(imageArgs)
 
 	if imageArgs.data and
 		imageArgs.data:gsub(category_in_empty_row_pattern, ''):match('^%S') then
-		
+
+		has_rows = true
 		local row = root:tag('tr')
 		row:addClass(imageArgs.rowclass)
 
@@ -327,6 +343,7 @@ end
 local function renderNavBar()
 	if not args.name then return end
 
+	has_rows = true
 	root
 		:tag('tr')
 			:tag('td')
@@ -444,8 +461,9 @@ local function _infobox()
 	renderItalicTitle()
 	renderEmptyRowCategories()
 	renderTrackingCategories()
+	cleanInfobox()
 
-	return loadTemplateStyles() .. tostring(root)
+	return loadTemplateStyles() .. root
 end
 
 -- If the argument exists and isn't blank, add it to the argument table.

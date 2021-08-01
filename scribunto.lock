@@ -12,7 +12,7 @@
     },
     "@en/Hatnote": {
       "pageid": 42498502,
-      "revid": 970298780,
+      "revid": 1033185030,
       "title": "Module:Hatnote",
       "dependencies": [
         "@en/Arguments",
@@ -30,7 +30,7 @@
     },
     "@en/Infobox": {
       "pageid": 38808424,
-      "revid": 1015312088,
+      "revid": 1033310163,
       "title": "Module:Infobox",
       "dependencies": [
         "@en/Navbar"
@@ -308,7 +308,7 @@
     },
     "@mediawikiwiki/Template translation": {
       "pageid": 131816,
-      "revid": 3497223,
+      "revid": 4694670,
       "title": "Module:Template translation"
     }
   }
