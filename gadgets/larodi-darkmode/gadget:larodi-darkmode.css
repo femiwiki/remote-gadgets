@@ -1,0 +1,31 @@
+/*
+  다크모드
+  https://gerrit.wikimedia.org/r/plugins/gitiles/mediawiki/extensions/DarkMode/+/refs/heads/master/resources/ext.DarkMode.less
+  https://stackoverflow.com/a/61265706/10916512
+ */
+body,
+body img,
+body video,
+body svg,
+body iframe {
+  filter: invert(1) hue-rotate(180deg);
+  -webkit-filter: invert(1) hue-rotate(180deg);
+}
+
+body a {
+  filter: brightness(0.9);
+  -webkit-filter: brightness(0.9);
+}
+
+html {
+  background-color: #222;
+}
+body {
+  background-color: #dedede;
+  color: #151515;
+}
+
+th,
+td {
+  border-color: black;
+}
