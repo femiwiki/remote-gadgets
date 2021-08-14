@@ -58,6 +58,7 @@
 
 .book-flap-side {
   box-sizing: border-box;
+  max-width: 15rem;
   margin-top: 2.3em;
   padding: 1.3rem;
   background-color: #f9f9f9;
@@ -150,24 +151,13 @@
   pointer-events: none;
   margin: auto;
 }
+#book-flap-rightside > .book-flap-side {
+  margin-left: auto;
+}
 
 body.fw-legacy-small-elements #book-flap-leftside,
 body.fw-legacy-small-elements #book-flap-rightside {
   max-width: 80rem;
-}
-
-body:not(.fw-legacy-small-elements) #book-flap-leftside {
-  padding-right: 58.4rem;
-}
-body:not(.fw-legacy-small-elements) #book-flap-rightside {
-  padding-left: 58.4rem;
-}
-
-body.fw-legacy-small-elements #book-flap-leftside {
-  padding-right: 65rem;
-}
-body.fw-legacy-small-elements #book-flap-rightside {
-  padding-left: 65rem;
 }
 
 .book-flap-body .틀-도구모음 {
