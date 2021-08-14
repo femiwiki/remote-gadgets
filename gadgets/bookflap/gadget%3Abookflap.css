@@ -155,10 +155,10 @@ body.fw-legacy-small-elements #book-flap-rightside {
   max-width: 80rem;
 }
 
-#book-flap-leftside {
+body:not(.fw-legacy-small-elements) #book-flap-leftside {
   padding-right: 58.4rem;
 }
-#book-flap-rightside {
+body:not(.fw-legacy-small-elements) #book-flap-rightside {
   padding-left: 58.4rem;
 }
 
