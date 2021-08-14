@@ -57,6 +57,7 @@
 }
 
 .book-flap-side {
+  box-sizing: border-box;
   margin-top: 2.3em;
   padding: 1.3rem;
   background-color: #f9f9f9;
