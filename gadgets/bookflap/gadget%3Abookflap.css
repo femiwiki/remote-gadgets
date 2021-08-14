@@ -143,18 +143,29 @@
 #book-flap-rightside {
   box-sizing: border-box;
   position: absolute;
-  max-width: 80rem;
+  max-width: 73.4rem;
   left: 0;
   right: 0;
   pointer-events: none;
   margin: auto;
 }
 
-#book-flap-leftside {
-  padding-right: 65rem;
+body.fw-legacy-small-elements #book-flap-leftside,
+body.fw-legacy-small-elements #book-flap-rightside {
+  max-width: 80rem;
 }
 
+#book-flap-leftside {
+  padding-right: 58.4rem;
+}
 #book-flap-rightside {
+  padding-left: 58.4rem;
+}
+
+body.fw-legacy-small-elements #book-flap-leftside {
+  padding-right: 65rem;
+}
+body.fw-legacy-small-elements #book-flap-rightside {
   padding-left: 65rem;
 }
 
@@ -162,9 +173,27 @@
   float: right;
 }
 
-@media screen and (max-width: 80rem) {
-  #book-flap-leftside,
-  #book-flap-rightside {
+/*
+When the small-elements feature is enabled:
+@font-size-root-default: 16.5; // px
+@content-width: 50rem;
+
+Otherwise:
+@font-size-root-default: 19; // px
+@content-width: 43.4rem;
+*/
+/*(43.3 + 30) * 19px*/
+@media screen and (max-width: 1393px) {
+  body:not(.fw-legacy-small-elements) #book-flap-leftside,
+  body:not(.fw-legacy-small-elements) #book-flap-rightside {
+    display: none;
+  }
+}
+
+/* (50 + 30) * 16.5px */
+@media screen and (max-width: 1320px) {
+  body.fw-legacy-small-elements #book-flap-leftside,
+  body.fw-legacy-small-elements #book-flap-rightside {
     display: none;
   }
 }
