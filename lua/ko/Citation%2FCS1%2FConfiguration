@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Citation/CS1/Configuration and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Citation/CS1/Configuration and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 
@@ -302,7 +302,7 @@ local aliases = {
 	['Pages'] = {'pp', 'pages'},
 	['Periodical'] = {'journal', 'newspaper', 'magazine', 'work',
 		'website',  'periodical', 'encyclopedia', 'encyclopaedia', 'dictionary',
-		'저널', '뉴스', '신문', '잡지', '작품', '웹사이트', '백과사전', '메일링리스트'},
+		'저널', '언론', '신문', '잡지', '작품', '웹사이트', '백과사전', '메일링리스트'},
 	['Place'] = {'place', 'location', '위치', '장소'},
 	['Program'] = {'program', '프로그램'},										-- cite interview -- DEPRECATED
 	['PostScript'] = {'postscript', '추신'},
@@ -566,7 +566,8 @@ local keywords = {
 	['date-format'] = {'dmy', 'dmy-all', 'mdy', 'mdy-all', 'ymd', 'ymd-all'},
 --	['date-format'] = {'dmy', 'dmy-all', 'mdy', 'mdy-all', 'ymd', 'ymd-all', 'yMd', 'yMd-all'},	-- not supported at en.wiki
 	['url-access'] = {'subscription', 'limited', 'registration'},				-- access level of a URL (subscription required, limited access, registration required); free to read by default
-	['url-status'] = {'dead', 'live', 'unfit', 'usurped', 'bot: unknown'},		-- replacement for |dead-url=
+	['url-status'] = {'dead', 'unfit', 'usurped', 'bot: unknown'},		-- replacement for |dead-url=
+	['live'] = {'live'},	
 	['id-access'] = {'free'},													-- access level of an identifier (free to read); not free-to-read  by default
 }
 
