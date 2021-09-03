@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Citation/CS1 and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Citation/CS1 and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 
@@ -2819,7 +2819,15 @@ note is displayed. There are no error messages for this condition.
 		else																	-- 로컬
 			ArchiveDate = ISOdate(ArchiveDate, lang, '1-999');					-- 로컬
 		end
-		if "no" == DeadURL or "아니오" == DeadURL or "거짓" == DeadURL then		-- 로컬
+		if "live" == UrlStatus then
+			local arch_text = cfg.messages['archived'];
+			if sepc ~= "." then arch_text = arch_text:lower() end
+			Archived = sepc .. " " .. substitute ( cfg.messages['archived-live'],
+				{ external_link( ArchiveURL, arch_text, A:ORIGIN('ArchiveURL'), nil ) .. ArchiveFormat, ArchiveDate } );
+			if not is_set(OriginalURL) then
+				Archived = Archived .. " " .. set_error ('archive_missing_url');							   
+			end		
+		elseif "no" == DeadURL or "아니오" == DeadURL or "거짓" == DeadURL then		-- 로컬
 			local arch_text = cfg.messages['archived'];
 			if sepc ~= "." then arch_text = arch_text:lower() end
 			Archived = sepc .. " " .. substitute( cfg.messages['archived-not-dead'],

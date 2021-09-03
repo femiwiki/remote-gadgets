@@ -38,7 +38,7 @@
     },
     "@en/Navbar": {
       "pageid": 38827227,
-      "revid": 992953067,
+      "revid": 1040458691,
       "title": "Module:Navbar",
       "dependencies": [
         "@en/Arguments",
@@ -108,7 +108,7 @@
     },
     "@ko/Citation/CS1": {
       "pageid": 950941,
-      "revid": 27742820,
+      "revid": 30099152,
       "title": "\ubaa8\ub4c8:Citation/CS1",
       "dependencies": [
         "@ko/Citation/CS1/COinS",
@@ -141,7 +141,7 @@
     },
     "@ko/Citation/CS1/Configuration": {
       "pageid": 950942,
-      "revid": 25246422,
+      "revid": 30158384,
       "title": "\ubaa8\ub4c8:Citation/CS1/Configuration"
     },
     "@ko/Citation/CS1/Configuration/sandbox": {
@@ -191,7 +191,7 @@
     },
     "@ko/Citation/CS1/Whitelist": {
       "pageid": 950943,
-      "revid": 25294980,
+      "revid": 30158382,
       "title": "\ubaa8\ub4c8:Citation/CS1/Whitelist"
     },
     "@ko/Citation/CS1/Whitelist/sandbox": {
@@ -303,7 +303,7 @@
     },
     "@ko/Yesno": {
       "pageid": 1082108,
-      "revid": 20867910,
+      "revid": 30075748,
       "title": "\ubaa8\ub4c8:Yesno"
     },
     "@mediawikiwiki/Template translation": {
