@@ -16,6 +16,14 @@ local function fixChildBoxes(sval, tt)
 	if notempty(sval) then
 		local marker = '<span class=special_infobox_marker>'
 		local s = sval
+		-- start moving templatestyles and categories inside of table rows
+		local slast = ''
+		while slast ~= s do
+			slast = s
+			s = mw.ustring.gsub(s, '(</[Tt][Rr]%s*>%s*)(%[%[%s*[Cc][Aa][Tt][Ee][Gg][Oo][Rr][Yy]%s*:[^]]*%]%])', '%2%1')
+			s = mw.ustring.gsub(s, '(</[Tt][Rr]%s*>%s*)(<templatestyles[^<>]*>%s*</templatestyles>)', '%2%1')
+		end
+		-- end moving templatestyles and categories inside of table rows
 		s = mw.ustring.gsub(s, '(<%s*[Tt][Rr])', marker .. '%1')
 		s = mw.ustring.gsub(s, '(</[Tt][Rr]%s*>)', '%1' .. marker)
 		if s:match(marker) then
@@ -126,7 +134,7 @@ local function addRow(rowArgs)
 			)
 		end
 	elseif rowArgs.data and rowArgs.data:gsub(
-		category_in_empty_row_pattern, ''
+			category_in_empty_row_pattern, ''
 		):match('^%S') then
 		has_rows = true
 		local row = root:tag('tr')
@@ -431,6 +439,20 @@ local function loadTemplateStyles()
 	
 end
 
+-- common functions between the child and non child cases
+local function structure_infobox_common()
+	renderSubheaders()
+	renderImages()
+	preprocessRows()
+	renderRows()
+	renderBelowRow()
+	renderNavBar()
+	renderItalicTitle()
+	renderEmptyRowCategories()
+	renderTrackingCategories()
+	cleanInfobox()
+end
+
 -- Specify the overall layout of the infobox, with special settings if the
 -- infobox is used as a 'child' inside another infobox.
 local function _infobox()
@@ -451,18 +473,8 @@ local function _infobox()
 		root
 			:wikitext(args.title)
 	end
-
-	renderSubheaders()
-	renderImages()
-	preprocessRows()
-	renderRows()
-	renderBelowRow()
-	renderNavBar()
-	renderItalicTitle()
-	renderEmptyRowCategories()
-	renderTrackingCategories()
-	cleanInfobox()
-
+	structure_infobox_common()
+	
 	return loadTemplateStyles() .. root
 end
 

@@ -30,7 +30,7 @@
     },
     "@en/Infobox": {
       "pageid": 38808424,
-      "revid": 1033310163,
+      "revid": 1047187788,
       "title": "Module:Infobox",
       "dependencies": [
         "@en/Navbar"
@@ -141,7 +141,7 @@
     },
     "@ko/Citation/CS1/Configuration": {
       "pageid": 950942,
-      "revid": 30158384,
+      "revid": 30179713,
       "title": "\ubaa8\ub4c8:Citation/CS1/Configuration"
     },
     "@ko/Citation/CS1/Configuration/sandbox": {
@@ -191,7 +191,7 @@
     },
     "@ko/Citation/CS1/Whitelist": {
       "pageid": 950943,
-      "revid": 30158382,
+      "revid": 30179711,
       "title": "\ubaa8\ub4c8:Citation/CS1/Whitelist"
     },
     "@ko/Citation/CS1/Whitelist/sandbox": {
