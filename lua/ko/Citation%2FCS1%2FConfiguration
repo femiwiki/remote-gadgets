@@ -302,7 +302,7 @@ local aliases = {
 	['Pages'] = {'pp', 'pages'},
 	['Periodical'] = {'journal', 'newspaper', 'magazine', 'work',
 		'website',  'periodical', 'encyclopedia', 'encyclopaedia', 'dictionary',
-		'저널', '언론', '신문', '잡지', '작품', '웹사이트', '백과사전', '메일링리스트'},
+		'저널', '뉴스', '신문', '잡지', '작품', '웹사이트', '백과사전', '메일링리스트'},
 	['Place'] = {'place', 'location', '위치', '장소'},
 	['Program'] = {'program', '프로그램'},										-- cite interview -- DEPRECATED
 	['PostScript'] = {'postscript', '추신'},
