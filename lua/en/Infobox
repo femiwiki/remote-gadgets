@@ -21,7 +21,7 @@ local function fixChildBoxes(sval, tt)
 		while slast ~= s do
 			slast = s
 			s = mw.ustring.gsub(s, '(</[Tt][Rr]%s*>%s*)(%[%[%s*[Cc][Aa][Tt][Ee][Gg][Oo][Rr][Yy]%s*:[^]]*%]%])', '%2%1')
-			s = mw.ustring.gsub(s, '(</[Tt][Rr]%s*>%s*)(<templatestyles[^<>]*>%s*</templatestyles>)', '%2%1')
+			s = mw.ustring.gsub(s, '(</[Tt][Rr]%s*>%s*)(\127[^\127]*UNIQ%-%-templatestyles%-%x+%-QINU[^\127]*\127)', '%2%1')
 		end
 		-- end moving templatestyles and categories inside of table rows
 		s = mw.ustring.gsub(s, '(<%s*[Tt][Rr])', marker .. '%1')
@@ -397,21 +397,21 @@ end
 --[=[
 Loads the templatestyles for the infobox.
 
-TODO: load base templatestyles here rather than in MediaWiki:Common.css
-We aren't doing it here yet because there are 4-5000 pages with 'raw' infobox
-tables. See [[Mediawiki_talk:Common.css/to_do#Infobox]] and/or come help :).
+TODO: FINISH loading base templatestyles here rather than in
+MediaWiki:Common.css. There are 4-5000 pages with 'raw' infobox tables.
+See [[Mediawiki_talk:Common.css/to_do#Infobox]] and/or come help :).
 When we do this we should clean up the inline CSS below too.
 Will have to do some bizarre conversion category like with sidebar.
-	
+
 ]=]
 local function loadTemplateStyles()
 	local frame = mw.getCurrentFrame()
 	
--- See function description
---	local base_templatestyles = frame:extensionTag{
---		name = 'templatestyles', args = { src = cfg.i18n.templatestyles }
---	}
-	
+	-- See function description
+	local base_templatestyles = frame:extensionTag{
+		name = 'templatestyles', args = { src = 'Module:Infobox/styles.css' }
+	}
+
 	local templatestyles = ''
 	if args['templatestyles'] then templatestyles = frame:extensionTag{
 			name = 'templatestyles', args = { src = args['templatestyles'] }
@@ -431,12 +431,11 @@ local function loadTemplateStyles()
 	end
 
 	return table.concat({
---		base_templatestyles, -- see function description
+		base_templatestyles, -- see function description
 		templatestyles,
 		child_templatestyles,
 		grandchild_templatestyles
-	})	
-	
+	})
 end
 
 -- common functions between the child and non child cases

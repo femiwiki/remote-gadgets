@@ -30,7 +30,7 @@
     },
     "@en/Infobox": {
       "pageid": 38808424,
-      "revid": 1047187788,
+      "revid": 1049450226,
       "title": "Module:Infobox",
       "dependencies": [
         "@en/Navbar"
@@ -61,7 +61,7 @@
     },
     "@en/TableTools": {
       "pageid": 41371028,
-      "revid": 983044092,
+      "revid": 1048120640,
       "title": "Module:TableTools",
       "dependencies": [
         "@en/Exponential search"
@@ -245,7 +245,7 @@
     },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 29502440,
+      "revid": 30556406,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {
