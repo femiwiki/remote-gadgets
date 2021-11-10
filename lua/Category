@@ -64,12 +64,16 @@ function _categorize(categories, showCatlinksDisplay, frame)
 		title = mw.title.new('분류:' .. v)
 		if title.exists and title.isRedirect then
 			if not redirected then redirected = true end
-			title = mw.title.new(
+			redirectedTitle = mw.title.new(
 				string.match(title:getContent(),
 				'%[%[([^%[%]|]-)%]%]')
 			) or title
-			v = title.text
-			categories[i] = title.text
+			v = redirectedTitle.text
+			returnText = returnText .. '<strong class="error">"' .. title.text
+				.. '" 분류는 "' .. v ..
+				'" 분류로 넘겨주기됩니다. 이 동작은 조만간 지원이 중단될 예정입니다. '
+				.. '([[페미위키:운영팀/개발팀/개발_블로그/15|자세한 정보]])</strong>'
+			categories[i] = v
 		end
 
 		returnText = returnText .. '[[분류:' .. v .. ']]'
