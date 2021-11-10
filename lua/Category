@@ -23,10 +23,10 @@ end
 -- @return 패싯 문자열.
 function p.facet(frame)
 	local text = ''
-	if type(frame) == 'string' then text = frame 
+	if type(frame) == 'string' then text = frame
 	else text = frame.args[1] end
 	local slash = string.find(text, '/')
-	if slash == nil then return text end 
+	if slash == nil then return text end
 	return string.sub(text, 1, slash-1)
 end
 
@@ -35,7 +35,7 @@ end
 -- @return 멤버 문자열.
 function p.member(frame)
 	local text = ''
-	if type(frame) == 'string' then text = frame 
+	if type(frame) == 'string' then text = frame
 	else text = frame.args[1] end
 	local slash = string.find(text, '/')
 	if slash == nil then return text end
@@ -49,7 +49,7 @@ end
 -- @return 문서를 분류해 주는 위키텍스트, 오류가 있었다면 빈 문자열.
 function _categorize(categories, showCatlinksDisplay, frame)
 	local returnText, redirected = '', false
-	
+
 	local title, superCategories, content  = '', '', ''
 	for i, v in ipairs(categories) do
 		if v == nil then
@@ -61,7 +61,7 @@ function _categorize(categories, showCatlinksDisplay, frame)
 				'[[도움말:문서 분류하기]]를 참고해 주세요', 0)
 		end
 
-		title = mw.title.new('분류:' .. v)
+ 		title = mw.title.new('분류:' .. v)
 		if title.exists and title.isRedirect then
 			if not redirected then redirected = true end
 			redirectedTitle = mw.title.new(
@@ -113,7 +113,7 @@ end
 function makeCatlinks(categories, frame)
 	local listItems = ''
 	for i, v in ipairs(categories) do
-		if v ~= '' then 
+		if v ~= '' then
 			listItems =
 				listItems ..
 				frame:callParserFunction(
@@ -124,11 +124,11 @@ function makeCatlinks(categories, frame)
 	end
 
 	return frame:callParserFunction {
-		name = '#tag:div', 
+		name = '#tag:div',
 		args = {
-			id = 'fw-catlinks', 
-			class = 'fw-catlinks catlinks', 
-			['data-mw'] = 'interface', 
+			id = 'fw-catlinks',
+			class = 'fw-catlinks catlinks',
+			['data-mw'] = 'interface',
 			frame:callParserFunction{
 				name = '#tag:div', args = {
 					class = 'mw-normal-catlinks',
@@ -171,7 +171,7 @@ function safeCategories(args)
 	if string.find(args[1], '/') == nil then
 		if #args == 1 then
 			error(
-				'사용하신 구문은 다면분류가 아닙니다.' .. 
+				'사용하신 구문은 다면분류가 아닙니다.' ..
 				'[[도움말:문서 분류하기]]를 참고해 주세요',
 				0)
 		else
