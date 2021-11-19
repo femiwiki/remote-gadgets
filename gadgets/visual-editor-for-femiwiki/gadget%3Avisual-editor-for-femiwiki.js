@@ -177,64 +177,16 @@
   });
 
   /**
-   * 분류 틀 관련 플러그인.
-   * - 문서 옵션에서 분류를 클릭하면 분류 틀이 입력되도록 합니다.
-   * - Ctrl+Shift+A 입력시 분류 틀이 입력되도록 합니다.
+   * Alt+Shift+A 입력시 분류가 입력되도록 합니다.
    */
   mw.libs.ve.addPlugin(function () {
-    /**
-     * @Class AddCategoriesCommand
-     */
-    var AddCategoriesCommand = function () {
-      AddCategoriesCommand.parent.call(
-        this,
-        'addCategories' // Command name
-      );
-    };
-    OO.inheritClass(AddCategoriesCommand, ve.ui.Command);
-
-    AddCategoriesCommand.prototype.execute = function (surface) {
-      surface.getModel().selectLastContentOffset();
-      surface
-        .getModel()
-        .getFragment()
-        .insertContent([
-          {
-            type: 'mwTransclusionBlock',
-            attributes: {
-              mw: {
-                parts: [
-                  {
-                    template: {
-                      target: {
-                        href: '틀:분류',
-                        wt: '분류',
-                      },
-                      params: {},
-                    },
-                  },
-                ],
-              },
-            },
-          },
-          { type: '/mwTransclusionBlock' },
-        ])
-        .collapseToEnd()
-        .select();
-    };
-    // class ends
-
-    ve.ui.commandRegistry.register(new AddCategoriesCommand());
-    ve.ui.triggerRegistry.register('addCategories', {
+    ve.ui.triggerRegistry.register('meta/categories', {
       pc: new ve.ui.Trigger('alt+shift+a'),
     });
 
-    // 문서 옵션의 분류 버튼 클릭시 addCategories 커맨드를 실행하게 합니다
-    ve.ui.toolFactory.registry.categories.static.commandName = 'addCategories';
-
-    ve.ui.commandHelpRegistry.register('insert', 'addCategories', {
-      trigger: 'addCategories',
-      label: '분류 넣기',
+    ve.ui.commandHelpRegistry.register('other', 'categories', {
+      trigger: 'meta/categories',
+      label: '분류',
     });
   });
 
