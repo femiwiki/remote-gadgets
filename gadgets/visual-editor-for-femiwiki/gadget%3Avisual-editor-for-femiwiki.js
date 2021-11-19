@@ -242,6 +242,10 @@
    * 기존에 '* '를 입력한 경우에 덧붙여 - '을 입력한 경우에도 점 목록으로 인식합니다.
    */
   function addDashSequence() {
+    if (window.addDashSequence) {
+      return;
+    }
+    window.addDashSequence = true;
     ve.ui.sequenceRegistry.register(
       new ve.ui.Sequence(
         'dash',
