@@ -47,7 +47,7 @@ end
 -- @param frame 호출되면서 자동으로 만들어진 frame 객체.
 -- @return 문서를 분류해 주는 위키텍스트, 오류가 있었다면 빈 문자열.
 function _categorize(categories, frame)
-	local returnText = '<!--분류-->'
+	local returnText = ''
 
 	for i, v in ipairs(categories) do
 		if v == nil then
@@ -59,7 +59,7 @@ function _categorize(categories, frame)
 				'[[도움말:문서 분류하기]]를 참고해 주세요', 0)
 		end
 
-		returnText = returnText .. '[[분류:' .. v .. ']]'
+		returnText = returnText .. '[[분류:' .. v .. ']]\n'
 	end
 
 	return returnText
