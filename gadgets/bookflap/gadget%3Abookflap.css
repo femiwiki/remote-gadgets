@@ -50,7 +50,7 @@
 .book-flap-slide .book-flap-title {
   background-color: #aca6e4;
   color: white;
-  padding-left: 1.3em;
+  padding: 0.35em 1.3em 0.35em;
 }
 
 .book-flap-side {
