@@ -110,7 +110,6 @@ function p._navbar(args)
 			font_style = (font_style or '') .. '; color: ' .. font_color .. ';'
 		end
 	end
-	font_style = (font_style or '') .. ';text-decoration:inherit;'
 	
 	local navbar_style = args.style
 	local div = mw.html.create():tag('div')

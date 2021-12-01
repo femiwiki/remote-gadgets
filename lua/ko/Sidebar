@@ -1,21 +1,45 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Sidebar and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Sidebar and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 --
--- 이 모듈은 {{Sidebar}}에 적용되는 모듈입니다.
+-- This module implements {{Sidebar}}
 --
 require('Module:@ko/No globals')
+local cfg = mw.loadData('Module:@ko/Sidebar/configuration')
 
 local p = {}
 
 local getArgs = require('Module:@ko/Arguments').getArgs
-local navbar = require('Module:@ko/Navbar')._navbar
 
+--[[
+Categorizes calling templates and modules with a 'style' parameter of any sort
+for tracking to convert to TemplateStyles.
+
+TODO after a long cleanup: Catch sidebars in other namespaces than Template and Module.
+TODO would probably want to remove /log and /archive as CS1 does
+]]
+local function categorizeTemplatesWithInlineStyles(args)
+	local title = mw.title.getCurrentTitle()
+	if title.namespace ~= 10 and title.namespace ~= 828 then return '' end
+	for _, pattern in ipairs (cfg.i18n.pattern.uncategorized_conversion_titles) do
+		if title.text:match(pattern) then return '' end
+	end
+	
+	for key, _ in pairs(args) do
+		if mw.ustring.find(key, cfg.i18n.pattern.style_conversion) or key == 'width' then
+			return cfg.i18n.category.conversion
+		end
+	end
+end
+
+--[[
+For compatibility with the original {{sidebar with collapsible lists}}
+implementation, which passed some parameters through {{#if}} to trim their
+whitespace. This also triggered the automatic newline behavior.
+]]
+-- See ([[meta:Help:Newlines and spaces#Automatic newline]])
 local function trimAndAddAutomaticNewline(s)
-	-- 예쁜 디자인을 위해 {{#if}}를 통해 파라미터를 넘겨서 흰색 공백을 다듬는
-	-- {{접이식 사이드바}}와의 호환성을 위해 추가됨. 줄바꿈을 자동으로 해줌.
-	-- ([[meta:Help:Newlines and spaces#Automatic newline]])
 	s = mw.ustring.gsub(s, "^%s*(.-)%s*$", "%1")
 	if mw.ustring.find(s, '^[#*:;]') or mw.ustring.find(s, '^{|') then
 		return '\n' .. s
@@ -24,15 +48,26 @@ local function trimAndAddAutomaticNewline(s)
 	end
 end
 
+--[[
+Finds whether a sidebar has a subgroup sidebar.
+]]
 local function hasSubgroup(s)
-	if mw.ustring.find(s, 'vertical%-navbox%-subgroup') then
+	if mw.ustring.find(s, cfg.i18n.pattern.subgroup) then
 		return true
 	else
 		return false
 	end
 end
 
--- 공통 (p.sidebar, p.collapsible)
+
+
+
+
+
+--[[
+i18n conversion
+공통 (p.sidebar, p.collapsible)
+]]
 local param_ko_common = {
 	['기본모양'] = 'basestyle', -- 본래 틀에 없던 항목
 	['윗제목모양'] = 'abovestyle',
@@ -43,7 +78,10 @@ local param_ko_common = {
 	-- [''] = 'tnavbarstyle',  -- 본래 틀에 없던 항목
 }
 
--- p.sidebar 전용
+--[[
+i18n conversion
+p.sidebar 전용
+]]
 local param_ko_sidebar = {
 	['자식'] = 'child',
 	--[''] = 'wraplinks',
@@ -85,7 +123,10 @@ local param_ko_sidebar = {
 	--[''] = 'tnavbarfontstyle',
 }
 
--- p.collapsible 전용
+--[[
+i18n conversion
+p.collapsible 전용
+]]
 local param_ko_collapsible = {
 	['확장'] = 'expanded',
 	['목록틀모양'] = 'listframestyle',
@@ -95,10 +136,18 @@ local param_ko_collapsible = {
 	['목록모양'] = 'liststyle'
 }
 
+--[[
+i18n conversion
+보조 함수
+]]
 local function localname(parameter, koArgs)
 	return koArgs[parameter] or parameter
 end
 
+--[[
+i18n conversion
+주 함수
+]]
 local function i18nConv(localArgs, koArgs)
 	local tmpLocalArgs = {}
 	for k, v in pairs(localArgs) do
@@ -109,42 +158,42 @@ local function i18nConv(localArgs, koArgs)
 	return tmpLocalArgs
 end
 
-function p.sidebar(frame, args)
+--[[
+Main sidebar function. Takes the frame, args, and an optional collapsibleClass.
+The collapsibleClass is and should be used only for sidebars with collapsible
+lists, as in p.collapsible.
+]]
+function p.sidebar(frame, args, collapsibleClass)
 	if not args then
 		args = getArgs(frame)
 	end
+
+	-- i18n conversion
 	args = i18nConv(args, param_ko_common)
 	args = i18nConv(args, param_ko_sidebar)
+
 	local root = mw.html.create()
-	local child = args.child and mw.text.trim(args.child) == 'yes'
+	local child = args.child and mw.text.trim(args.child) == cfg.i18n.child_yes
 
 	root = root:tag('table')
 	if not child then
 		root 
-			:addClass('vertical-navbox')
-			:addClass(args.wraplinks ~= 'true' and 'nowraplinks' or nil)
+			:addClass(cfg.i18n.class.sidebar)
+			-- force collapsibleclass to be sidebar-collapse otherwise output nothing
+			:addClass(collapsibleClass == cfg.i18n.class.collapse and cfg.i18n.class.collapse or nil)
+			:addClass('nomobile')
+			:addClass(args.float == cfg.i18n.float_none and cfg.i18n.class.float_none or nil)
+			:addClass(args.float == cfg.i18n.float_left and cfg.i18n.class.float_left or nil)
+			:addClass(args.wraplinks ~= cfg.i18n.wrap_true and cfg.i18n.class.wraplinks or nil)
 			:addClass(args.bodyclass or args.class)
-			:css('float', args.float or 'right')
-			:css('clear', (args.float == 'none' and 'both') or args.float or 'right')
-			:css('width', args.width or '22.0em')
-			:css('margin', args.float == 'left' and '0 1.0em 1.0em 0' or '0 0 1.0em 1.0em')
-			:css('background', '#f9f9f9')
-			:css('border', '1px solid #aaa')
-			:css('padding', '0.2em')
-			:css('border-spacing', '0.4em 0')
-			:css('text-align', 'center')
-			:css('line-height', '1.4em')
-			:css('font-size', '88%')
+			:css('width', args.width or nil)
 			:cssText(args.bodystyle or args.style)
 
 		if args.outertitle then
 			root
 				:tag('caption')
+					:addClass(cfg.i18n.class.outer_title)
 					:addClass(args.outertitleclass)
-					:css('padding-bottom', '0.2em')
-					:css('font-size', '125%')
-					:css('line-height', '1.2em')
-					:css('font-weight', 'bold')
 					:cssText(args.outertitlestyle)
 					:wikitext(args.outertitle)
 		end
@@ -153,16 +202,15 @@ function p.sidebar(frame, args)
 			local imageCell = root:tag('tr'):tag('td')
 
 			imageCell
+				:addClass(cfg.i18n.class.top_image)
 				:addClass(args.topimageclass)
-				:css('padding', '0.4em 0')
 				:cssText(args.topimagestyle)
 				:wikitext(args.topimage)
 
 			if args.topcaption then
 				imageCell
 					:tag('div')
-						:css('padding-top', '0.2em')
-						:css('line-height', '1.2em')
+						:addClass(cfg.i18n.class.top_caption)
 						:cssText(args.topcaptionstyle)
 						:wikitext(args.topcaption)
 			end
@@ -172,19 +220,16 @@ function p.sidebar(frame, args)
 			root
 				:tag('tr')
 					:tag('td')
+						:addClass(args.topimage and cfg.i18n.class.pretitle_with_top_image
+							or cfg.i18n.class.pretitle)
 						:addClass(args.pretitleclass)
 						:cssText(args.basestyle)
-						:css('padding-top', args.topimage and '0.2em' or '0.4em')
-						:css('line-height', '1.2em')
 						:cssText(args.pretitlestyle)
 						:wikitext(args.pretitle)
 		end
 	else
 		root
-			:addClass('vertical-navbox-subgroup')
-			:css('width', '100%')
-			:css('margin', '0px')
-			:css('border-spacing', '0px')
+			:addClass(cfg.i18n.class.subgroup)
 			:addClass(args.bodyclass or args.class)
 			:cssText(args.bodystyle or args.style)
 	end
@@ -197,12 +242,10 @@ function p.sidebar(frame, args)
 			root
 				:tag('tr')
 					:tag('th')
+						:addClass(args.pretitle and cfg.i18n.class.title_with_pretitle
+							or cfg.i18n.class.title)
 						:addClass(args.titleclass)
 						:cssText(args.basestyle)
-						:css('padding', '0.2em 0.4em 0.2em')
-						:css('padding-top', args.pretitle and 0)
-						:css('font-size', '145%')
-						:css('line-height', '1.2em')
 						:cssText(args.titlestyle)
 						:wikitext(args.title)
 		end
@@ -212,16 +255,15 @@ function p.sidebar(frame, args)
 		local imageCell = root:tag('tr'):tag('td')
 
 		imageCell
+			:addClass(cfg.i18n.class.image)
 			:addClass(args.imageclass)
-			:css('padding', '0.2em 0 0.4em')
 			:cssText(args.imagestyle)
 			:wikitext(args.image)
 
 		if args.caption then
 			imageCell
 				:tag('div')
-					:css('padding-top', '0.2em')
-					:css('line-height', '1.2em')
+					:addClass(cfg.i18n.class.caption)
 					:cssText(args.captionstyle)
 					:wikitext(args.caption)
 		end
@@ -231,11 +273,10 @@ function p.sidebar(frame, args)
 		root
 			:tag('tr')
 				:tag('td')
+					:addClass(cfg.i18n.class.above)
 					:addClass(args.aboveclass)
-					:css('padding', '0.3em 0.4em 0.3em')
-					:css('font-weight', 'bold')
 					:cssText(args.abovestyle)
-					:newline() -- 점 목록(*) 동작을 위해 줄바꿈 필요
+					:newline() -- newline required for bullet-points to work
 					:wikitext(args.above)
 	end
 
@@ -246,7 +287,8 @@ function p.sidebar(frame, args)
 		if num then table.insert(rowNums, tonumber(num)) end
 	end
 	table.sort(rowNums)
-	-- 리스트에서 중복된 것을 없애줌 (ex. 묶음3과 내용3에는 3이 중복)
+	-- remove duplicates from the list (e.g. 3 will be duplicated if both heading3
+	-- and content3 are specified)
 	for i = #rowNums, 1, -1 do
 		if rowNums[i] == rowNums[i - 1] then
 			table.remove(rowNums, i)
@@ -259,8 +301,9 @@ function p.sidebar(frame, args)
 			root
 				:tag('tr')
 					:tag('th')
+						:addClass(cfg.i18n.class.heading)
 						:addClass(args.headingclass)
-						:css('padding', '0.1em')
+						:addClass(args['heading' .. num .. 'class'] or args['묶음' .. num .. '속성'])
 						:cssText(args.basestyle)
 						:cssText(args.headingstyle)
 						:cssText(args['heading' .. num .. 'style'] or args['묶음' .. num .. '모양'])
@@ -273,14 +316,18 @@ function p.sidebar(frame, args)
 			root
 				:tag('tr')
 					:tag('td')
+						:addClass(hasSubgroup(content) and cfg.i18n.class.content_with_subgroup
+							or cfg.i18n.class.content)
 						:addClass(args.contentclass)
-						:css('padding', hasSubgroup(content) and '0.1em 0 0.2em' or '0 0.1em 0.4em')
+						:addClass(args['content' .. num .. 'class'] or args['내용' .. num .. '속성'])
 						:cssText(args.contentstyle)
 						:cssText(args['content' .. num .. 'style'] or args['내용' .. num .. '모양'])
 						:newline()
 						:wikitext(content)
 						:done()
-					:newline() -- </td> 뒤에 줄바꿈이 없으면, "* {{hlist| ...}}"처럼 얽혀있는 list들이 parse를 제대로 못함.
+					 -- Without a linebreak after the </td>, a nested list like
+					 -- "* {{hlist| ...}}" doesn't parse correctly.
+					:newline()
 		end
 	end
 
@@ -288,80 +335,143 @@ function p.sidebar(frame, args)
 		root
 			:tag('tr')
 				:tag('td')
+					:addClass(cfg.i18n.class.below)
 					:addClass(args.belowclass)
-					:css('padding', '0.3em 0.4em 0.3em')
-					:css('font-weight', 'bold')
 					:cssText(args.belowstyle)
 					:newline()
 					:wikitext(args.below)
 	end
 
 	if not child then
-		local navbarArg = args.navbar or args.tnavbar
-		if navbarArg ~= 'none' and navbarArg ~= 'off' and (args.name or frame:getParent():getTitle():gsub('/연습장$', '') ~= '틀:사이드바') then
+		if args.navbar ~= cfg.i18n.navbar_none and args.navbar ~= cfg.i18n.navbar_off and
+			(args.name or frame:getParent():getTitle():gsub(cfg.i18n.pattern.sandbox, '') ~=
+			cfg.i18n.title_not_to_add_navbar) then
 			root
 				:tag('tr')
 					:tag('td')
-						:css('text-align', 'right')
-						:css('font-size', '115%')
-						:cssText(args.navbarstyle or args.tnavbarstyle)
-						:wikitext(navbar{
+						:addClass(cfg.i18n.class.navbar)
+						:cssText(args.navbarstyle)
+						:wikitext(require('Module:@ko/Navbar')._navbar{
 							args.name,
 							mini = 1,
-							fontstyle = args.navbarfontstyle or args.tnavbarfontstyle
+							fontstyle = args.navbarfontstyle
 						})
 		end
 	end
+	
+	local base_templatestyles = frame:extensionTag{
+		name = 'templatestyles', args = { src = cfg.i18n.templatestyles }
+	}
+	
+	local templatestyles = ''
+	if args['templatestyles'] and args['templatestyles'] ~= '' then
+		templatestyles = frame:extensionTag{
+			name = 'templatestyles', args = { src = args['templatestyles'] }
+		}
+	end
+	
+	local child_templatestyles = ''
+	if args['child templatestyles'] and args['child templatestyles'] ~= '' then
+		child_templatestyles = frame:extensionTag{
+			name = 'templatestyles', args = { src = args['child templatestyles'] }
+		}
+	end
+	
+	local grandchild_templatestyles = ''
+	if args['grandchild templatestyles'] and args['grandchild templatestyles'] ~= '' then
+		grandchild_templatestyles = frame:extensionTag{
+			name = 'templatestyles', args = { src = args['grandchild templatestyles'] }
+		}
+	end
 
-	return tostring(root) .. (child and '[[분류:자식 변수를 사용하는 사이드바가 있는 문서]]' or '')
+	return table.concat({
+		base_templatestyles,
+		templatestyles,
+		child_templatestyles,
+		grandchild_templatestyles,
+		tostring(root),
+		(child and cfg.i18n.category.child or ''),
+		categorizeTemplatesWithInlineStyles(args)
+	})
 end
 
+local function list_title(args, is_centered_list_titles, num)
+	
+	local title_text = trimAndAddAutomaticNewline(args['list' .. num .. 'title'] or args['목록' .. num .. '제목']
+		or cfg.i18n.default_list_title)
+
+	local title
+	if is_centered_list_titles then
+		-- collapsible can be finicky, so provide some CSS/HTML to support
+		title = mw.html.create('div')
+			:addClass(cfg.i18n.class.list_title_centered)
+			:wikitext(title_text)
+	else
+		title = mw.html.create()
+			:wikitext(title_text)
+	end
+		
+	local title_container = mw.html.create('div')
+		:addClass(cfg.i18n.class.list_title)
+		-- don't /need/ a listnumtitleclass because you can do
+		-- .templateclass .listnumclass .sidebar-list-title
+		:addClass(args.listtitleclass)
+		:cssText(args.basestyle)
+		:cssText(args.listtitlestyle)
+		:cssText(args['list' .. num .. 'titlestyle'] or args['목록' .. num .. '제목모양'])
+		:node(title)
+		:done()
+	
+	return title_container
+end
+
+--[[
+Main entry point for sidebar with collapsible lists.
+Does the work of creating the collapsible lists themselves and including them
+into the args.
+]]
 function p.collapsible(frame)
 	local args = getArgs(frame)
 
+	-- i18n conversion
 	args = i18nConv(args, param_ko_common)
 	args = i18nConv(args, param_ko_collapsible)
 
-	args.abovestyle = 'border-top: 1px solid #aaa; border-bottom: 1px solid #aaa;' .. (args.abovestyle or '')
-	args.belowstyle = 'border-top: 1px solid #aaa; border-bottom: 1px solid #aaa;' .. (args.belowstyle or '')
-	args.navbarstyle = 'padding-top: 0.6em;' .. (args.navbarstyle or args.tnavbarstyle or '')
-	if not args.name and frame:getParent():getTitle():gsub('/연습장$', '') == '틀:접이식 사이드바' then
-		args.navbar = 'none'
+	if not args.name and
+		frame:getParent():getTitle():gsub(cfg.i18n.pattern.collapse_sandbox, '') ==
+		cfg.i18n.collapse_title_not_to_add_navbar then
+		args.navbar = cfg.i18n.navbar_none
 	end
 
 	local contentArgs = {}
+	
+	local is_centered_list_titles
+	if args['centered list titles'] and args['centered list titles'] ~= '' then
+		is_centered_list_titles = true
+	else
+		is_centered_list_titles = false
+	end
 
 	for k, v in pairs(args) do
 		local num = string.match(k, '^list(%d+)$') or string.match(k, '^목록(%d+)$')
 		if num then
-			local expand = args.expanded and (args.expanded == 'all' or args.expanded == args['list' .. num .. 'name'] or args.expanded == args['목록' .. num .. '이름'])
-
+			local expand = args.expanded and
+				(args.expanded == 'all' or args.expanded == args['list' .. num .. 'name'] or args.expanded == args['목록' .. num .. '이름'])
 			local row = mw.html.create('div')
 			row
-				:addClass('NavFrame')
-				:addClass((not expand) and 'collapsed' or nil)
-				:css('border', 'none')
-				:css('padding', 0)
+				:addClass(cfg.i18n.class.list)
+				:addClass('mw-collapsible')
+				:addClass((not expand) and 'mw-collapsed' or nil)
+				:addClass(args['list' .. num .. 'class'] or args['목록' .. num .. '속성'])
 				:cssText(args.listframestyle)
 				:cssText(args['list' .. num .. 'framestyle'] or args['목록' .. num .. '틀모양'])
+				:node(list_title(args, is_centered_list_titles, num))
 				:tag('div')
-					:addClass('NavHead')
-					:addClass(args.listtitleclass)
-					:css('font-size', '105%')
-					:css('background', 'transparent')
-					:css('text-align', 'left')
-					:cssText(args.basestyle)
-					:cssText(args.listtitlestyle)
-					:cssText(args['list' .. num .. 'titlestyle'] or args['목록' .. num .. '제목모양'])
-					:wikitext(trimAndAddAutomaticNewline(args['list' .. num .. 'title'] or args['목록' .. num .. '제목'] or '목록'))
-					:done()
-				:tag('div')
-					:addClass('NavContent')
+					:addClass(cfg.i18n.class.list_content)
+					:addClass('mw-collapsible-content')
+					-- don't /need/ a listnumstyleclass because you can do
+					-- .templatename .listnumclass .sidebar-list
 					:addClass(args.listclass)
-					:addClass(args['list' .. num .. 'class'] or args['목록' .. num .. '속성'])
-					:css('font-size', '105%')
-					:css('padding', '0.2em 0 0.4em')
-					:css('text-align', 'center')
 					:cssText(args.liststyle)
 					:cssText(args['list' .. num .. 'style'] or args['목록' .. num .. '모양'])
 					:wikitext(trimAndAddAutomaticNewline(args['list' .. num] or args['목록' .. num]))
@@ -374,7 +484,7 @@ function p.collapsible(frame)
 		args[k] = v
 	end
 
-	return p.sidebar(frame, args)
+	return p.sidebar(frame, args, cfg.i18n.class.collapse)
 end
 
 return p

@@ -30,7 +30,7 @@
     },
     "@en/Infobox": {
       "pageid": 38808424,
-      "revid": 1049450226,
+      "revid": 1055523885,
       "title": "Module:Infobox",
       "dependencies": [
         "@en/Navbar"
@@ -38,7 +38,7 @@
     },
     "@en/Navbar": {
       "pageid": 38827227,
-      "revid": 1040458691,
+      "revid": 1054994468,
       "title": "Module:Navbar",
       "dependencies": [
         "@en/Arguments",
@@ -48,7 +48,7 @@
     },
     "@en/Navbar/configuration": {
       "pageid": 66010105,
-      "revid": 992950717,
+      "revid": 1054995103,
       "title": "Module:Navbar/configuration"
     },
     "@en/String": {
@@ -146,7 +146,7 @@
     },
     "@ko/Citation/CS1/Configuration/sandbox": {
       "pageid": 1245454,
-      "revid": 19306720,
+      "revid": 30606297,
       "title": "\ubaa8\ub4c8:Citation/CS1/Configuration/sandbox"
     },
     "@ko/Citation/CS1/Date_validation": {
@@ -283,13 +283,19 @@
     },
     "@ko/Sidebar": {
       "pageid": 945357,
-      "revid": 24929734,
+      "revid": 30620866,
       "title": "\ubaa8\ub4c8:Sidebar",
       "dependencies": [
         "@ko/Arguments",
         "@ko/Navbar",
-        "@ko/No globals"
+        "@ko/No globals",
+        "@ko/Sidebar/configuration"
       ]
+    },
+    "@ko/Sidebar/configuration": {
+      "pageid": 3086768,
+      "revid": 30620873,
+      "title": "\ubaa8\ub4c8:Sidebar/configuration"
     },
     "@ko/TableTools": {
       "pageid": 1103423,

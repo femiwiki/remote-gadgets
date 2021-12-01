@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Citation/CS1/Configuration/sandbox and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Citation/CS1/Configuration/sandbox and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 
@@ -378,7 +378,7 @@ local invisible_chars = {
 	{'가는 공백', '\226\128\138'},												-- U+200A, E2 80 8A -- hair space
 	{'소프트 하이픈', '\194\173'},												-- U+00AD, C2 AD -- soft hyphen
 	{'수평 탭', '\009'},													-- U+0009 (HT), 09 -- horizontal tab
-	{'라인 피드', '\010'},														-- U+000A (LF), 0A -- line feed
+	{'새줄 문자', '\010'},														-- U+000A (LF), 0A -- line feed
 	{'캐리지 리턴', '\013'},												-- U+000D (CR), 0D -- carriage return
 	{'stripmarker', stripmarkers.any},											-- stripmarker; may or may not be an error; capture returns the stripmaker type
 	{'지움', '\127'},															-- U+007F (DEL), 7F; must be done after stripmarker test -- delete
