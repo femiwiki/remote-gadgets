@@ -4,7 +4,7 @@
 */
 
 /* 색을 반전시키는 다크모드에 의해 반전될 수 있도록 배경색을 명시적으로 지정 */
-html body.client-dark-mode {
+html.client-dark-mode body {
   background-color: whitesmoke;
 }
 
