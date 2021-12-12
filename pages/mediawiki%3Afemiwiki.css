@@ -1,4 +1,14 @@
 /*
+<nowiki>
+이 CSS 설정은 모든 스킨에 적용됩니다
+*/
+
+/* 색을 반전시키는 다크모드에 의해 반전될 수 있도록 배경색을 명시적으로 지정 */
+html body.client-dark-mode {
+  background-color: whitesmoke;
+}
+
+/*
 개인 도구의 "베타" 링크 숨기기
 [[주제:Uty456jw505lp6ym]]
 */
