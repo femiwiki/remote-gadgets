@@ -21,7 +21,7 @@
     .addClass('spoiler-toggle-button')
     .click(function (event) {
       $spoilerTexts.fadeToggle();
-      if ($hasHeadings) {
+      if ($hasSpoilerHeadings) {
         $toc.toggle();
       }
       $noticeTexts.toggle();
