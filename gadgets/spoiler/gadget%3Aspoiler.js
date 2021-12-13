@@ -7,11 +7,11 @@
 
   var $noticeTexts = $('.spoiler-notice-text');
   var $spoilerTexts = $('.spoiler-text');
-  var $hasSpoilerHeadings = !!$spoilerTexts.has("h1,h2,h3,h4,h5,h6").length;
+  var $hasSpoilingHeadings = !!$spoilerTexts.has("h1,h2,h3,h4,h5,h6").length;
 
   if ($noticeTexts.length === 0 || $spoilerTexts.length === 0) return;
 
-  if ($hasSpoilerHeadings) {
+  if ($hasSpoilingHeadings) {
     var $toc = $('#toc, .toc').hide();
   }
   $('.spoiler-js').show();
@@ -21,7 +21,7 @@
     .addClass('spoiler-toggle-button')
     .click(function (event) {
       $spoilerTexts.fadeToggle();
-      if ($hasSpoilerHeadings) {
+      if ($hasSpoilingHeadings) {
         $toc.toggle();
       }
       $noticeTexts.toggle();
