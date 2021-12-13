@@ -7,10 +7,13 @@
 
   var $noticeTexts = $('.spoiler-notice-text');
   var $spoilerTexts = $('.spoiler-text');
+  var $hasSpoilerHeadings = $spoilerTexts.has("h1,h2,h3,h4,h5,h6");
 
   if ($noticeTexts.length === 0 || $spoilerTexts.length === 0) return;
 
-  var $toc = $('#toc, .toc').hide();
+  if ($hasSpoilerHeadings) {
+    var $toc = $('#toc, .toc').hide();
+  }
   $('.spoiler-js').show();
 
   $('<a>')
@@ -18,7 +21,9 @@
     .addClass('spoiler-toggle-button')
     .click(function (event) {
       $spoilerTexts.fadeToggle();
-      $toc.toggle();
+      if ($hasHeadings) {
+        $toc.toggle();
+      }
       $noticeTexts.toggle();
 
       if ($(this).html() == '숨기기') $(this).html('보이기');
