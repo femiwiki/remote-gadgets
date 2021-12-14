@@ -16,22 +16,31 @@
   }
   $('.spoiler-js').show();
 
-  $('<a>')
-    .html('보이기')
-    .addClass('spoiler-toggle-button')
-    .click(function (event) {
-      $spoilerTexts.fadeToggle();
-      if ($hasSpoilingHeadings) {
-        $toc.toggle();
-      }
-      $noticeTexts.toggle();
+  var anchor = document.createElement("a");
+  anchor.textContent = '보이기';
+  anchor.classList.add('spoiler-toggle-button');
+  anchor.addEventListener("click", function (event) {
+    $spoilerTexts.fadeToggle();
+    if ($hasSpoilingHeadings) {
+      $toc.toggle();
+    }
+    $noticeTexts.toggle();
 
-      if ($(this).html() == '숨기기') $(this).html('보이기');
-      else $(this).html('숨기기');
+    if (this.textContent === '숨기기') {
+      this.textContent = '보이기';
+    } else {
+      this.textContent = '숨기기';
+    }
 
-      event.preventDefault();
-    })
-    .appendTo($noticeTexts.parent());
+    event.preventDefault();
+  });
+  $noticeTexts[0].parentElement.append(anchor);
+
+  mw.hook('ve.deactivationComplete').add(function () {
+    $noticeTexts = $('.spoiler-notice-text');
+    $spoilerTexts = $('.spoiler-text');
+    $noticeTexts[0].parentElement.append(anchor);
+  });
 
   $noticeTexts.toggle();
 })();
