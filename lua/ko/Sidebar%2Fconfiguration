@@ -1,0 +1,60 @@
+--[[
+This module was originally on https://ko.wikipedia.org/wiki/Module:Sidebar/configuration and forked by Legunto
+(https://github.com/femiwiki/legunto).
+]]
+return {
+	i18n = {
+		child_yes = 'yes',
+		float_none = 'none',
+		float_left = 'left',
+		wrap_true = 'true',
+		navbar_none = 'none',
+		navbar_off = 'off',
+		default_list_title = '목록',
+		title_not_to_add_navbar = '틀:사이드바',
+		collapse_title_not_to_add_navbar = '틀:접이식 사이드바',
+		templatestyles = '모듈:Sidebar/styles.css',
+		category = {
+			child = '[[분류:자식 변수를 사용하는 사이드바가 있는 문서]]',
+			conversion = '[[분류:스타일 변환이 필요한 사이드바]]'
+		},
+		pattern = {
+			collapse_sandbox = '/연습장$',
+			sandbox = '/연습장$',
+			subgroup = 'sidebar%-subgroup',
+			style_conversion = 'style$',
+			uncategorized_conversion_titles = {
+				'/연습장',
+				'/시험장',
+				'/설명문서$'
+			}
+		},
+		class = {
+			sidebar = 'sidebar',
+			subgroup = 'sidebar-subgroup',
+			collapse = 'sidebar-collapse',
+			float_none = 'sidebar-none',
+			float_left = 'sidebar-left',
+			wraplinks = 'nowraplinks',
+			outer_title = 'sidebar-outer-title',
+			top_image = 'sidebar-top-image',
+			top_caption = 'sidebar-top-caption',
+			pretitle = 'sidebar-pretitle',
+			pretitle_with_top_image = 'sidebar-pretitle-with-top-image',
+			title = 'sidebar-title',
+			title_with_pretitle = 'sidebar-title-with-pretitle',
+			image = 'sidebar-image',
+			caption = 'sidebar-caption',
+			above = 'sidebar-above',
+			heading = 'sidebar-heading',
+			content = 'sidebar-content',
+			content_with_subgroup = 'sidebar-content-with-subgroup',
+			below = 'sidebar-below',
+			navbar = 'sidebar-navbar',
+			list = 'sidebar-list',
+			list_title = 'sidebar-list-title',
+			list_title_centered = 'sidebar-list-title-c',
+			list_content = 'sidebar-list-content'
+		}
+	}
+}

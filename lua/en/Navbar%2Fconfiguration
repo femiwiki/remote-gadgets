@@ -2,7 +2,7 @@
 This module was originally on https://en.wikipedia.org/wiki/Module:Navbar/configuration and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
-local configuration = {
+return {
 	['templatestyles'] = 'Module:Navbar/styles.css',
 	['box_text'] = 'This box: ',			-- default text box when not plain or mini
 	['title_namespace'] = 'Template',		-- namespace to default to for title
@@ -22,5 +22,3 @@ local configuration = {
 		['collapsible_title_full'] = 'navbar-ct-full'
 	}
 }
-
-return configuration

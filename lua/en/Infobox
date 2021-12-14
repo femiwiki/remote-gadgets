@@ -130,7 +130,7 @@ local function addRow(rowArgs)
 					:wikitext(fixChildBoxes(rowArgs.header, 'th'))
 		if rowArgs.data then
 			root:wikitext(
-				'[[Category:Pages which use infobox templates with ignored data cells]]'
+				'[[Category:Pages using infobox templates with ignored data cells]]'
 			)
 		end
 	elseif rowArgs.data and rowArgs.data:gsub(
@@ -386,11 +386,11 @@ local function renderTrackingCategories()
 	if args.child == 'yes' then
 		if args.title then
 			root:wikitext(
-				'[[Category:Pages which use embedded infobox templates with the title parameter]]'
+				'[[Category:Pages using embedded infobox templates with the title parameter]]'
 			)
 		end
 	elseif #(getArgNums('data')) == 0 and mw.title.getCurrentTitle().namespace == 0 then
-		root:wikitext('[[Category:Articles which use infobox templates with no data rows]]')
+		root:wikitext('[[Category:Articles using infobox templates with no data rows]]')
 	end
 end
 
