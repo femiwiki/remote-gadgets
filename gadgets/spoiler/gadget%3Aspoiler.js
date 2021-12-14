@@ -39,6 +39,7 @@
   mw.hook('ve.deactivationComplete').add(function () {
     $noticeTexts = $('.spoiler-notice-text');
     $spoilerTexts = $('.spoiler-text');
+    $toc = $('#toc, .toc');
     $noticeTexts[0].parentElement.append(anchor);
   });
 
