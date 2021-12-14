@@ -4,6 +4,11 @@ on:
       - 'pages/*'
       - 'gadgets/**'
       - 'lua/**'
+  pull_request:
+    paths:
+      - 'pages/*'
+      - 'gadgets/**'
+      - 'lua/**'
 
 jobs:
   gadget-lint:
