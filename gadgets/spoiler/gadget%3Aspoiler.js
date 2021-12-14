@@ -16,10 +16,10 @@
   }
   $('.spoiler-js').show();
 
-  var anchor = document.createElement("a");
+  var anchor = document.createElement('a');
   anchor.textContent = '보이기';
   anchor.classList.add('spoiler-toggle-button');
-  anchor.addEventListener("click", function (event) {
+  anchor.addEventListener('click', function (event) {
     $spoilerTexts.fadeToggle();
     if ($hasSpoilingHeadings) {
       $toc.toggle();
