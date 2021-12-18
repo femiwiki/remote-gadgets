@@ -4,16 +4,6 @@
 */
 
 /*
-색을 반전시키는 다크모드에 의해 반전될 수 있도록 배경색을 명시적으로 지정
-파이어폭스와 구글 크롬에서 둘 다 잘 작동하도록 body와 html에 적용함
-https://github.com/femiwiki/FemiwikiSkin/issues/397 해결 시 삭제할 것
-*/
-html.client-dark-mode body,
-html.client-dark-mode {
-  background-color: whitesmoke;
-}
-
-/*
 개인 도구의 "베타" 링크 숨기기
 [[주제:Uty456jw505lp6ym]]
 */
