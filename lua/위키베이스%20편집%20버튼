@@ -1,25 +1,28 @@
-yesno = require('Module:@en/Yesno')
+local yesno = require('Module:@en/Yesno')
+local mArguments = require('Module:@en/Arguments')
 
 p = {}
 
 function p.main(frame)
-  local args = frame.args[1] ~= nil and frame.args or frame:getParent().args
+  local args = mArguments.getArgs(frame)
 
   local qid = args.qid
   if not qid then qid = mw.wikibase.getEntityIdForCurrentPage() end
-  if not qid then return end
+  if not qid then
+    return args.noqid or ''
+  end
 
-  local pid = args.pid or ""
+  local pid = args.pid or ''
 
   if yesno(args.noicon) == true then
     return '[[Item:' .. qid .. '|정보 수정]]'
   else
-    return "[[File:OOjs UI icon edit-ltr-colored.svg |frameless |text-top |10px |alt=" ..
-    "위키베이스 항목 수정하기" ..
-    " |link=Item:" ..
+    return '[[File:OOjs UI icon edit-ltr-colored.svg|frameless|text-top|10px|alt=' ..
+    '위키베이스 항목 수정하기' ..
+    '|link=Item:' ..
     qid ..
-    (pid == "" and "" or ("#" .. pid)) ..
-    "]]"
+    (pid == '' and '' or ('#' .. pid)) ..
+    ']]'
   end
 end
 
