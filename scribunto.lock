@@ -10,9 +10,18 @@
       "revid": 920258706,
       "title": "Module:Exponential search"
     },
+    "@en/Format link": {
+      "pageid": 69546539,
+      "revid": 1062173487,
+      "title": "Module:Format link",
+      "dependencies": [
+        "@en/Arguments",
+        "@en/Yesno"
+      ]
+    },
     "@en/Hatnote": {
       "pageid": 42498502,
-      "revid": 1033185030,
+      "revid": 1062173182,
       "title": "Module:Hatnote",
       "dependencies": [
         "@en/Arguments",
@@ -21,10 +30,11 @@
     },
     "@en/Hatnote list": {
       "pageid": 50085079,
-      "revid": 962885277,
+      "revid": 1062173192,
       "title": "Module:Hatnote list",
       "dependencies": [
         "@en/Arguments",
+        "@en/Format link",
         "@en/Hatnote"
       ]
     },

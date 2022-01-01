@@ -12,6 +12,7 @@ This module was originally on https://en.wikipedia.org/wiki/Module:Hatnote_list 
 --------------------------------------------------------------------------------
 
 local mArguments --initialize lazily
+local mFormatLink = require('Module:@en/Format link')
 local mHatnote = require('Module:@en/Hatnote')
 local libraryUtil = require('libraryUtil')
 local checkType = libraryUtil.checkType
@@ -33,8 +34,15 @@ local stringifyListDefaultOptions = {
 	formatted = false
 }
 
+--Searches display text only
+local function searchDisp(haystack, needle)
+	return string.find(
+		string.sub(haystack, (string.find(haystack, '|') or 0) + 1), needle
+	)
+end
+
 -- Stringifies a list generically; probably shouldn't be used directly
-function stringifyList(list, options)
+local function stringifyList(list, options)
 	-- Type-checks, defaults, and a shortcut
 	checkType("stringifyList", 1, list, "table")
 	if #list == 0 then return nil end
@@ -45,13 +53,13 @@ function stringifyList(list, options)
 	end
 	local s = options.space
 	-- Format the list if requested
-	if options.formatted then list = mHatnote.formatPages(unpack(list)) end
+	if options.formatted then
+		list = mFormatLink.formatPages(
+			{categorizeMissing = mHatnote.missingTargetCat}, list
+		)
+	end
 	-- Set the separator; if any item contains it, use the alternate separator
 	local separator = options.separator
-	--searches display text only
-	local function searchDisp(t, f)
-		return string.find(string.sub(t, (string.find(t, '|') or 0) + 1), f)
-	end
 	for k, v in pairs(list) do
 		if searchDisp(v, separator) then
 			separator = options.altSeparator
@@ -68,13 +76,13 @@ function stringifyList(list, options)
 end
 
 --DRY function
-function conjList (conj, list, fmt)
+function p.conjList (conj, list, fmt)
 	return stringifyList(list, {conjunction = conj, formatted = fmt})
 end
 
 -- Stringifies lists with "and" or "or"
-function p.andList (...) return conjList("and", ...) end
-function p.orList (...) return conjList("or", ...) end
+function p.andList (...) return p.conjList("and", ...) end
+function p.orList (...) return p.conjList("or", ...) end
 
 --------------------------------------------------------------------------------
 -- For see
@@ -92,7 +100,7 @@ local forSeeDefaultOptions = {
 }
 
 --Collapses duplicate punctuation
-function punctuationCollapse (text)
+local function punctuationCollapse (text)
 	local replacements = {
 		["%.%.$"] = ".",
 		["%?%.$"] = "?",
@@ -174,7 +182,12 @@ function p.forSeeTableToString (forSeeTable, options)
 	if forSeeTable then
 		for k, v in pairs(forSeeTable) do
 			local useStr = v.use or options.otherText
-			local pagesStr = p.andList(v.pages, true) or mHatnote._formatLink{link = mHatnote.disambiguate(options.title)}
+			local pagesStr =
+				p.andList(v.pages, true) or
+				mFormatLink._formatLink{
+					categorizeMissing = mHatnote.missingTargetCat,
+					link = mHatnote.disambiguate(options.title)
+				}
 			local forSeeStr = string.format(options.forSeeForm, useStr, pagesStr)
 			forSeeStr = punctuationCollapse(forSeeStr)
 			table.insert(strList, forSeeStr)
