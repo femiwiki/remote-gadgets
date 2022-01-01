@@ -1,17 +1,8 @@
 /* 이 CSS 설정은 벡터 스킨을 사용하는 사용자에게 적용됩니다 */
 
-/* 분류 틀에서 표시되는 분류 숨김 */
-.fw-catlinks {
-  display: none;
-}
-
-/* .mw-wiki-logo, */
+.mw-wiki-logo,
 .mw-logo-wordmark {
   background-color: #aca6e4;
-}
-
-.mw-logo-icon {
-  display: none;
 }
 
 .mw-logo-wordmark {
