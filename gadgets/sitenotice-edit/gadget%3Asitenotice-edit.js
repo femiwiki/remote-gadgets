@@ -1,16 +1,41 @@
 // <nowiki>
 (function () {
-  var editButton = document.createElement('a');
-  editButton.href = '/index.php?title=MediaWiki:Sitenotice&veaction=edit';
+  var mustache =
+    '\
+<div class="sitenotice-edit--buttons">\
+  {{#buttons}}\
+  <a class="sitenotice-edit--button sitenotice-edit--{{id}}-button"\
+    href="/index.php?title=MediaWiki:Sitenotice&{{query}}"\
+    title="{{desc}}"\
+  ></a>\
+  {{/buttons}}\
+</div>\
+';
+  var template = mw.template.compile(mustache, 'mustache');
+  var data = {
+    buttons: [
+      {
+        id: 'history',
+        query: 'diff=next',
+        desc: '마지막 공지사항과 차이 보기',
+      },
+      {
+        id: 'edit',
+        query: 'veaction=edit',
+        desc: '공지사항 편집하기',
+      },
+    ],
+  };
+  var dom = template.render(data)[0];
 
-  editButton.classList.add('sitenotice-edit-button');
-
-  var sitenotice = document.querySelector('#localNotice');
+  var sitenotice = document.querySelector('#localNotice, #centralNotice');
   var header = document.querySelector('.fw-header');
-  if (sitenotice) {
-    sitenotice.insertBefore(editButton, sitenotice.firstChild);
+  var close = document.querySelector('.mw-dismissable-notice-close');
+  if (close) {
+    close.insertBefore(dom, close.firstChild);
+  } else if (sitenotice) {
+    sitenotice.append(dom);
   } else {
-    document.body.insertBefore(editButton, header);
+    document.body.insertBefore(dom, header);
   }
 })();
-// </nowiki>

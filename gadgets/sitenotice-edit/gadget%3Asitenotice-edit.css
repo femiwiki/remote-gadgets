@@ -1,23 +1,37 @@
-.sitenotice-edit-button {
-  width: 1em;
-  height: 1em;
-  display: block;
-  background-size: 100%;
-  background-image: url('https://femiwiki-uploaded-files-thumb.s3.amazonaws.com/8/82/OOjs_UI_icon_edit-ltr-colored.svg/10px-OOjs_UI_icon_edit-ltr-colored.svg.png');
+.mw-dismissable-notice-close .sitenotice-edit--buttons {
+  text-align: right;
 }
 
-#localNotice .sitenotice-edit-button {
+#localNotice .sitenotice-edit--buttons,
+#centralNotice .sitenotice-edit--buttons {
   float: right;
 }
 
-body > .sitenotice-edit-button {
-  margin: auto;
+body > .sitenotice-edit--buttons {
   margin-top: 1em;
 }
 
-body.action-edit .sitenotice-edit-button,
-html.ve-active .sitenotice-edit-button,
-html.ve-activated .sitenotice-edit-button,
-html.ve-deactivating .sitenotice-edit-button {
+body.action-edit .sitenotice-edit--buttons,
+html.ve-active .sitenotice-edit--buttons,
+html.ve-activated .sitenotice-edit--buttons,
+html.ve-deactivating .sitenotice-edit--buttons {
   display: none;
+}
+
+.sitenotice-edit--button {
+  width: 1.4em;
+  height: 1.4em;
+  display: inline-block;
+  background-size: 100%;
+  /* https://codepen.io/sosuke/pen/Pjoqqp */
+  filter: invert(87%) sepia(17%) saturate(7491%) hue-rotate(194deg)
+    brightness(108%) contrast(98%);
+}
+
+.sitenotice-edit--history-button {
+  background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/27/OOjs_UI_icon_history.svg');
+}
+
+.sitenotice-edit--edit-button {
+  background-image: url('https://upload.wikimedia.org/wikipedia/commons/8/8a/OOjs_UI_icon_edit-ltr.svg');
 }

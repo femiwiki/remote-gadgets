@@ -10,7 +10,7 @@
     "scripts": ["sitenotice-edit.js"],
     "styles": ["sitenotice-edit.css"],
     "peers": [],
-    "dependencies": [],
+    "dependencies": ["mediawiki.template.mustache"],
     "messages": [],
     "type": "general"
   }
