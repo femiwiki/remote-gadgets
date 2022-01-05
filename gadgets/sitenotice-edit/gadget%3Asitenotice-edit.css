@@ -9,6 +9,7 @@
 
 body > .sitenotice-edit--buttons {
   margin-top: 1em;
+  text-align: center;
 }
 
 body.action-edit .sitenotice-edit--buttons,
