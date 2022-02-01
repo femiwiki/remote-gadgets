@@ -5,6 +5,11 @@
       "revid": 948472485,
       "title": "Module:Arguments"
     },
+    "@en/Error": {
+      "pageid": 38948927,
+      "revid": 750709040,
+      "title": "Module:Error"
+    },
     "@en/Exponential search": {
       "pageid": 45500622,
       "revid": 920258706,
@@ -12,16 +17,17 @@
     },
     "@en/Format link": {
       "pageid": 69546539,
-      "revid": 1062173487,
+      "revid": 1064575531,
       "title": "Module:Format link",
       "dependencies": [
         "@en/Arguments",
+        "@en/Error",
         "@en/Yesno"
       ]
     },
     "@en/Hatnote": {
       "pageid": 42498502,
-      "revid": 1062173182,
+      "revid": 1063743122,
       "title": "Module:Hatnote",
       "dependencies": [
         "@en/Arguments",
@@ -71,7 +77,7 @@
     },
     "@en/TableTools": {
       "pageid": 41371028,
-      "revid": 1048120640,
+      "revid": 1069058368,
       "title": "Module:TableTools",
       "dependencies": [
         "@en/Exponential search"

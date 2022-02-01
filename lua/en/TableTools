@@ -41,7 +41,7 @@ end
 -- error if a NaN is used as a table key.
 ------------------------------------------------------------------------------------
 function p.isNan(v)
-	return type(v) == 'number' and tostring(v) == '-nan'
+	return type(v) == 'number' and v ~= v
 end
 
 ------------------------------------------------------------------------------------
@@ -67,11 +67,11 @@ end
 -- ignored. The earliest value is kept, and all subsequent duplicate values are
 -- removed, but otherwise the array order is unchanged.
 ------------------------------------------------------------------------------------
-function p.removeDuplicates(t)
-	checkType('removeDuplicates', 1, t, 'table')
+function p.removeDuplicates(arr)
+	checkType('removeDuplicates', 1, arr, 'table')
 	local isNan = p.isNan
 	local ret, exists = {}, {}
-	for _, v in ipairs(t) do
+	for _, v in ipairs(arr) do
 		if isNan(v) then
 			-- NaNs can't be table keys, and they are also unique, so we don't need to check existence.
 			ret[#ret + 1] = v
@@ -340,14 +340,17 @@ end
 -- invert
 --
 -- Transposes the keys and values in an array. For example, {"a", "b", "c"} ->
--- {a = 1, b = 2, c = 3}.
+-- {a = 1, b = 2, c = 3}. Duplicates are not supported (result values refer to
+-- the index of the last duplicate) and NaN values are ignored.
 ------------------------------------------------------------------------------------
 function p.invert(arr)
 	checkType("invert", 1, arr, "table")
-
+	local isNan = p.isNan
 	local map = {}
 	for i, v in ipairs(arr) do
-		map[v] = i
+		if not isNan(v) then
+			map[v] = i
+		end
 	end
 
 	return map
@@ -358,14 +361,17 @@ end
 --
 -- Creates a set from the array part of the table. Indexing the set by any of the
 -- values of the array returns true. For example, {"a", "b", "c"} ->
--- {a = true, b = true, c = true}.
+-- {a = true, b = true, c = true}. NaN values are ignored as Lua considers them
+-- never equal to any value (including other NaNs or even themselves).
 ------------------------------------------------------------------------------------
-function p.listToSet(t)
-	checkType("listToSet", 1, t, "table")
-
+function p.listToSet(arr)
+	checkType("listToSet", 1, arr, "table")
+	local isNan = p.isNan
 	local set = {}
-	for _, item in ipairs(t) do
-		set[item] = true
+	for _, v in ipairs(arr) do
+		if not isNan(v) then
+			set[v] = true
+		end
 	end
 
 	return set

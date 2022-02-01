@@ -14,6 +14,7 @@ local libraryUtil = require('libraryUtil')
 local checkType = libraryUtil.checkType
 local checkTypeForNamedArg = libraryUtil.checkTypeForNamedArg
 local mArguments -- lazily initialise [[Module:Arguments]]
+local mError -- lazily initialise [[Module:Error]]
 local yesno -- lazily initialise [[Module:Yesno]]
 
 local p = {}
@@ -34,15 +35,10 @@ local function removeInitialColon(s)
 	return s:match('^:?(.*)')
 end
 
-local function italicize(s)
-	-- Italicize a string.
-	return '<i>' .. s .. '</i>'
-end
-
 local function maybeItalicize(s, shouldItalicize)
-	-- italicize s if s is a string and the shouldItalicize parameter is true.
+	-- Italicize s if s is a string and the shouldItalicize parameter is true.
 	if s and shouldItalicize then
-		return italicize(s)
+		return '<i>' .. s .. '</i>'
 	else
 		return s
 	end
@@ -88,6 +84,28 @@ local function parseLink(link)
 	}
 end
 
+local function formatDisplay(parsed, options)
+	-- Formats a display string based on a parsed link table (matching the
+	-- output of parseLink) and an options table (matching the input options for
+	-- _formatLink).
+	local page = maybeItalicize(parsed.page, options.italicizePage)
+	local section = maybeItalicize(parsed.section, options.italicizeSection)
+	if (not section) then
+		return page
+	elseif (not page) then
+		return mw.ustring.format('§&nbsp;%s', section)
+	else
+		return mw.ustring.format('%s §&nbsp;%s', page, section)
+	end
+end
+
+local function missingArgError(target)
+	mError = require('Module:@en/Error')
+	return mError.error{message =
+		'Error: no link or target specified! ([[' .. target .. '#Errors|help]])'
+	}
+end
+
 --------------------------------------------------------------------------------
 -- Main functions
 --------------------------------------------------------------------------------
@@ -96,16 +114,16 @@ function p.formatLink(frame)
 	-- The formatLink export function, for use in templates.
 	yesno = require('Module:@en/Yesno')
 	local args = getArgs(frame)
-	local link = args[1]
-	if not link then
-		return
-			'<strong class="error">'..
-			'Error: no link specified ([[Template:Format link#Errors|help]]).'..
-			'</strong>'
+	local link = args[1] or args.link
+	local target = args[3] or args.target
+	if not (link or target) then
+		return missingArgError('Template:Format link')
 	end
+
 	return p._formatLink{
 		link = link,
-		display = args[2],
+		display = args[2] or args.display,
+		target = target,
 		italicizePage = yesno(args.italicizepage),
 		italicizeSection = yesno(args.italicizesection),
 		categorizeMissing = args.categorizemissing
@@ -115,42 +133,41 @@ end
 function p._formatLink(options)
 	-- The formatLink export function, for use in modules.
 	checkType('_formatLink', 1, options, 'table')
-	checkTypeForNamedArg('_formatLink', 'link', options.link, 'string', false)
-	checkTypeForNamedArg(
-		'_formatLink',
-		'display',
-		options.display,
-		'string',
-		true
-	)
-	checkTypeForNamedArg(
-		'_formatLink',
-		'italicizePage',
-		options.italicizePage,
-		'boolean',
-		true
-	)
-	checkTypeForNamedArg(
-		'_formatLink',
-		'italicizeSection',
-		options.italicizeSection,
-		'boolean',
-		true
-	)
-	checkTypeForNamedArg(
-		'_formatLink',
-		'categorizeMissing',
-		options.categorizeMissing,
-		'string',
-		true
-	)
+	local function check(key, expectedType) --for brevity
+		checkTypeForNamedArg(
+			'_formatLink', key, options[key], expectedType or 'string', true
+		)
+	end
+	check('link')
+	check('display')
+	check('target')
+	check('italicizePage', 'boolean')
+	check('italicizeSection', 'boolean')
+	check('categorizeMissing')
+
+	-- Normalize link and target and check that at least one is present
+	if options.link == '' then options.link = nil end
+	if options.target == '' then options.target = nil end
+	if not (options.link or options.target) then
+		return missingArgError('Module:Format link')
+	end
 
 	local parsed = parseLink(options.link)
 	local display = options.display or parsed.display
 	local catMissing = options.categorizeMissing
 	local category = ''
 
-	--Test if page exists if a diagnostic category is specified
+	-- Find the display text
+	if not display then display = formatDisplay(parsed, options) end
+
+	-- Handle the target option if present
+	if options.target then
+		local parsedTarget = parseLink(options.target)
+		parsed.link = parsedTarget.link
+		parsed.page = parsedTarget.page
+	end
+
+	-- Test if page exists if a diagnostic category is specified
 	if catMissing and (mw.ustring.len(catMissing) > 0) then
 		local title = nil
 		if parsed.page then title = mw.title.new(parsed.page) end
@@ -158,26 +175,13 @@ function p._formatLink(options)
 			category = mw.ustring.format('[[Category:%s]]', catMissing)
 		end
 	end
-
-	-- Deal with the case where we don't have to pipe the link
-	if not display and not parsed.section and not options.italicizePage then
+	
+	-- Format the result as a link
+	if parsed.link == display then
 		return mw.ustring.format('[[:%s]]%s', parsed.link, category)
+	else
+		return mw.ustring.format('[[:%s|%s]]%s', parsed.link, display, category)
 	end
-	
-	-- Find the display text for piped links
-	if not display then
-		local page = maybeItalicize(parsed.page, options.italicizePage)
-		local section = maybeItalicize(parsed.section, options.italicizeSection)
-		if not page then
-			display = mw.ustring.format('§&nbsp;%s', section)
-		elseif section then
-			display = mw.ustring.format('%s §&nbsp;%s', page, section)
-		else
-			display = page
-		end
-	end
-	
-	return mw.ustring.format('[[:%s|%s]]%s', parsed.link, display, category)
 end
 
 --------------------------------------------------------------------------------
