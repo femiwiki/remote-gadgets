@@ -23,10 +23,11 @@ local p = {}
 -- Helper functions
 --------------------------------------------------------------------------------
 
-
+local curNs = mw.title.getCurrentTitle().namespace
 p.missingTargetCat =
 	--Default missing target category, exported for use in related modules
-	'Articles with hatnote templates targeting a nonexistent page'
+	((curNs ==  0) or (curNs == 14)) and
+	'Articles with hatnote templates targeting a nonexistent page' or nil
 
 local function getArgs(frame)
 	-- Fetches the arguments from the parent frame. Whitespace is trimmed and
