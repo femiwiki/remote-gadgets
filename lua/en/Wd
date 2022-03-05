@@ -656,8 +656,7 @@ end
 -- if id == nil then item connected to current page is used
 function Config:getLabel(id, raw, link, short)
 	local label = nil
-	local title = nil
-	local prefix= ""
+	local prefix, title= "", nil
 
 	if not id then
 		id = mw.wikibase.getEntityIdForCurrentPage()
@@ -673,15 +672,9 @@ function Config:getLabel(id, raw, link, short)
 		-- check if given id actually exists
 		if mw.wikibase.isValidEntityId(id) and mw.wikibase.entityExists(id) then
 			label = id
-
-			if id:sub(1,1) == "P" then
-				prefix = "Property:"
-			end
 		end
 
-		prefix = "d:" .. prefix
-
-		title = label  -- may be nil
+		prefix, title = "d:Special:EntityPage/", label -- may be nil
 	else
 		-- try short name first if requested
 		if short then
@@ -694,7 +687,7 @@ function Config:getLabel(id, raw, link, short)
 
 		-- get label
 		if not label then
-			label = mw.wikibase.getLabelByLang(id, self.langCode)
+			label = mw.wikibase.getLabelByLang(id, self.langCode) -- XXX: should use fallback labels?
 		end
 	end
 
@@ -707,11 +700,11 @@ function Config:getLabel(id, raw, link, short)
 				title = mw.wikibase.getSitelink(id)
 			elseif id:sub(1,1) == "P" then
 				-- properties have no sitelink, link to Wikidata instead
-				title = id
-				prefix = "d:Property:"
+				prefix, title = "d:Special:EntityPage/", id
 			end
 		end
 
+		label = mw.text.nowiki(label) -- escape raw label text so it cannot be wikitext markup
 		if title then
 			label = buildWikilink(prefix .. title, label)
 		end
