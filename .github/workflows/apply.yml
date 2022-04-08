@@ -15,7 +15,7 @@ jobs:
       with:
         fetch-depth: 30
 
-    - uses: actions/setup-python@v3.1.1
+    - uses: actions/setup-python@v3
       with:
         python-version: '3.x'
 
