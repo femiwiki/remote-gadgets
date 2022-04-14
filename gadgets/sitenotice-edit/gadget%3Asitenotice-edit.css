@@ -4,7 +4,7 @@
 
 #siteNotice .sitenotice-edit--buttons {
   float: right;
-  clear: right
+  clear: right;
 }
 
 body > .sitenotice-edit--buttons {
