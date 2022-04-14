@@ -32,7 +32,7 @@
   var header = document.querySelector('.fw-header');
   var close = document.querySelector('.mw-dismissable-notice-close');
   if (close) {
-    close.insertBefore(dom, close.firstChild);
+    close.parentElement.insertBefore(dom, close.nextSibling);
   } else if (sitenotice) {
     sitenotice.append(dom);
   } else {
