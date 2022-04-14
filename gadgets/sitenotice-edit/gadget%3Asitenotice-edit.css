@@ -2,9 +2,9 @@
   text-align: right;
 }
 
-#localNotice .sitenotice-edit--buttons,
-#centralNotice .sitenotice-edit--buttons {
+#siteNotice .sitenotice-edit--buttons {
   float: right;
+  clear: right
 }
 
 body > .sitenotice-edit--buttons {
