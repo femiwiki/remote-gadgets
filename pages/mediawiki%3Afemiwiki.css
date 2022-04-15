@@ -68,7 +68,6 @@ https://github.com/femiwiki/FemiwikiSkin/issues/246
 }
 
 /*
-https://github.com/femiwiki/FemiwikiSkin/issues/292
 https://github.com/femiwiki/OOUIFemiwikiTheme/issues/12
 */
 .oo-ui-buttonElement-frameless.oo-ui-widget-enabled
@@ -81,21 +80,9 @@ https://github.com/femiwiki/OOUIFemiwikiTheme/issues/12
   > .oo-ui-buttonElement-button:active {
   background-color: rgba(0, 36, 73, 0.08235294);
 }
-.oo-ui-fieldLayout-messages > .oo-ui-messageWidget:first-child {
-  margin-top: 4px;
-}
-.oo-ui-indicatorWidget {
-  margin: 0.42857143em;
-}
 .oo-ui-toggleButtonWidget.oo-ui-widget-enabled.oo-ui-buttonElement-frameless.oo-ui-toggleWidget-on
   .oo-ui-buttonElement-button {
   background-color: rgba(0, 36, 73, 0.08235294);
-}
-.oo-ui-processDialog-title {
-  line-height: 2.5974026em;
-}
-.oo-ui-processDialog.oo-ui-isMobile .oo-ui-processDialog-title {
-  line-height: 2.85714286em;
 }
 
 @media screen and (max-width: 480px) {
