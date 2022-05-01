@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Citation/CS1/Identifiers and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Citation/CS1/Identifiers and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 
@@ -852,7 +852,7 @@ than test_limit; the value in local variable test_limit will need to be updated 
 ]]
 
 local function pmc(id, embargo)
-	local test_limit = 7000000;													-- update this value as PMCs approach
+	local test_limit = 9000000;													-- update this value as PMCs approach
 	local handler = cfg.id_handlers['PMC'];
 	local err_cat = '';															-- presume that PMC is valid
 	local id_num;
@@ -902,7 +902,7 @@ test_limit will need to be updated periodically as more PMIDs are issued.
 ]]
 
 local function pmid(id)
-	local test_limit = 32000000;												-- update this value as PMIDs approach
+	local test_limit = 50000000;												-- update this value as PMIDs approach
 	local handler = cfg.id_handlers['PMID'];
 	local err_cat = '';															-- presume that PMID is valid
 	
