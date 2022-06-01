@@ -2,24 +2,19 @@
 This module was originally on https://ko.wikipedia.org/wiki/Module:Citation/CS1/Configuration/sandbox and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
-
-local citation_config = {};
-
--- override <code>...</code> styling to remove color, border, and padding.  <code> css is specified here:
--- https://git.wikimedia.org/blob/mediawiki%2Fcore.git/69cd73811f7aadd093050dbf20ed70ef0b42a713/skins%2Fcommon%2FcommonElements.css#L199
-local code_style="color:inherit; border:inherit; padding:inherit;";
-
 --[[--------------------------< U N C A T E G O R I Z E D _ N A M E S P A C E S >------------------------------
 
-List of namespaces that should not be included in citation error categories.  Same as setting notracking = true by default
+List of namespaces that should not be included in citation error categories.
+Same as setting notracking = true by default.
 
 Note: Namespace names should use underscores instead of spaces.
 
 ]]
-local uncategorized_namespaces = { '토론', '사용자', '사용자토론', '위키백과토론', '파일토론', '틀토론',
-	'도움말토론', '분류토론', '포털토론', '초안', '초안토론', '모듈토론', '미디어위키토론' };
 
-local uncategorized_subpages = {'/[Ss]andbox', '/[Tt]estcases', '/연습장', '/시험장'};		-- list of Lua patterns found in page names of pages we should not categorize
+local uncategorized_namespaces = { '사용자', '토론', '사용자토론', '위키백과토론', '파일토론', '틀토론',
+	'도움말토론', '분류토론', '포털토론', '초안토론', '모듈토론', '미디어위키토론' };
+local uncategorized_subpages = {'/[Ss]andbox', '/[Tt]estcases', '/[^/]*[Ll]og', '/[Aa]rchive', '/연습장', '/시험장', '/보존'};		-- list of Lua patterns found in page names of pages we should not categorize
+
 
 --[[--------------------------< M E S S A G E S >--------------------------------------------------------------
 
@@ -32,34 +27,42 @@ module.
 ]]
 
 local messages = {
-	['archived-dead'] = '$2에 $1에서 보존된 문서',
-	['archived-not-dead'] = '$2에 $1',
-	['archived-missing'] = '$2에 원본$1에서 보존된 문서',
+	['agency'] = '$1 $2',														-- $1 is sepc, $2 is agency
+	['archived-dead'] = '$2에 $1에서 보존된 문서',								-- 로컬: 'Archived from $1 on $2'
+	['archived-live'] = '$2에 원본에서 보존된 $1',								-- 로컬: '$1 from the original on $2'
+	['archived-missing'] = '$2에 원본$1에서 보존된 문서',						-- 로컬: 'Archived from the original$1 on $2'
+	['archived-unfit'] = ' 에 원본에서 보존된 문서',							-- 로컬: 'Archived from the original on '
 	['archived'] = '보존된 문서',
 	['by'] = 'By',																-- contributions to authored works: introduction, foreword, afterword
-	['cartography'] = '$1 제작',
+	['cartography'] = '$1 제작',												-- 로컬: 'Cartography by $1'
 	['editor'] = '편집.',
-	['editors'] = '편집.', 
-	['edition'] = '($1판)', 
+	['editors'] = '편집.',
+	['edition'] = '($1판)',
 	['episode'] = '제 $1회',
-	['et al'] = '외.', 
+	['et al'] = '외.',
 	['in'] = '',																-- edited works
 	['inactive'] = '년 이후로 접속 불가',
-	['inset'] = '$1 inset',
+	['inset'] = '$1 삽도',
+	['interview'] = '$1의 인터뷰',										
 	['lay summary'] = '요약문',
+	['mismatch'] = '<code class="cs1-code">&#124;$1=</code> / <code class="cs1-code">&#124;$2=</code> 불일치',	-- $1 is year param name; $2 is date param name
 	['newsgroup'] = '[[뉴스그룹]]:&nbsp;$1',
+	['notitle'] = '제목 없음',													-- for |title=(()) and (in the future) |title=none
 	['original'] = '원본 문서',
-	['published'] = '$1에 출판됨',
+	['origdate'] = ' [$1]',
+	['published'] = ' ($1에 출판됨)',
 	['retrieved'] = '$1에 확인함',
-	['season'] = '시즌 $1', 
-	['section'] = '§ $1',
-	['sections'] = '§§ $1',
-	['series'] = '시리즈 $1',
+	['season'] = '시즌 $1',
+	['section'] = '§&nbsp;$1',
+	['sections'] = '§§&nbsp;$1',
+	['series'] = '$1 $2',														-- $1 is sepc, $2 is series
+	['seriesnum'] = '시리즈 $1',
+	['translated'] = '$1 번역',
 	['type'] = ' ($1)',															-- for titletype
 	['written'] = '$1에서 작성',
 
 	['vol'] = '$1 $2권',												-- $1 is sepc; bold journal style volume is in presentation{}
-	['vol-no'] = '$1 $2권 $3호',									-- sepc, volume, issue
+	['vol-no'] = '$1 $2권, $3호',									-- sepc, volume, issue (alternatively insert $1 after $2, but then we'd also have to change capitalization)
 	['issue'] = '$1 $2호',												-- $1 is sepc
 
 	['j-vol'] = '$1 $2',														-- sepc, volume; bold journal volume is in presentation{}
@@ -70,249 +73,558 @@ local messages = {
 	['p-prefix'] = "$1 $2쪽",												-- $1 is sepc
 	['pp-prefix'] = "$1 $2쪽",											-- $1 is sepc
 	['j-page(s)'] = ': $1',														-- same for page and pages
-	['n-page(s)'] = '$1 $2면',														-- same for page and pages
 
 	['sheet'] = '$1 Sheet&nbsp;$2',												-- $1 is sepc
 	['sheets'] = '$1 Sheets&nbsp;$2',											-- $1 is sepc
 	['j-sheet'] = ': Sheet&nbsp;$1',
 	['j-sheets'] = ': Sheets&nbsp;$1',
 	
-	['subscription'] = '<span title="이 자료는 온라인 상에서 유료 구독을 해야만 확인할 수 있습니다." style="border-bottom:1px dotted; cursor:help; font-size:0.95em; font-size:90%; color:#555">(구독 필요)</span>' ..
-		'[[분류:구독이 필요한 링크를 포함한 문서]]', 
- 
-	['registration']='<span title="이 자료는 해당 사이트에 가입을 해야만 확인할 수 있습니다." style="border-bottom:1px dotted; cursor:help; font-size:0.95em; font-size:90%; color:#555">(가입 필요)</span>' ..
-		'[[분류:가입이 필요한 링크를 포함한 문서]]',
-	
-	['language'] = '($1)', 
-	['via'] = " &ndash; $1 제공",
+	['language'] = '($1)',
+	['via'] = " &ndash; $1 경유",
 	['event'] = '에 발생',
-	['minutes'] = '분', 
-	
-	['parameter-separator'] = ', ',
-	['parameter-final-separator'] = ', 및 ',
-	['parameter-pair-separator'] = ' 및 ',
+	['minutes'] = '분',
 	
 	-- Determines the location of the help page
 	['help page link'] = '위키백과:인용 오류 도움말',
 	['help page label'] = '도움말',
 	
+	-- categories
+	['cat wikilink'] = '[[분류:$1]]',										-- $1 is the category name
+	[':cat wikilink'] = '[[:분류:$1|링크]]',								-- category name as maintenance message wikilink; $1 is the category name
+
 	-- Internal errors (should only occur if configuration is bad)
 	['undefined_error'] = 'Called with an undefined error condition',
-	['unknown_manual_ID'] = 'Unrecognized manual ID mode',
-	['unknown_ID_mode'] = 'Unrecognized ID mode',
+	['unknown_ID_key'] = 'Unrecognized ID key: ',								-- an ID key in id_handlers not found in ~/Identifiers func_map{}
+	['unknown_ID_access'] = 'Unrecognized ID access keyword: ',					-- an ID access keyword in id_handlers not found in keywords_lists['id-access']{}
 	['unknown_argument_map'] = 'Argument map not defined for this variable',
-	['bare_url_no_origin'] = 'Bare url found but origin indicator is nil or empty',
-}
+	['bare_url_no_origin'] = 'Bare URL found but origin indicator is nil or empty',
+	
+	['warning_msg_e'] = '<span style="color:#d33">한 개 이상의 <code style="color: inherit; background: inherit; border: none; padding: inherit;">&#123;{$1}}</code> 틀에 오류가 있습니다.</span> 이 메시지를 숨길 수 있습니다 ([[위키백과:인용_오류_도움말#오류_메시지_제어하기|도움말]]).';	-- $1 is template link
+	['warning_msg_m'] = '<span style="color:#3a3">한 개 이상의 <code style="color: inherit; background: inherit; border: none; padding: inherit;">&#123;{$1}}</code> 틀에 관리 항목이 있습니다.</span> 이 메시지를 숨길 수 있습니다 ([[위키백과:인용_오류_도움말#오류_메시지_제어하기|도움말]]).';	-- $1 is template link
+	}
 
---[[--------------------------< P R E S E N T A T I O N >------------------------------------------------------
 
-Fixed presentation markup.  Originally part of citation_config.messages it has been moved into its own, more semantically
-correct place.
+--[[--------------------------< C I T A T I O N _ C L A S S _ M A P >------------------------------------------
+
+this table maps the value assigned to |CitationClass= in the cs1|2 templates to the canonical template name when
+the value assigned to |CitationClass= is different from the canonical template name.  |CitationClass= values are
+used as class attributes in the <cite> tag that encloses the citation so these names may not contain spaces while
+the canonical template name may.  These names are used in warning_msg_e and warning_msg_m to create links to the
+template's documentation when an article is displayed in preivew mode.
+
+Most cs1|2 template |CitationClass= values at en.wiki match their canonical template names so are not listed here.
 
 ]]
+
+	local citation_class_map_t = {												-- TODO: if kept, these and all other config.CitationClass 'names' require some sort of i18n
+		['audio-visual'] = '영상',											-- TODO: move to ~/Configuration
+		['AV-media-notes'] = '영상 설명',
+		['encyclopaedia'] = '백과사전',
+		['mailinglist'] = '메일링',
+		['pressrelease'] = '보도자료'
+		}
+
+
+--[=[-------------------------< E T _ A L _ P A T T E R N S >--------------------------------------------------
+
+This table provides Lua patterns for the phrase "et al" and variants in name text
+(author, editor, etc.). The main module uses these to identify and emit the 'etal' message.
+
+]=]
+
+local et_al_patterns = {
+	"[;,]? *[\"']*%f[%a][Ee][Tt]%.? *[Aa][Ll][%.\"']*$",						-- variations on the 'et al' theme
+	"[;,]? *[\"']*%f[%a][Ee][Tt]%.? *[Aa][Ll][Ii][AaIi][Ee]?[%.\"']*$",				-- variations on the 'et alia', 'et alii' and 'et aliae' themes (false positive 'et aliie' unlikely to match)
+	"[;,]? *%f[%a]and [Oo]thers",												-- an alternative to et al.
+	"%[%[ *[Ee][Tt]%.? *[Aa][Ll]%.? *%]%]",										-- a wikilinked form
+	"%(%( *[Ee][Tt]%.? *[Aa][Ll]%.? *%)%)",									-- a double-bracketed form (to counter partial removal of ((...)) syntax)
+	"[%(%[] *[Ee][Tt]%.? *[Aa][Ll]%.? *[%)%]]",									-- a bracketed form		-- 로컬: '외'를 추가해야 하는지?
+	}
+
+
+--[[--------------------------< P R E S E N T A T I O N >------------------------
+
+Fixed presentation markup.  Originally part of citation_config.messages it has
+been moved into its own, more semantically correct place.
+
+]]
+
 local presentation = 
 	{
-	-- Error output
-	-- .error class is specified at https://git.wikimedia.org/blob/mediawiki%2Fcore.git/9553bd02a5595da05c184f7521721fb1b79b3935/skins%2Fcommon%2Fshared.css#L538
 	-- .citation-comment class is specified at Help:CS1_errors#Controlling_error_message_display
-	['hidden-error'] = '<span style="display:none;font-size:100%" class="error citation-comment">$1</span>',
-	['visible-error'] = '<span style="font-size:100%" class="error citation-comment">$1</span>',
-
-	['accessdate'] = '<span class="reference-accessdate">$1$2</span>',			-- to allow editors to hide accessdate using personal css
+	['hidden-error'] = '<span class="cs1-hidden-error citation-comment">$1</span>',
+	['visible-error'] = '<span class="cs1-visible-error citation-comment">$1</span>',
+	['hidden-maint'] = '<span class="cs1-maint citation-comment">$1</span>',
+	
+	['accessdate'] = '<span class="reference-accessdate">$1$2</span>',			-- to allow editors to hide accessdate using personal CSS
 
 	['bdi'] = '<bdi$1>$2</bdi>',												-- bidirectional isolation used with |script-title= and the like
 
-	['cite'] = '<cite class="$1">$2</cite>';									-- |ref= not set so no id="..." attribute
-	['cite-id'] = '<cite id="$1" class="$2">$3</cite>';							-- for use when |ref= is set
+	['cite'] = '<cite class="$1">$2</cite>';									-- for use when citation does not have a namelist and |ref= not set so no id="..." attribute
+	['cite-id'] = '<cite id="$1" class="$2">$3</cite>';							-- for use when when |ref= is set or when citation has a namelist
 
-	['format'] = ' <span style="font-size:85%;">($1)</span>',					-- for |format=, |chapter-format=, etc
+	['format'] = ' <span class="cs1-format">($1)</span>',						-- for |format=, |chapter-format=, etc.
 
-	['italic-title'] = "&#12298;$1&#12299;",									-- 《 》
-	['single-bracket'] = '&#12296;$1&#12297;',									-- 〈 〉 
-	['italic-title2'] = "''$1''",												-- '' ''
+	-- various access levels, for |access=, |doi-access=, |arxiv=, ...
+	-- narrow no-break space &#8239; may work better than nowrap CSS. Or not? Browser support?
 
-	['kern-left'] = '<span style="padding-left:0.2em;">$1</span>$2',			-- spacing to use when title contains leading single or double quote mark
-	['kern-right'] = '$1<span style="padding-right:0.2em;">$2</span>',			-- spacing to use when title contains trailing single or double quote mark
+	['ext-link-access-signal'] = '<span class="$1" title="$2">$3</span>',		-- external link with appropriate lock icon
+		['free'] = {class='cs1-lock-free', title='무료로 확인 가능'},			-- classes defined in Module:Citation/CS1/styles.css
+		['registration'] = {class='cs1-lock-registration', title='무료 등록 필요'},
+		['limited'] = {class='cs1-lock-limited', title='제한적으로 이용 가능 (일반적으로 구독 필요)'},
+		['subscription'] = {class='cs1-lock-subscription', title='유료 구독 필요'},
+
+	['interwiki-icon'] = '<span class="$1" title="$2">$3</span>',
+		['class-wikisource'] = 'cs1-ws-icon',
+
+	['italic-title'] = "''$1''",
+
+	['kern-left'] = '<span class="cs1-kern-left"></span>$1',					-- spacing to use when title contains leading single or double quote mark
+	['kern-right'] = '$1<span class="cs1-kern-right"></span>',					-- spacing to use when title contains trailing single or double quote mark
 
 	['nowrap1'] = '<span class="nowrap">$1</span>',								-- for nowrapping an item: <span ...>yyyy-mm-dd</span>
 	['nowrap2'] = '<span class="nowrap">$1</span> $2',							-- for nowrapping portions of an item: <span ...>dd mmmm</span> yyyy (note white space)
 
-	['ocins'] = '<span title="$1" class="Z3988"><span style="display:none;">&nbsp;</span></span>',		-- Note: Using display: none on the COinS span breaks some clients
-
-	['parameter'] = '<code style="'..code_style..'">&#124;$1=</code>',
+	['ocins'] = '<span title="$1" class="Z3988"></span>',
+	
+	['parameter'] = '<code class="cs1-code">&#124;$1=</code>',
+	
+	['ps_cs1'] = '.';															-- CS1 style postscript (terminal) character
+	['ps_cs2'] = '';															-- CS2 style postscript (terminal) character (empty string)
 
 	['quoted-text'] = '<q>$1</q>',												-- for wrapping |quote= content
-	['quoted-title'] = '&ldquo;$1&rdquo;',										-- “  ”
+	['quoted-title'] = '"$1"',
 
-	['trans-italic-title'] = "&#91;''$1''&#93;",								-- ['' '']
-	['trans-quoted-title'] = "&#91;$1&#93;",									-- [ ]
-	['vol-bold'] = ' <b>$1</b>',													-- for journal cites; for other cites ['vol'] in messages{}
+	['sep_cs1'] = '.',															-- CS1 element separator
+	['sep_cs2'] = ',',															-- CS2 separator
+	['sep_nl'] = ';',															-- CS1|2 style name-list separator between names is a semicolon
+	['sep_nl_and'] = ' and ',													-- used as last nl sep when |name-list-style=and and list has 2 items
+	['sep_nl_end'] = '; and ',													-- used as last nl sep when |name-list-style=and and list has 3+ names
+	['sep_name'] = ', ',														-- CS1|2 style last/first separator is <comma><space>
+	['sep_nl_vanc'] = ',',														-- Vancouver style name-list separator between authors is a comma
+	['sep_name_vanc'] = ' ',													-- Vancouver style last/first separator is a space
+
+	['sep_list'] = ', ',														-- used for |language= when list has 3+ items except for last sep which uses sep_list_end
+	['sep_list_pair'] = ' and ',												-- used for |language= when list has 2 items
+	['sep_list_end'] = ', and ',												-- used as last list sep for |language= when list has 3+ items
+	
+	['trans-italic-title'] = "&#91;''$1''&#93;",
+	['trans-quoted-title'] = "&#91;$1&#93;",									-- for |trans-title= and |trans-quote=
+	['vol-bold'] = '$1 <b>$2</b>',												-- sepc, volume; for bold journal cites; for other cites ['vol'] in messages{}
 	}
 
 	
---[[--------------------------< A L I A S E S >----------------------------------------------------------------
+--[[--------------------------< A L I A S E S >---------------------------------
 
-Aliases table for commonly passed parameters
+Aliases table for commonly passed parameters.
+
+Parameter names on the right side in the assignments in this table must have been
+defined in the Whitelist before they will be recognized as valid parameter names
 
 ]]
 
 local aliases = {
-	['AccessDate'] = {'access-date', 'accessdate', '확인날짜', '확인일자'},
+	['AccessDate'] = {'access-date', 'accessdate', '확인날짜'},								-- Used by InternetArchiveBot
 	['Agency'] = {'agency', '통신사'},
-	['AirDate'] = {'air-date', 'airdate', '방송날짜', '방송일자', '방영날짜', '방영일자'},
-	['ArchiveDate'] = {'archive-date', 'archivedate', '보존날짜', '보존일자'},
+	['ArchiveDate'] = {'archive-date', 'archivedate', '보존날짜'},							-- Used by InternetArchiveBot
 	['ArchiveFormat'] = 'archive-format',
-	['ArchiveURL'] = {'archive-url', 'archiveurl', '보존url'},
-	['ASINTLD'] = {'ASIN-TLD', 'asin-tld'},
-	['At'] = {'at', '쪽기타'},
-	['Authors'] = {'authors', 'people', 'host', 'credits', '인물', '제작진'},
+	['ArchiveURL'] = {'archive-url', 'archiveurl', '보존url'},								-- Used by InternetArchiveBot
+	['ASINTLD'] = 'asin-tld',
+	['At'] = {'at', '쪽기타'},																-- Used by InternetArchiveBot
+	['Authors'] = {'authors', 'people', 'credits', '인물', '제작진'},
 	['BookTitle'] = {'book-title', 'booktitle'},
-	['Callsign'] = {'call-sign', 'callsign', '콜사인', '호출부호'},				-- cite interview
 	['Cartography'] = {'cartography', '지도제작'},
 	['Chapter'] = {'chapter', 'contribution', 'entry', 'article', 'section', '장', '항목'},
-	['ChapterFormat'] = {'chapter-format', 'contribution-format', 'section-format'};
-	['ChapterURL'] = {'chapter-url', 'chapterurl', 'contribution-url', 'contributionurl', 'section-url', 'sectionurl', '장url'},
-	['City'] = {'city', '도시'},												-- cite interview
-	['Class'] = {'class', '분류'},												-- cite arxiv and arxiv identifiers
-	['Coauthors'] = {'coauthors', 'coauthor', '공저자'},						-- coauthor and coauthors are deprecated; remove after 1 January 2015?
+	['ChapterFormat'] = {'chapter-format', 'contribution-format', 'entry-format',
+		'article-format', 'section-format'};
+	['ChapterURL'] = {'chapter-url', 'contribution-url', 'entry-url', 'article-url', 'section-url', 'chapterurl', '장url'},	-- Used by InternetArchiveBot
+	['ChapterUrlAccess'] = {'chapter-url-access', 'contribution-url-access',
+		'entry-url-access', 'article-url-access', 'section-url-access', '장url확인'},		-- Used by InternetArchiveBot
+	['Class'] = {'class', '분류'},														-- cite arxiv and arxiv identifier
 	['Collaboration'] = 'collaboration',
-	['Conference'] = {'conference', 'event', '콘퍼런스', '컨퍼런스', '행사'},
-	['ConferenceFormat'] = {'conference-format', 'event-format'},
-	['ConferenceURL'] = {'conference-url', 'conferenceurl', 'event-url', 'eventurl', '콘퍼런스url', '컨퍼런스url'},
-	['Contribution'] = 'contribution', -- introduction, foreword, afterword, etc; required when |contributor= set
-	['Date'] = {'date', 'air-date', 'airdate', '날짜', '일자'},
-	['DeadURL'] = {'dead-url', 'deadurl', '깨진링크', '죽은링크', '깨진url', '죽은url'},
+	['Conference'] = {'conference', 'event', '콘퍼런스', '컨퍼런스'},
+	['ConferenceFormat'] = 'conference-format',
+	['ConferenceURL'] = {'conference-url', '콘퍼런스url', '컨퍼런스url'},										-- Used by InternetArchiveBot
+	['Date'] = {'date', 'air-date', 'airdate', '날짜', '방송날짜', '방영날짜'},									-- air-date and airdate for cite episode and cite serial only
 	['Degree'] = {'degree', '학위'},
 	['DF'] = 'df',
-	['DisplayAuthors'] = {'display-authors', 'displayauthors', '저자표시'},
-	['DisplayEditors'] = {'display-editors', 'displayeditors', '편집자표시'},
+	['DisplayAuthors'] = {'display-authors', 'display-subjects', '저자표시'},
+	['DisplayContributors'] = 'display-contributors',
+	['DisplayEditors'] = {'display-editors', '편집자표시'},
+	['DisplayInterviewers'] = {'display-interviewers', '인터뷰어표시'},
+	['DisplayTranslators'] = {'display-translators', '번역자표시'},
 	['Docket'] = 'docket',
-	['DoiBroken'] = {'doi-broken', 'doi-broken-date', 'doi-inactive-date', 'doi_brokendate', 'doi_inactivedate', 'doi_깨진날짜'},
+	['DoiBroken'] = {'doi-broken-date', 'doi_깨진날짜'},						-- 로컬: 'doi_깨진날짜' 변경?
 	['Edition'] = {'edition', '판'},
-	['Editors'] = 'editors',
-	['Embargo'] = {'embargo', '엠바고'},
-	['Encyclopedia'] = {'encyclopedia', 'encyclopaedia', '백과사전'},			-- this one only used by citation
-	['Episode'] = {'episode', '에피소드'},										-- cite serial only TODO: make available to cite episode? 수정 필요?
+	['Embargo'] = {'pmc-embargo-date', 'pmc엠바고날짜'},
+	['Encyclopedia'] = {'encyclopedia', 'encyclopaedia', 'dictionary', '백과사전'},			-- cite encyclopedia only
+	['Episode'] = {'episode', '에피소드'},													-- cite serial only TODO: make available to cite episode?
 	['Format'] = {'format', '형식', '포맷'},
 	['ID'] = {'id', 'ID'},
-	['IgnoreISBN'] = {'ignore-isbn-error', 'ignoreisbnerror', 'isbn오류무시'},
-	['Inset'] = {'inset', '삽화'},
-	['Issue'] = {'issue', 'number', '호', '회', '화'},
-	['Language'] = {'language', 'in', '언어'},									-- 언어고리, 언어링크 제거 필요
-	['LastAuthorAmp'] = {'last-author-amp', 'lastauthoramp', '저자앰퍼샌드'},
-	['LayDate'] = {'lay-date', 'laydate', '요약문날짜'},
+	['Inset'] = {'inset', '삽도'},
+	['Issue'] = {'issue', 'number', '호', '회', '화'},							-- 로컬: '회', '화' 제거?
+	['Language'] = {'language', 'lang', '언어'},
+	['LayDate'] = 'lay-date',
 	['LayFormat'] = 'lay-format',
-	['LaySource'] = {'lay-source', 'laysource', '요약문출처'},
-	['LayURL'] = {'lay-url', 'lay-summary', 'layurl', 'laysummary', '요약문', '요약문url'},
-	['MailingList'] = {'mailinglist', 'mailing-list', '메일링리스트'},			-- cite mailing list only
-	['Map'] = {'map', '지도'},													-- cite map only
+	['LaySource'] = 'lay-source',
+	['LayURL'] = 'lay-url',
+	['MailingList'] = {'mailing-list', 'mailinglist', '메일링리스트'},							-- cite mailing list only
+	['Map'] = {'map', '지도'},															-- cite map only
 	['MapFormat'] = 'map-format',												-- cite map only
-	['MapURL'] = {'mapurl', 'map-url', '지도url'},								-- cite map only
-	['MessageID'] = {'message-id', '메시지id'},
+	['MapURL'] = {'map-url', 'mapurl', '지도url'},											-- cite map only -- Used by InternetArchiveBot
+	['MapUrlAccess'] = {'map-url-access', '지도url확인'},										-- cite map only -- Used by InternetArchiveBot
 	['Minutes'] = {'minutes', '분'},
-	['Mode'] = {'mode', '모드'},
-	['Month'] = {'month', '월', '달', '작성월', '발행월'},						-- 임시
-	['NameListFormat'] = {'name-list-format', '이름목록형식'},
+	['Mode'] = 'mode',
+	['NameListStyle'] = {'name-list-style', '이름목록형식'},
 	['Network'] = {'network', '네트워크'},
+	['Newsgroup'] = {'newsgroup', '뉴스그룹'},												-- cite newsgroup only
 	['NoPP'] = {'no-pp', 'nopp', '쪽숨김'},
-	['NoTracking'] = {'template-doc-demo', 'template doc demo', 'no-cat', 'nocat', 
-		'no-tracking', 'notracking', '분류없음'},
-	['Number'] = 'number', -- this case only for cite techreport
-	['OrigYear'] = {'orig-year', 'origyear', '원본연도', '초판연도'},
-	['Others'] = {'others', 'interviewer', 'interviewers', '기타', '인터뷰어'},
-	['Page'] = {'p', 'page', '쪽', '페이지', '면'},
-	['Pages'] = {'pp', 'pages'},
-	['Periodical'] = {'journal', 'newspaper', 'magazine', 'work',
-		'website',  'periodical', 'encyclopedia', 'encyclopaedia', 'dictionary',
-		'저널', '뉴스', '신문', '잡지', '작품', '웹사이트', '백과사전', '메일링리스트'},
-	['Place'] = {'place', 'location', '위치', '장소'},
-	['Program'] = {'program', '프로그램'},										-- cite interview
+	['NoTracking'] = {'no-tracking', 'template-doc-demo', '분류없음'},			-- 로컬: 수정 필요? nocat은 removed 되었음
+	['Number'] = 'number',														-- this case only for cite techreport
+	['OrigDate'] = {'orig-date', 'orig-year', 'origyear', '원본연도', '초판연도'},	-- 로컬: '초판연도' 삭제?
+	['Others'] = {'others', '기타'},
+	['Page'] = {'page', 'p', '쪽', '페이지', '면'},													-- Used by InternetArchiveBot
+	['Pages'] = {'pages', 'pp'},												-- Used by InternetArchiveBot
+	['Periodical'] = {'journal', 'magazine', 'newspaper', 'periodical', 'website', 'work', '저널', '뉴스', '신문', '잡지', '작품', '웹사이트'},
+	['Place'] = {'place', 'location', '장소', '위치'},
 	['PostScript'] = {'postscript', '추신'},
-	['PublicationDate'] = {'publicationdate', 'publication-date', '출판날짜', '출판일자'},
-	['PublicationPlace'] = {'publication-place', 'publicationplace', '출판위치', '출판장소'},
-	['PublisherName'] = {'publisher', 'distributor', 'institution', 'newsgroup', '출판사', '뉴스그룹'},
+	['PublicationDate'] = {'publication-date', 'publicationdate', '출판날짜'},
+	['PublicationPlace'] = {'publication-place', 'publicationplace', '출판장소', '출판위치'},
+	['PublisherName'] = {'publisher', 'institution', '출판사', '기관'},
 	['Quote'] = {'quote', 'quotation', '인용', '인용문'},
+	['QuotePage'] = {'quote-page', '인용쪽'},
+	['QuotePages'] = 'quote-pages',
 	['Ref'] = 'ref',
-	['RegistrationRequired'] = {'registration', '등록'},
 	['Scale'] = {'scale', '축척'},
-	['ScriptChapter'] = 'script-chapter',
-	['ScriptTitle'] = 'script-title',											-- 수정 필요
-	['Section'] = 'section',													-- 번역 수정 필요(지도 틀 말고 그 외에서도 쓰이는 듯)
+	['ScriptChapter'] = {'script-chapter', 'script-contribution', 'script-entry',
+		'script-article', 'script-section'},
+	['ScriptMap'] = 'script-map',
+	['ScriptPeriodical'] = {'script-journal', 'script-magazine', 'script-newspaper',
+		'script-periodical', 'script-website', 'script-work'},
+	['ScriptQuote'] = 'script-quote',
+	['ScriptTitle'] = 'script-title',											-- Used by InternetArchiveBot
 	['Season'] = {'season', '시즌'},
-	['Sections'] = 'sections',													-- cite map only -- 번역 수정 필요
+	['Sections'] = 'sections',													-- cite map only
 	['Series'] = {'series', 'version', '시리즈', '총서'},
-	['SeriesSeparator'] = 'series-separator',
-	['SeriesLink'] = {'series-link', 'serieslink', '시리즈링크', '시리즈고리'},
-	['SeriesNumber'] = {'series-number', 'series-no', 'seriesnumber', 'seriesno', '시리즈번호'},
+	['SeriesLink'] = {'series-link', 'serieslink', '시리즈링크'},
+	['SeriesNumber'] = {'series-number', 'series-no', '시리즈번호'},
 	['Sheet'] = 'sheet',														-- cite map only
 	['Sheets'] = 'sheets',														-- cite map only
 	['Station'] = {'station', '방송국'},
-	['SubscriptionRequired'] = {'subscription', '구독'},
-	['Time'] = 'time',
-	['Time2'] = '시간',															-- 임의로 추가함, '분'을 없앰
-	['TimeCaption'] = {'time-caption', 'timecaption'},
-	['Title'] = {'title', '제목'},
-	['TitleLink'] = {'title-link', 'episode-link', 'titlelink', 'episodelink', '제목링크', '제목고리'},
-	['NoBracket'] = {'이탤릭체'},												-- 임의로 추가함
-	['TitleNote'] = 'department',												-- 번역 필요
+	['Time'] = {'time', '시간'},												-- 로컬: 이전에는 Time2를 '시간'으로 설정하여 분을 없앴음
+	['TimeCaption'] = {'time-caption', '시간설명'},
+	['Title'] = {'title', '제목'},														-- Used by InternetArchiveBot
+	['TitleLink'] = {'title-link', 'episode-link', 'episodelink', '제목링크', '에피소드링크'},				-- Used by InternetArchiveBot
+	['TitleNote'] = 'department',												-- 로컬: 번역 필요
 	['TitleType'] = {'type', 'medium', '종류', '매체'},
-	['TransChapter'] = {'trans-chapter', 'trans_chapter', '번역장'},
-	['TransMap'] = 'trans-map',													-- cite map only
+	['TransChapter'] = {'trans-article', 'trans-chapter', 'trans-contribution',
+		'trans-entry', 'trans-section', '번역장'},
 	['Transcript'] = {'transcript', '대본'},
-	['TranscriptFormat'] = 'transcript-format',
-	['TranscriptURL'] = {'transcript-url', 'transcripturl', '대본url'},
-	['TransTitle'] = {'trans-title', 'trans_title', '번역제목'},
-	['URL'] = {'url', 'URL'},
+	['TranscriptFormat'] = 'transcript-format',	
+	['TranscriptURL'] = {'transcript-url', 'transcripturl', '대본url'},					-- Used by InternetArchiveBot
+	['TransMap'] = 'trans-map',													-- cite map only
+	['TransPeriodical'] = {'trans-journal', 'trans-magazine', 'trans-newspaper',
+		'trans-periodical', 'trans-website', 'trans-work', '번역저널', '번역뉴스', '번역신문', '번역잡지', '번역작품', '번역웹사이트'},
+	['TransQuote'] = {'trans-quote', '번역인용'},
+	['TransTitle'] = {'trans-title', '번역제목'},												-- Used by InternetArchiveBot
+	['URL'] = {'url', 'URL'},													-- Used by InternetArchiveBot
+	['UrlAccess'] = {'url-access', 'url확인'},												-- Used by InternetArchiveBot
+	['UrlStatus'] = {'url-status', 'url상태'},												-- Used by InternetArchiveBot
 	['Vauthors'] = 'vauthors',
 	['Veditors'] = 'veditors',
-	['Via'] = {'via', '제공'},
+	['Via'] = {'via', '경유'},
 	['Volume'] = {'volume', '권'},
 	['Year'] = {'year', '연도', '연', '년', '년도'},
 
-	['AuthorList-First'] = {"first#", "given#", "author-first#", "author#-first", 
-		"이름#"},
-	['AuthorList-Last'] = {"last#", "author#", "surname#", "author-last#", "author#-last", "subject#", 
-		"성#", "저자#", "대상#"},
-	['AuthorList-Link'] = {"authorlink#", "author-link#", "author#-link", "subjectlink#", "author#link", "subject-link#", "subject#-link", "subject#link", 
-		"저자고리#", "저자#고리", "저자링크#", "저자#링크", "대상고리#", "대상링크#", "대상#고리", "대상#링크", 
-		"저자-고리#", "저자#-고리", "저자-링크#", "저자#-링크", "대상-고리#", "대상-링크#", "대상#-고리", "대상#-링크"},
-	['AuthorList-Mask'] = {"author-mask#", "authormask#", "author#mask", "author#-mask", "저자#-숨김", "저자-숨김#", "저자#숨김", "저자숨김#"},
-	
-	['ContributorList-First'] = {'contributor-first#','contributor#-first'},
-	['ContributorList-Last'] = {'contributor#', 'contributor-last#', 'contributor#-last'},
+	['AuthorList-First'] = {"first#", "author-first#", "author#-first", "given#",
+		"author-given#", "author#-given",
+		"이름#"
+	},
+	['AuthorList-Last'] = {"last#", "author-last#", "author#-last", "surname#",
+		"author-surname#", "author#-surname", "author#", "subject#", 'host#',
+		"성#", "저자#", "대상#"
+	},
+	['AuthorList-Link'] = {"author-link#", "author#-link", "subject-link#",
+		"subject#-link", "authorlink#", "author#link",
+		"저자링크#", "저자#링크", "대상링크#", "대상#링크", 
+		"저자-링크#", "저자#-링크", "대상-링크#", "대상#-링크"
+	},
+	['AuthorList-Mask'] = {"author-mask#", "author#-mask", "subject-mask#", "subject#-mask",
+		"저자#-숨김", "저자-숨김#", "저자#숨김", "저자숨김#",
+		"대상#-숨김", "대상-숨김#", "대상#숨김", "대상숨김#"
+	},
+
+	['ContributorList-First'] = {'contributor-first#', 'contributor#-first',
+		'contributor-given#', 'contributor#-given'},
+	['ContributorList-Last'] = {'contributor-last#', 'contributor#-last',
+		'contributor-surname#', 'contributor#-surname', 'contributor#'},
 	['ContributorList-Link'] = {'contributor-link#', 'contributor#-link'},
 	['ContributorList-Mask'] = {'contributor-mask#', 'contributor#-mask'},
+
+	['EditorList-First'] = {"editor-first#", "editor#-first", "editor-given#", "editor#-given",
+		"편집자-이름#", "편집자#-이름", "편집자이름#", "편집자#이름"
+	},
+	['EditorList-Last'] = {"editor-last#", "editor#-last", "editor-surname#",
+		"editor#-surname", "editor#",
+		"편집자#", "편집자-성#", "편집자#-성", "편집자성#", "편집자#성"
+	},
+	['EditorList-Link'] = {"editor-link#", "editor#-link",
+		"편집자#-링크", "편집자-링크#", "편집자링크#", "편집자#링크"
+	},
+	['EditorList-Mask'] = {"editor-mask#", "editor#-mask",
+		"편집자#-숨김", "편집자-숨김#", "편집자#숨김", "편집자숨김#"
+	},
 	
-	['EditorList-First'] = {"editor-first#", "editor#-first", "editor-given#", "editor#-given", 
-		"편집자-이름#", "편집자#-이름", "편집자이름#", "편집자#이름"},
-	['EditorList-Last'] = {"editor#", "editor-last#", "editor#-last", "editor-surname#", "editor#-surname", 
-		"편집자#", "편집자-성#", "편집자#-성", "편집자성#", "편집자#성"},
-	['EditorList-Link'] = {"editor-link#", "editor#-link", "editorlink#", "editor#link", 
-		"편집자-고리#", "편집자#-고리", "편집자고리#", "편집자#고리", "편집자#-링크", "편집자-링크#", "편집자링크#", "편집자#링크"},
-	['EditorList-Mask'] = {"editor-mask#", "editor#-mask", "editormask#", "editor#mask", "편집자#-숨김", "편집자-숨김#", "편집자#숨김", "편집자숨김#"},
-	
-	['TranslatorList-First'] = {'translator-first#','translator#-first', 
-		'번역자-이름#', '번역자#-이름', '번역자이름#', '번역자#이름'},
-	['TranslatorList-Last'] = {'translator#', 'translator-last#', 'translator#-last', 
-		'번역자#', '번역자-성#', '번역자#-성', '번역자성#', '번역자#성'},
-	['TranslatorList-Link'] = {'translator-link#', 'translator#-link', 
-		'번역자-고리#', '번역자#-고리', '번역자고리#', '번역자#고리', '번역자#-링크', '번역자-링크#', '번역자링크#', '번역자#링크'},
-	['TranslatorList-Mask'] = {'translator-mask#', 'translator#-mask', "번역자#-숨김", "번역자-숨김#", "번역자#숨김", "번역자숨김#"},
-}
+	['InterviewerList-First'] = {'interviewer-first#', 'interviewer#-first',
+		'interviewer-given#', 'interviewer#-given',
+		"인터뷰어-이름#", "인터뷰어#-이름", "인터뷰어이름#", "인터뷰어#이름"
+	},
+	['InterviewerList-Last'] = {'interviewer-last#', 'interviewer#-last',
+		'interviewer-surname#', 'interviewer#-surname', 'interviewer#',
+		"인터뷰어#", "인터뷰어-성#", "인터뷰어#-성", "인터뷰어성#", "인터뷰어#성"
+	},
+	['InterviewerList-Link'] = {'interviewer-link#', 'interviewer#-link', 
+		"인터뷰어#-링크", "인터뷰어-링크#", "인터뷰어링크#", "인터뷰어#링크"},
+	['InterviewerList-Mask'] = {'interviewer-mask#', 'interviewer#-mask',
+		"인터뷰어#-숨김", "인터뷰어-숨김#", "인터뷰어#숨김", "인터뷰어숨김#"
+	},
 
---[[--------------------------< D E F A U L T S >--------------------------------------------------------------
+	['TranslatorList-First'] = {'translator-first#', 'translator#-first',
+		'translator-given#', 'translator#-given',
+		'번역자-이름#', '번역자#-이름', '번역자이름#', '번역자#이름'
+	},
+	['TranslatorList-Last'] = {'translator-last#', 'translator#-last',
+		'translator-surname#', 'translator#-surname', 'translator#',
+		'번역자#', '번역자-성#', '번역자#-성', '번역자성#', '번역자#성'
+	},
+	['TranslatorList-Link'] = {'translator-link#', 'translator#-link',
+		'번역자#-링크', '번역자-링크#', '번역자링크#', '번역자#링크'
+	},
+	['TranslatorList-Mask'] = {'translator-mask#', 'translator#-mask',
+		"번역자#-숨김", "번역자-숨김#", "번역자#숨김", "번역자숨김#"
+	},
+	}
 
-Default parameter values
 
-TODO: keep this?  Only one default?
+--[[--------------------------< P U N C T _ S K I P >---------------------------
+
+builds a table of parameter names that the extraneous terminal punctuation check should not check.
+
 ]]
 
-local defaults = {
-	['DeadURL'] = 'yes',
-}
+local punct_meta_params = {														-- table of aliases[] keys (meta parameters); each key has a table of parameter names for a value
+	'BookTitle', 'Chapter', 'ScriptChapter', 'ScriptTitle', 'Title', 'TransChapter', 'Transcript', 'TransMap',	'TransTitle',	-- title-holding parameters
+	'AuthorList-Mask', 'ContributorList-Mask', 'EditorList-Mask', 'InterviewerList-Mask', 'TranslatorList-Mask',	-- name-list mask may have name separators
+	'PostScript', 'Quote', 'ScriptQuote', 'TransQuote', 'Ref',											-- miscellaneous
+	'ArchiveURL', 'ChapterURL', 'ConferenceURL', 'LayURL', 'MapURL', 'TranscriptURL', 'URL',			-- URL-holding parameters
+	}
+
+local url_meta_params = {														-- table of aliases[] keys (meta parameters); each key has a table of parameter names for a value
+	'ArchiveURL', 'ChapterURL', 'ConferenceURL', 'ID', 'LayURL', 'MapURL', 'TranscriptURL', 'URL',		-- parameters allowed to hold urls
+	'Page', 'Pages', 'At', 'QuotePage', 'QuotePages',							-- insource locators allowed to hold urls
+	}
+
+local function build_skip_table (skip_t, meta_params)
+	for _, meta_param in ipairs (meta_params) do								-- for each meta parameter key
+		local params = aliases[meta_param];										-- get the parameter or the table of parameters associated with the meta parameter name
+		if 'string' == type (params) then
+			skip_t[params] = 1;													-- just a single parameter
+		else
+			for _, param in ipairs (params) do									-- get the parameter name
+				skip_t[param] = 1;												-- add the parameter name to the skip table
+				local count;
+				param, count = param:gsub ('#', '');							-- remove enumerator marker from enumerated parameters
+				if 0 ~= count then												-- if removed
+					skip_t[param] = 1;											-- add param name without enumerator marker
+				end
+			end
+		end
+	end
+	return skip_t;
+end
+
+local punct_skip = {};
+local url_skip = {};
 
 
---[[--------------------------< V O L U M E ,  I S S U E ,  P A G E S >----------------------------------------
+--[[-----------< S P E C I A L   C A S E   T R A N S L A T I O N S >------------
+
+This table is primarily here to support internationalization.  Translations in
+this table are used, for example, when an error message, category name, etc.,
+is extracted from the English alias key.  There may be other cases where
+this translation table may be useful.
+
+]]
+local is_Latn = 'A-Za-z\195\128-\195\150\195\152-\195\182\195\184-\198\191\199\132-\201\143';
+local special_case_translation = {
+	['AuthorList'] = '저자 목록',											-- used to assemble maintenance category names
+	['ContributorList'] = 'contributors list',									-- translation of these names plus translation of the base mainenance category names in maint_cats{} table below
+	['EditorList'] = '편집자 목록',											-- must match the names of the actual categories
+	['InterviewerList'] = '인터뷰어 목록',									-- this group or translations used by name_has_ed_markup() and name_has_mult_names()
+	['TranslatorList'] = '번역자 목록',
+	
+																				-- Lua patterns to match pseudo-titles used by InternetArchiveBot and others as placeholder for unknown |title= value
+	['archived_copy'] = {														-- used with CS1 maint: Archive[d] copy as title
+		['en'] = '^archived?%s+copy$',											-- for English; translators: keep this because templates imported from en.wiki
+		['local'] = nil,														-- translators: replace ['local'] = nil with lowercase translation only when bots or tools create generic titles in your language
+		},
+
+																				-- Lua patterns to match generic titles; usually created by bots or reference filling tools
+																				-- translators: replace ['local'] = nil with lowercase translation only when bots or tools create generic titles in your language
+	['generic_titles'] = {
+		-- generic titles and patterns in this table should be lowercase only
+		-- leave ['local'] nil except when there is a matching generic title in your language
+		-- boolean 'true' for plain-text searches; 'false' for pattern searches
+		{['en'] = {'^wayback%s+machine$', false},				['local'] = nil},
+		{['en'] = {'are you a robot', true},					['local'] = nil},
+		{['en'] = {'hugedomains.com', true},					['local'] = nil},
+		{['en'] = {'^[%(%[{<]?no +title[>}%]%)]?$', false},		['local'] = nil},
+		{['en'] = {'page not found', true},						['local'] = nil},
+		{['en'] = {'subscribe to read', true},					['local'] = nil},
+		{['en'] = {'^[%(%[{<]?unknown[>}%]%)]?$', false},		['local'] = nil},
+		{['en'] = {'website is for sale', true},				['local'] = nil},
+		{['en'] = {'^404', false},								['local'] = nil},
+		{['en'] = {'internet archive wayback machine', true},	['local'] = nil},
+		{['en'] = {'log into facebook', true},					['local'] = nil},
+		{['en'] = {'login • instagram', true},					['local'] = nil},
+		{['en'] = {'redirecting...', true},						['local'] = nil},
+		{['en'] = {'usurped title', true},						['local'] = nil},	-- added by a GreenC bot
+		{['en'] = {'webcite query result', true},				['local'] = nil},
+		{['en'] = {'wikiwix\'s cache', true},					['local'] = nil},
+		},
+
+	['generic_names'] = {
+		-- generic names and patterns in this table should be lowercase only
+		-- leave ['local'] nil except when there is a matching generic name in your language
+		-- boolean 'true' for plain-text searches; 'false' for pattern searches
+		{['en'] = {'about us', true},										['local'] = nil},
+		{['en'] = {'%f[%a][Aa]dvisor%f[%A]', false},						['local'] = nil},
+		{['en'] = {'%f[%a][Aa]uthor%f[%A]', false},							['local'] = nil},
+		{['en'] = {'collaborator', true},									['local'] = nil},
+		{['en'] = {'contributor', true},									['local'] = nil},
+		{['en'] = {'contact us', true},										['local'] = nil},
+		{['en'] = {'directory', true},										['local'] = nil},
+		{['en'] = {'%f[%(%[][%(%[]%s*eds?%.?%s*[%)%]]?$', false},			['local'] = nil},
+		{['en'] = {'[,%.%s]%f[e]eds?%.?$', false},							['local'] = nil},
+		{['en'] = {'^eds?[%.,;]', false},									['local'] = nil},
+		{['en'] = {'^[%(%[]%s*[Ee][Dd][Ss]?%.?%s*[%)%]]', false},			['local'] = nil},
+		{['en'] = {'%f[%a][Ee]dited%f[%A]', false},							['local'] = nil},
+		{['en'] = {'%f[%a][Ee]ditors?%f[%A]', false},						['local'] = nil},
+		{['en'] = {'%f[%a]]Ee]mail%f[%A]', false},							['local'] = nil},
+		{['en'] = {'facebook', true},										['local'] = nil},
+		{['en'] = {'google', true},											['local'] = nil},
+		{['en'] = {'home page', true},										['local'] = nil},
+		{['en'] = {'instagram', true},										['local'] = nil},
+		{['en'] = {'interviewer', true},									['local'] = nil},
+		{['en'] = {'linkedIn', true},										['local'] = nil},
+		{['en'] = {'pinterest', true},										['local'] = nil},
+		{['en'] = {'policy', true},											['local'] = nil},
+		{['en'] = {'privacy', true},										['local'] = nil},
+		{['en'] = {'translator', true},										['local'] = nil},
+		{['en'] = {'tumblr', true},											['local'] = nil},
+		{['en'] = {'twitter', true},										['local'] = nil},
+		{['en'] = {'site name', true},										['local'] = nil},
+		{['en'] = {'statement', true},										['local'] = nil},
+		{['en'] = {'submitted', true},										['local'] = nil},
+		{['en'] = {'super.?user', false},									['local'] = nil},
+		{['en'] = {'%f['..is_Latn..'][Uu]ser%f[^'..is_Latn..']', false},	['local'] = nil},
+		{['en'] = {'verfasser', true},										['local'] = nil},
+		}
+	}
+
+
+--[[--------------------------< D A T E _ N A M E S >----------------------------------------------------------
+
+This table of tables lists local language date names and fallback English date names.
+The code in Date_validation will look first in the local table for valid date names.
+If date names are not found in the local table, the code will look in the English table.
+
+Because citations can be copied to the local wiki from en.wiki, the English is
+required when the date-name translation function date_name_xlate() is used.
+
+In these tables, season numbering is defined by
+Extended Date/Time Format (EDTF) Specification (https://www.loc.gov/standards/datetime/)
+which became part of ISO 8601 in 2019.  See '§Sub-year groupings'. The standard
+defines various divisions using numbers 21-41. CS1|2 only supports generic seasons.
+EDTF does support the distinction between north and south hemisphere seasons
+but CS1|2 has no way to make that distinction.
+
+33-36 = Quarter 1, Quarter 2, Quarter 3, Quarter 4 (3 months each)
+
+The standard does not address 'named' dates so, for the purposes of CS1|2,
+Easter and Christmas are defined here as 98 and 99, which should be out of the
+ISO 8601 (EDTF) range of uses for a while.
+
+]]
+
+local date_names = {
+	['en'] = {																	-- English
+		['long']	= {['January'] = 1, ['February'] = 2, ['March'] = 3, ['April'] = 4, ['May'] = 5, ['June'] = 6, ['July'] = 7, ['August'] = 8, ['September'] = 9, ['October'] = 10, ['November'] = 11, ['December'] = 12},
+		['short']	= {['Jan'] = 1, ['Feb'] = 2, ['Mar'] = 3, ['Apr'] = 4, ['May'] = 5, ['Jun'] = 6, ['Jul'] = 7, ['Aug'] = 8, ['Sep'] = 9, ['Oct'] = 10, ['Nov'] = 11, ['Dec'] = 12},
+		['quarter'] = {['First Quarter'] = 33, ['Second Quarter'] = 34, ['Third Quarter'] = 35, ['Fourth Quarter'] = 36},
+		['season']	= {['Winter'] = 24, ['Spring'] = 21, ['Summer'] = 22, ['Fall'] = 23, ['Autumn'] = 23},
+		['named']	= {['Easter'] = 98, ['Christmas'] = 99},
+		},
+	['local'] = {																-- replace these English date names with the local language equivalents
+		['long']	= {['1월']=1, ['2월']=2, ['3월']=3, ['4월']=4, ['5월']=5, ['6월']=6, ['7월']=7, ['8월']=8, ['9월']=9, ['10월']=10, ['11월']=11, ['12월']=12},
+		['short']	= {['1월']=1, ['2월']=2, ['3월']=3, ['4월']=4, ['5월']=5, ['6월']=6, ['7월']=7, ['8월']=8, ['9월']=9, ['10월']=10, ['11월']=11, ['12월']=12},
+		['quarter'] = {['1분기'] = 33, ['2분기'] = 34, ['3분기'] = 35, ['4분기'] = 36},		-- 로컬: 1분기, 1/4분기, 일분기, 일사분기 등의 형식 지원?
+		['season']	= {['겨울']=24, ['봄']=21, ['여름']=22, ['가을']=23},
+		['named']	= {['부활절'] = 98, ['크리스마스'] = 99, ['성탄절'] = 99},
+		},
+	['inv_local_l'] = {},														-- used in date reformatting; copy of date_names['local'].long where k/v are inverted: [1]='<local name>' etc.
+	['inv_local_s'] = {},														-- used in date reformatting; copy of date_names['local'].short where k/v are inverted: [1]='<local name>' etc.
+	['local_digits'] = {['0'] = '0', ['1'] = '1', ['2'] = '2', ['3'] = '3', ['4'] = '4', ['5'] = '5', ['6'] = '6', ['7'] = '7', ['8'] = '8', ['9'] = '9'},	-- used to convert local language digits to Western 0-9
+	['xlate_digits'] = {},
+	}
+
+for name, i in pairs (date_names['local'].long) do								-- this table is ['name'] = i
+	date_names['inv_local_l'][i] = name;										-- invert to get [i] = 'name' for conversions from ymd
+end
+
+for name, i in pairs (date_names['local'].short) do								-- this table is ['name'] = i
+	date_names['inv_local_s'][i] = name;										-- invert to get [i] = 'name' for conversions from ymd
+end
+
+for ld, ed in pairs (date_names.local_digits) do								-- make a digit translation table for simple date translation from en to local language using local_digits table
+	date_names.xlate_digits [ed] = ld;											-- en digit becomes index with local digit as the value
+end
+
+local df_template_patterns = {													-- table of redirects to {{Use dmy dates}} and {{Use mdy dates}}
+	'{{ *[Uu]se +(dmy) +dates *[|}]',	-- 1159k								-- sorted by approximate transclusion count
+	'{{ *[Uu]se +(mdy) +dates *[|}]',	-- 212k
+	'{{ *[Uu]se +(MDY) +dates *[|}]',	-- 788
+	'{{ *[Uu]se +(DMY) +dates *[|}]',	-- 343
+	'{{ *([Mm]dy) *[|}]',				-- 176
+	'{{ *[Uu]se *(dmy) *[|}]',			-- 156 + 18
+	'{{ *[Uu]se *(mdy) *[|}]',			-- 149 + 11
+	'{{ *([Dd]my) *[|}]',				-- 56
+	'{{ *[Uu]se +(MDY) *[|}]',			-- 5
+	'{{ *([Dd]MY) *[|}]',				-- 3
+	'{{ *[Uu]se(mdy)dates *[|}]',		-- 1
+	'{{ *[Uu]se +(DMY) *[|}]',			-- 0
+	'{{ *([Mm]DY) *[|}]',				-- 0
+	}
+
+local function get_date_format ()
+	local content = mw.title.getCurrentTitle():getContent() or '';				-- get the content of the article or ''; new pages edited w/ve do not have 'content' until saved; ve does not preview; phab:T221625
+	for _, pattern in ipairs (df_template_patterns) do							-- loop through the patterns looking for {{Use dmy dates}} or {{Use mdy dates}} or any of their redirects
+		local start, _, match = content:find(pattern);							-- match is the three letters indicating desired date format
+		if match then
+			content = content:match ('%b{}', start);							-- get the whole template
+			if content:match ('| *cs1%-dates *= *[lsy][sy]?') then				-- look for |cs1-dates=publication date length access-/archive-date length
+				return match:lower() .. '-' .. content:match ('| *cs1%-dates *= *([lsy][sy]?)');
+			else
+				return match:lower() .. '-all';									-- no |cs1-dates= k/v pair; return value appropriate for use in |df=
+			end
+		end
+	end
+end
+
+local global_df;
+
+
+--[[-----------------< V O L U M E ,  I S S U E ,  P A G E S >------------------
 
 These tables hold cite class values (from the template invocation) and identify those templates that support
 |volume=, |issue=, and |page(s)= parameters.  Cite conference and cite map require further qualification which
@@ -320,32 +632,181 @@ is handled in the main module.
 
 ]]
 
-local templates_using_volume = {'citation', 'audio-visual', 'book', 'conference', 'encyclopaedia', 'interview', 'journal', 'magazine', 'map', 'news', 'report', 'techreport'}
-local templates_using_issue = {'citation', 'conference', 'episode', 'interview', 'journal', 'magazine', 'map', 'news'}
+local templates_using_volume = {'citation', 'audio-visual', 'book', 'conference', 'encyclopaedia', 'interview', 'journal', 'magazine', 'map', 'news', 'report', 'techreport', 'thesis'}
+local templates_using_issue = {'citation', 'conference', 'episode', 'interview', 'journal', 'magazine', 'map', 'news', 'podcast'}
 local templates_not_using_page = {'audio-visual', 'episode', 'mailinglist', 'newsgroup', 'podcast', 'serial', 'sign', 'speech'}
 
 
+--[[
 
---[[--------------------------< K E Y W O R D S >--------------------------------------------------------------
+Patterns for finding extra text in |volume=, |issue=, |page=, |pages=
 
-This table holds keywords for those parameters that have defined sets of acceptible keywords.
+]]
+
+local vol_iss_pg_patterns = {
+	good_ppattern = '^P[^%.PpGg]',												-- OK to begin with uppercase P: P7 (page 7 of section P), but not p123 (page 123); TODO: this allows 'Pages' which it should not
+	bad_ppatterns = {															-- patterns for |page= and |pages=
+		'^[Pp][PpGg]?%.?[ %d]',
+		'^[Pp][Pp]?%.&nbsp;',													-- from {{p.}} and {{pp.}} templates
+		'^[Pp]ages?',
+		'^[Pp]gs.?',
+		'^쪽?',																	-- 로컬: 확인 필요
+		'^페이지?'
+		},
+	vpatterns = {																-- patterns for |volume=
+		'^volumes?',
+		'^vols?[%.:=]?',
+		'^권?'
+		},
+	ipatterns = {																-- patterns for |issue=
+		'^issues?',
+		'^iss[%.:=]?',
+		'^numbers?',
+		'^nos?%A',																-- don't match 'november' or 'nostradamus'
+		'^nr[%.:=]?',
+		'^n[%.:= ]',																-- might be a valid issue without separator (space char is sep char here)
+		'^호?',
+		'^회?',
+		'^화?'
+		}
+	}
+
+--[[--------------------------< K E Y W O R D S >-------------------------------
+
+These tables hold keywords for those parameters that have defined sets of acceptable keywords.
+
+]]
+
+--[[-------------------< K E Y W O R D S   T A B L E >--------------------------
+
+this is a list of keywords; each key in the list is associated with a table of
+synonymous keywords possibly from different languages.
+
+for I18N: add local-language keywords to value table; do not change the key.
+For example, adding the German keyword 'ja':
+	['affirmative'] = {'yes', 'true', 'y', 'ja'},
+
+Because CS1|2 templates from en.wiki articles are often copied to other local wikis,
+it is recommended that the English keywords remain in these tables.
 
 ]]
 
 local keywords = {
-	['yes_true_y'] = {'yes', 'true', 'y', '예', '참'},							-- ignore-isbn-error, last-author-amp, no-tracking, nopp, registration, subscription
-	['deadurl'] = {'yes', 'true', 'y', 'no', 'unfit', 'usurped', '예', '참', '아니오', '거짓', '부적절'},		-- 'unfit no archive', 'usurped no archive' 숨김
-	['mode'] = {'cs1', 'cs2'},
-	['name-list-format'] = {'vanc'},
-	['contribution'] = {'afterword', 'foreword', 'introduction', 'preface'},	-- generic contribution titles that are rendered unquoted in the 'chapter' position
-	['date-format'] = {'dmy', 'dmy-all', 'mdy', 'mdy-all', 'ymd', 'ymd-all'}
-}
+	['amp'] = {'&', 'amp', 'ampersand', '앰퍼샌드', '앤드'}, 					-- |name-list-style=
+	['and'] = {'and', 'serial', '및'},											-- |name-list-style=
+	['affirmative'] = {'yes', 'true', 'y', '예', '참'},										-- |no-tracking=, |no-pp= -- Used by InternetArchiveBot
+	['afterword'] = {'afterword'},												-- |contribution=
+	['bot: unknown'] = {'bot: unknown'},										-- |url-status= -- Used by InternetArchiveBot
+	['cs1'] = {'cs1'},															-- |mode=
+	['cs2'] = {'cs2'},															-- |mode=
+	['dead'] = {'dead', 'deviated', '깨짐', '죽음'},											-- |url-status= -- Used by InternetArchiveBot
+	['dmy'] = {'dmy'},															-- |df=
+	['dmy-all'] = {'dmy-all'},													-- |df=
+	['foreword'] = {'foreword'},												-- |contribution=
+	['free'] = {'free'},														-- |<id>-access= -- Used by InternetArchiveBot
+	['harv'] = {'harv'},														-- |ref=; this no longer supported; is_valid_parameter_value() called with <invert> = true
+	['introduction'] = {'introduction'},										-- |contribution=
+	['limited'] = {'limited', '제한'},											-- |url-access= -- Used by InternetArchiveBot
+	['live'] = {'live', '살아있음'},											-- |url-status= -- Used by InternetArchiveBot
+	['mdy'] = {'mdy'},															-- |df=
+	['mdy-all'] = {'mdy-all'},													-- |df=
+	['none'] = {'none', '없음'},												-- |postscript=, |ref=, |title=, |type= -- Used by InternetArchiveBot
+	['off'] = {'off', '끄기'},													-- |title= (potentially also: |title-link=, |postscript=, |ref=, |type=)
+	['preface'] = {'preface'},													-- |contribution=
+	['registration'] = {'registration', '등록'},								-- |url-access= -- Used by InternetArchiveBot
+	['subscription'] = {'subscription', '구독'},								-- |url-access= -- Used by InternetArchiveBot
+	['unfit'] = {'unfit', '부적절'},											-- |url-status= -- Used by InternetArchiveBot
+	['usurped'] = {'usurped'},													-- |url-status= -- Used by InternetArchiveBot
+	['vanc'] = {'vanc', '밴쿠버'},														-- |name-list-style=
+	['ymd'] = {'ymd'},															-- |df=
+	['ymd-all'] = {'ymd-all'},													-- |df=
+	--	['yMd'] = {'yMd'},														-- |df=; not supported at en.wiki
+	--	['yMd-all'] = {'yMd-all'},												-- |df=; not supported at en.wiki
+	}
 
 
---[[--------------------------< S T R I P M A R K E R S >------------------------------------------------------
+--[[------------------------< X L A T E _ K E Y W O R D S >---------------------
 
-Common pattern definition location for stripmarkers so that we don't have to go hunting for them if (when)
-MediaWiki changes their form.
+this function builds a list, keywords_xlate{}, of the keywords found in keywords{} where the values from keywords{}
+become the keys in keywords_xlate{} and the keys from keywords{} become the values in keywords_xlate{}:
+	['affirmative'] = {'yes', 'true', 'y'},		-- in keywords{}
+becomes
+	['yes'] = 'affirmative',					-- in keywords_xlate{}
+	['true'] = 'affirmative',
+	['y'] = 'affirmative',
+
+the purpose of this function is to act as a translator between a non-English keyword and its English equivalent
+that may be used in other modules of this suite
+
+]]
+
+local function xlate_keywords ()
+	local out_table = {};														-- output goes here
+	for k, keywords_t in pairs (keywords) do									-- spin through the keywords table
+		for _, keyword in ipairs (keywords_t) do								-- for each keyword
+			out_table[keyword] = k;												-- create an entry in the output table where keyword is the key
+		end
+	end
+	
+	return out_table;
+end
+
+local keywords_xlate = xlate_keywords ();										-- the list of translated keywords
+
+
+--[[----------------< M A K E _ K E Y W O R D S _ L I S T >---------------------
+
+this function assembles, for parameter-value validation, the list of keywords appropriate to that parameter.
+
+keywords_lists{}, is a table of tables from keywords{}
+
+]]
+
+local function make_keywords_list (keywords_lists)
+	local out_table = {};														-- output goes here
+	
+	for _, keyword_list in ipairs (keywords_lists) do							-- spin through keywords_lists{} and get a table of keywords
+		for _, keyword in ipairs (keyword_list) do								-- spin through keyword_list{} and add each keyword, ...
+			table.insert (out_table, keyword);									-- ... as plain text, to the output list
+		end
+	end
+	return out_table;
+end
+
+
+--[[----------------< K E Y W O R D S _ L I S T S >-----------------------------
+
+this is a list of lists of valid keywords for the various parameters in [key].
+Generally the keys in this table are the canonical en.wiki parameter names though
+some are contrived because of use in multiple differently named parameters:
+['yes_true_y'], ['id-access'].
+
+The function make_keywords_list() extracts the individual keywords from the
+appropriate list in keywords{}.
+
+The lists in this table are used to validate the keyword assignment for the
+parameters named in this table's keys.
+
+]]
+
+local keywords_lists = {
+	['yes_true_y'] = make_keywords_list ({keywords.affirmative}),
+	['contribution'] = make_keywords_list ({keywords.afterword, keywords.foreword, keywords.introduction, keywords.preface}),
+	['df'] = make_keywords_list ({keywords.dmy, keywords['dmy-all'], keywords.mdy, keywords['mdy-all'], keywords.ymd, keywords['ymd-all']}),
+	--	['df'] = make_keywords_list ({keywords.dmy, keywords['dmy-all'], keywords.mdy, keywords['mdy-all'], keywords.ymd, keywords['ymd-all'], keywords.yMd, keywords['yMd-all']}),	-- not supported at en.wiki
+	['mode'] = make_keywords_list ({keywords.cs1, keywords.cs2}),
+	['name-list-style'] = make_keywords_list ({keywords.amp, keywords['and'], keywords.vanc}),
+	['ref'] = make_keywords_list ({keywords.harv}),								-- inverted check; |ref=harv no longer supported
+	['url-access'] = make_keywords_list ({keywords.subscription, keywords.limited, keywords.registration}),
+	['url-status'] = make_keywords_list ({keywords.dead, keywords.live, keywords.unfit, keywords.usurped, keywords['bot: unknown']}),
+	['id-access'] = make_keywords_list ({keywords.free}),
+	}
+
+
+--[[---------------------< S T R I P M A R K E R S >----------------------------
+
+Common pattern definition location for stripmarkers so that we don't have to go
+hunting for them if (when) MediaWiki changes their form.
 
 ]]
 
@@ -355,79 +816,233 @@ local stripmarkers = {
 	}
 
 
---[[--------------------------< I N V I S I B L E _ C H A R A C T E R S >--------------------------------------
+--[[------------< I N V I S I B L E _ C H A R A C T E R S >---------------------
 
-This table holds non-printing or invisible characters indexed either by name or by Unicode group. Values are decimal
-representations of UTF-8 codes.  The table is organized as a table of tables because the lua pairs keyword returns
-table data in an arbitrary order.  Here, we want to process the table from top to bottom because the entries at
-the top of the table are also found in the ranges specified by the entries at the bottom of the table.
+This table holds non-printing or invisible characters indexed either by name or
+by Unicode group. Values are decimal representations of UTF-8 codes.  The table
+is organized as a table of tables because the Lua pairs keyword returns table
+data in an arbitrary order.  Here, we want to process the table from top to bottom
+because the entries at the top of the table are also found in the ranges specified
+by the entries at the bottom of the table.
 
-This list contains patterns for templates like {{'}} which isn't an error but transcludes characters that are
-invisible.  These kinds of patterns must be recognized by the functions that use this list.
-
-Also here is a pattern that recognizes stripmarkers that begin and end with the delete characters.  The nowiki
-stripmarker is not an error but some others are because the parameter values that include them become part of the
-template's metadata before stripmarker replacement.
-
-]]
-
-local invisible_chars = {
-	{'대체', '\239\191\189'},											-- U+FFFD, EF BF BD -- replacement
-	{'너비 없는 결합', '\226\128\141'},										-- U+200D, E2 80 8D -- zero width joiner
-	{'너비 없는 공백', '\226\128\139'},										-- U+200B, E2 80 8B -- zero width space
-	{'가는 공백', '\226\128\138'},												-- U+200A, E2 80 8A -- hair space
-	{'소프트 하이픈', '\194\173'},												-- U+00AD, C2 AD -- soft hyphen
-	{'수평 탭', '\009'},													-- U+0009 (HT), 09 -- horizontal tab
-	{'새줄 문자', '\010'},														-- U+000A (LF), 0A -- line feed
-	{'캐리지 리턴', '\013'},												-- U+000D (CR), 0D -- carriage return
-	{'stripmarker', stripmarkers.any},											-- stripmarker; may or may not be an error; capture returns the stripmaker type
-	{'지움', '\127'},															-- U+007F (DEL), 7F; must be done after stripmarker test -- delete
-	{'C0 제어', '[\000-\008\011\012\014-\031]'},								-- U+0000–U+001F (NULL–US), 00–1F (except HT, LF, CR (09, 0A, 0D)) -- C0 control
-	{'C1 제어', '[\194\128-\194\159]'},										-- U+0080–U+009F (XXX–APC), C2 80 – C2 9F -- C1 제어
---	{'Specials', '[\239\191\185-\239\191\191]'},								-- U+FFF9-U+FFFF, EF BF B9 – EF BF BF -- 특수
---	{'Private use area', '[\238\128\128-\239\163\191]'},						-- U+E000–U+F8FF, EE 80 80 – EF A3 BF -- 사용자 정의 영역
---	{'Supplementary Private Use Area-A', '[\243\176\128\128-\243\191\191\189]'},	-- U+F0000–U+FFFFD, F3 B0 80 80 – F3 BF BF BD -- 보조 사용자 정의 영역-A
---	{'Supplementary Private Use Area-B', '[\244\128\128\128-\244\143\191\189]'},	-- U+100000–U+10FFFD, F4 80 80 80 – F4 8F BF BD -- 보조 사용자 정의 영역-B
-}
-
-
---[[--------------------------< M A I N T E N A N C E _ C A T E G O R I E S >----------------------------------
-
-Here we name maintenance categories to be used in maintenance messages.
+Also here is a pattern that recognizes stripmarkers that begin and end with the
+delete characters.  The nowiki stripmarker is not an error but some others are
+because the parameter values that include them become part of the template's
+metadata before stripmarker replacement.
 
 ]]
 
-local maint_cats = {
-	['ASIN'] = 'CS1 관리 - ISBN을 사용한 ASIN',
-	['date_year'] = 'CS1 관리 - 날짜와 연도',
-	['disp_auth_ed'] = 'CS1 관리 - 저자표시',									-- $1 is authors or editors -- 수정 필요
-	['embargo'] = 'CS1 관리 - PMC 엠바고 만료',
---	['english'] = 'CS1 관리 - 한국어 인용 (ko)',								-- 실제로 안 쓰이고 있어서 숨김
-	['etal'] = 'CS1 관리 - et al.의 직접적인 사용',
-	['extra_text'] = 'CS1 관리 - 추가 문구',
-	['ignore_isbn_err'] = 'CS1 관리 - ISBN 오류 무시',							-- $1 is authors or editors
-	['missing_pipe'] = 'CS1 관리 - 수직선 없음',
-	['mult_names'] = 'CS1 관리 - 여러 이름',							-- $1 is authors or editors -- 수정 필요
-	['unknown_lang'] = 'CS1 관리 - 인식할 수 없는 언어',
-	['untitled'] = 'CS1 관리 - 이름 없는 작품',
+local invisible_defs = {
+	del = '\127',																-- used to distinguish between stripmarker and del char
+	zwj = '\226\128\141',														-- used with capture because zwj may be allowed
 	}
 
---[[--------------------------< P R O P E R T I E S _ C A T E G O R I E S >------------------------------------
+local invisible_chars = {
+	{'대체', '\239\191\189'},													-- U+FFFD, EF BF BD
+	{'폭 없는 접합자', '('.. invisible_defs.zwj .. ')'},						-- U+200D, E2 80 8D; capture because zwj may be allowed
+	{'폭 없는 공백', '\226\128\139'},											-- U+200B, E2 80 8B
+	{'헤어 공백', '\226\128\138'},												-- U+200A, E2 80 8A
+	{'소프트 하이픈', '\194\173'},												-- U+00AD, C2 AD
+	{'수평 탭', '\009'},													-- U+0009 (HT), 09
+	{'라인 피드', '\010'},														-- U+000A (LF), 0A
+	{'줄 바꿈 없는 공백', '\194\160'},												-- U+00A0 (NBSP), C2 A0
+	{'캐리지 리턴', '\013'},												-- U+000D (CR), 0D
+	{'스트립마커', stripmarkers.any},											-- stripmarker; may or may not be an error; capture returns the stripmaker type
+	{'삭제', '('.. invisible_defs.del .. ')'},								-- U+007F (DEL), 7F; must be done after stripmarker test; capture to distinguish isolated del chars not part of stripmarker
+	{'C0 제어', '[\000-\008\011\012\014-\031]'},								-- U+0000–U+001F (NULL–US), 00–1F (except HT, LF, CR (09, 0A, 0D))
+	{'C1 제어', '[\194\128-\194\159]'},										-- U+0080–U+009F (XXX–APC), C2 80 – C2 9F
+	--	{'Specials', '[\239\191\185-\239\191\191]'},								-- U+FFF9-U+FFFF, EF BF B9 – EF BF BF
+	--	{'Private use area', '[\238\128\128-\239\163\191]'},						-- U+E000–U+F8FF, EE 80 80 – EF A3 BF
+	--	{'Supplementary Private Use Area-A', '[\243\176\128\128-\243\191\191\189]'},	-- U+F0000–U+FFFFD, F3 B0 80 80 – F3 BF BF BD
+	--	{'Supplementary Private Use Area-B', '[\244\128\128\128-\244\143\191\189]'},	-- U+100000–U+10FFFD, F4 80 80 80 – F4 8F BF BD
+	}
 
-Here we name properties categories
+--[[
+
+Indic script makes use of zero width joiner as a character modifier so zwj
+characters must be left in.  This pattern covers all of the unicode characters
+for these languages:
+	Devanagari					0900–097F – https://unicode.org/charts/PDF/U0900.pdf
+		Devanagari extended		A8E0–A8FF – https://unicode.org/charts/PDF/UA8E0.pdf
+	Bengali						0980–09FF – https://unicode.org/charts/PDF/U0980.pdf
+	Gurmukhi					0A00–0A7F – https://unicode.org/charts/PDF/U0A00.pdf
+	Gujarati					0A80–0AFF – https://unicode.org/charts/PDF/U0A80.pdf
+	Oriya						0B00–0B7F – https://unicode.org/charts/PDF/U0B00.pdf
+	Tamil						0B80–0BFF – https://unicode.org/charts/PDF/U0B80.pdf
+	Telugu						0C00–0C7F – https://unicode.org/charts/PDF/U0C00.pdf
+	Kannada						0C80–0CFF – https://unicode.org/charts/PDF/U0C80.pdf
+	Malayalam					0D00–0D7F – https://unicode.org/charts/PDF/U0D00.pdf
+plus the not-necessarily Indic scripts for Sinhala and Burmese:
+	Sinhala						0D80-0DFF - https://unicode.org/charts/PDF/U0D80.pdf
+	Myanmar						1000-109F - https://unicode.org/charts/PDF/U1000.pdf
+		Myanmar extended A		AA60-AA7F - https://unicode.org/charts/PDF/UAA60.pdf
+		Myanmar extended B		A9E0-A9FF - https://unicode.org/charts/PDF/UA9E0.pdf
+the pattern is used by has_invisible_chars() and coins_cleanup()
+
+]]
+
+local indic_script = '[\224\164\128-\224\181\191\224\163\160-\224\183\191\225\128\128-\225\130\159\234\167\160-\234\167\191\234\169\160-\234\169\191]';
+
+-- list of emoji that use zwj character (U+200D) to combine with another emoji
+local emoji = {																	-- indexes are decimal forms of the hex values in U+xxxx
+	[127752] = true,															-- U+1F308 🌈 rainbow
+	[127806] = true,															-- U+1F33E 🌾 ear of rice
+	[127859] = true,															-- U+1F373 🍳 cooking
+	[127891] = true,															-- U+1F393 🎓 graduation cap
+	[127908] = true,															-- U+1F3A4 🎤 microphone
+	[127912] = true,															-- U+1F3A8 🎨 artist palette
+	[127979] = true,															-- U+1F3EB 🏫 school
+	[127981] = true,															-- U+1F3ED 🏭 factory
+	[128102] = true,															-- U+1F466 👦 boy
+	[128103] = true,															-- U+1F467 👧 girl
+	[128104] = true,															-- U+1F468 👨 man
+	[128105] = true,															-- U+1F469 👩 woman
+	[128139] = true,															-- U+1F48B 💋 kiss mark
+	[128187] = true,															-- U+1F4BB 💻 personal computer
+	[128188] = true,															-- U+1F4BC 💼 brief case
+	[128295] = true,															-- U+1F527 🔧 wrench
+	[128300] = true,															-- U+1F52C 🔬 microscope
+	[128488] = true,															-- U+1F5E8 🗨 left speech bubble
+	[128640] = true,															-- U+1F680 🚀 rocket
+	[128658] = true,															-- U+1F692 🚒 fire engine
+	[129309] = true,															-- U+1F91D 🤝 handshake
+	[129455] = true,															-- U+1F9AF 🦯 probing cane
+	[129456] = true,															-- U+1F9B0 🦰 emoji component red hair
+	[129457] = true,															-- U+1F9B1 🦱 emoji component curly hair
+	[129458] = true,															-- U+1F9B2 🦲 emoji component bald
+	[129459] = true,															-- U+1F9B3 🦳 emoji component white hair
+	[129466] = true,															-- U+1F9BA 🦺 safety vest
+	[129468] = true,															-- U+1F9BC 🦼 motorized wheelchair
+	[129469] = true,															-- U+1F9BD 🦽 manual wheelchair
+	[129489] = true,															-- U+1F9D1 🧑 adult
+	[9760] = true,																-- U+2620 ☠ skull and crossbones
+	[9792] = true,																-- U+2640 ♀ female sign
+	[9794] = true,																-- U+2642 ♂ male sign
+	[9877] = true,																-- U+2695 ⚕ staff of aesculapius
+	[9878] = true,																-- U+2696 ⚖ scales
+	[9992] = true,																-- U+2708 ✈ airplane
+	[10084] = true,																-- U+2764 ❤ heavy black heart
+	}
+
+
+--[[----------------------< L A N G U A G E   S U P P O R T >-------------------
+
+These tables and constants support various language-specific functionality.
+
+]]
+
+local this_wiki_code = mw.getContentLanguage():getCode();						-- get this wiki's language code
+	if string.match (mw.site.server, 'wikidata') then
+		this_wiki_code = mw.getCurrentFrame():preprocess('{{int:lang}}');		-- on Wikidata so use interface language setting instead
+	end
+
+local mw_languages_by_tag_t = mw.language.fetchLanguageNames (this_wiki_code, 'all');	-- get a table of language tag/name pairs known to Wikimedia; used for interwiki tests
+local mw_languages_by_name_t = {};
+	for k, v in pairs (mw_languages_by_tag_t) do								-- build a 'reversed' table name/tag language pairs know to MediaWiki; used for |language=
+		v = mw.ustring.lower (v);												-- lowercase for tag fetch; get name's proper case from mw_languages_by_tag_t[<tag>]
+		if mw_languages_by_name_t[v] then										-- when name already in the table
+			if 2 == #k or 3 == #k then											-- if tag does not have subtags
+				mw_languages_by_name_t[v] = k;									-- prefer the shortest tag for this name
+			end
+		else																	-- here when name not in the table
+			mw_languages_by_name_t[v] = k;										-- so add name and matching tag
+		end
+	end
+
+local inter_wiki_map = {};														-- map of interwiki prefixes that are language-code prefixes
+	for k, v in pairs (mw.site.interwikiMap ('local')) do						-- spin through the base interwiki map (limited to local)
+		if mw_languages_by_tag_t[v["prefix"]] then								-- if the prefix matches a known language tag
+			inter_wiki_map[v["prefix"]] = true;									-- add it to our local map
+		end
+	end
+
+
+--[[--------------------< S C R I P T _ L A N G _ C O D E S >-------------------
+
+This table is used to hold ISO 639-1 two-character and ISO 639-3 three-character
+language codes that apply only to |script-title= and |script-chapter=
+
+]]
+
+local script_lang_codes = {
+	'ab', 'am', 'ar', 'be', 'bg', 'bn', 'bo', 'bs', 'dv', 'dz', 'el', 'fa', 'gu', 
+	'he', 'hi', 'hy', 'ja', 'ka', 'kk', 'km', 'kn', 'ku', 'ky', 'lo', 'mk',
+	'ml', 'mn', 'mr', 'my', 'ne', 'or', 'ota', 'ps', 'ru', 'sd', 'si', 'sr', 'syc',
+	'ta', 'te', 'tg', 'th', 'ti', 'ug', 'uk', 'ur', 'uz', 'yi', 'yue', 'zh'
+	};
+
+
+--[[---------------< L A N G U A G E   R E M A P P I N G >----------------------
+
+These tables hold language information that is different (correct) from MediaWiki's definitions
+
+For each ['code'] = 'language name' in lang_code_remap{} there must be a matching ['language name'] = {'language name', 'code'} in lang_name_remap{}
+
+lang_code_remap{}:
+	key is always lowercase ISO 639-1, -2, -3 language code or a valid lowercase IETF language tag
+	value is properly spelled and capitalized language name associated with key
+	only one language name per key;
+	key/value pair must have matching entry in lang_name_remap{}
+
+lang_name_remap{}:
+	key is always lowercase language name
+	value is a table the holds correctly spelled and capitalized language name [1] and associated code [2] (code must match a code key in lang_code_remap{})
+	may have multiple keys referring to a common preferred name and code; For example:
+		['kolsch'] and ['kölsch'] both refer to 'Kölsch' and 'ksh'
+
+]]
+
+local lang_code_remap = {														-- used for |language= and |script-title= / |script-chapter=
+	['als'] = '토스크 알바니아어',												-- 'Tosk Albanian' / MediaWiki returns Alemannisch (알레만어)
+	['bh'] = '비하르어',														-- 'Bihari' / MediaWiki uses 'bh' as a subdomain name for Bhojpuri (보지푸리어) Wikipedia: bh.wikipedia.org
+	['bla'] = '블랙풋어',														-- 'Blackfoot' / MediaWiki/IANA/ISO 639: Siksika (식시카어); use en.wiki preferred name
+--	['bn'] = 'Bengali',															-- MediaWiki returns Bangla
+	['ca-valencia'] = '발렌시아어',												-- 'Valencian' / IETF variant of Catalan
+	['ilo'] = '일로카노어',														-- 'Ilocano' / MediaWiki/IANA/ISO 639: Iloko (일로코어); use en.wiki preferred name
+	['ksh'] = '쾰치어',															-- 'Kölsch' / MediaWiki: Colognian (콜로그니안어); use IANA/ISO 639 preferred name
+	['ksh-x-colog'] = '콜로그니안어',											-- 'Colognian' / override MediaWiki ksh; no IANA/ISO 639 code for Colognian; IETF private code created at Module:Lang/data
+	['mis-x-ripuar'] = '리프아리아어',											-- 'Ripuarian' / override MediaWiki ksh; no IANA/ISO 639 code for Ripuarian; IETF private code created at Module:Lang/data
+	['nan-tw'] = '대만어',														-- 'Taiwanese Hokkien' / make room for MediaWiki/IANA/ISO 639 nan: Min Nan Chinese and support en.wiki preferred name
+	}
+
+local lang_name_remap = {														-- used for |language=
+	['알레만어'] = {'스위스 독일어', 'gsw'},									-- 'alemannisch' / 'Swiss German' / not an ISO or IANA language name; MediaWiki uses 'als' as a subdomain name for Alemannic Wikipedia: als.wikipedia.org
+--	['bangla'] = {'Bengali', 'bn'},												-- MediaWiki returns Bangla (the endonym) but we want Bengali (the exonym); here we remap
+--	['bengali'] = {'Bengali', 'bn'},											-- MediaWiki doesn't use exonym so here we provide correct language name and 639-1 code
+	['보지푸리어'] = {'보지푸리어', 'bho'},										-- 'bhojpuri' / 'Bhojpuri' / MediaWiki uses 'bh' as a subdomain name for Bhojpuri Wikipedia: bh.wikipedia.org
+	['비하르어'] = {'비하르어', 'bh'},											-- 'bihari' / 'Bihari' / MediaWiki replaces 'Bihari' with 'Bhojpuri' so 'Bihari' cannot be found
+	['블랙풋어'] = {'블랙풋어', 'bla'},											-- 'blackfoot' / 'Blackfoot' / MediaWiki/IANA/ISO 639: Siksika; use en.wiki preferred name
+	['콜로그니안어'] = {'콜로그니안어', 'ksh-x-colog'},							-- 'colognian' / 'Colognian' / MediaWiki preferred name for ksh
+	['일로카노어'] = {'일로카노어', 'ilo'},										-- 'ilocano' / 'Ilocano' / MediaWiki/IANA/ISO 639: Iloko; use en.wiki preferred name
+--	['kolsch'] = {'Kölsch', 'ksh'},												-- use IANA/ISO 639 preferred name (use non-diacritical o instead of umlaut ö)
+	['쾰치어'] = {'쾰치어', 'ksh'},												-- 'kölsch' / 'Kölsch' / use IANA/ISO 639 preferred name
+	['리프아리아어'] = {'리프아리아어', 'mis-x-ripuar'},						-- 'ripuarian' / 'Ripuarian' / group of dialects; no code in MediaWiki or in IANA/ISO 639
+	['대만어'] = {'대만어', 'nan-TW'},											-- 'taiwanese hokkien' / 'Taiwanese Hokkien' / make room for MediaWiki/IANA/ISO 639 nan: Min Nan Chinese 
+	['토스크 알바니아어'] = {'토스크 알바니아어', 'als'},						-- 'tosk albanian / 'Tosk Albanian' / MediaWiki replaces 'Tosk Albanian' with 'Alemannisch' so 'Tosk Albanian' cannot be found
+	['발렌시아어'] = {'발렌시아어', 'ca'},										-- 'valencian' / 'Valencian' / variant of Catalan; categorizes as Catalan
+	}
+
+
+--[[---------------< P R O P E R T I E S _ C A T E G O R I E S >----------------
+
+Properties categories. These are used for investigating qualities of citations.
 
 ]]
 
 local prop_cats = {
-	['foreign_lang_source'] = 'CS1 - $1 인용 ($2)',								-- |language= categories; $1 is language name, $2 is ISO639-1 code
---	['foreign_lang_source_2'] = 'CS1 외국어 인용 (ISO 639-2)|$1', -- |language= category; a cat for ISO639-2 languages; $1 is the ISO 639-2 code
---	['script'] = 'CS1 외국어 문자 사용',							-- when language specified by |script-title=xx: doesn't have its own category
---	['script_with_name'] = 'CS1 - $1 문자 사용 ($2)',					-- |script-title=xx: has matching category; $1 is language name, $2 is ISO639-1 code
-	} -- 위 세 분류 임시로 숨김
+	['foreign-lang-source'] = 'CS1 - $1 인용 ($2)',								-- |language= categories; $1 is foreign-language name, $2 is ISO639-1 code
+--	['foreign-lang-source-2'] = 'CS1 - 외국어 인용 (ISO 639-2)|$1',				-- |language= category; a cat for ISO639-2 languages; $1 is the ISO 639-2 code used as a sort key
+--	['jul-greg-uncertainty'] = 'CS1 - 율리우스 그레고리오력 불확실',			-- probably temporary cat to identify scope of template with dates 1 October 1582 – 1 January 1926
+--	['local-lang-source'] = 'CS1 - $1 출처 ($2)',								-- |language= categories; $1 is local-language name, $2 is ISO639-1 code; not emitted when local_lang_cat_enable is false
+--	['location-test'] = 'CS1 - 위치 테스트',
+--	['long-vol'] = 'CS1 - 길거나 숫자, 로마자가 아닌 권',						-- probably temporary cat to identify scope of |volume= values longer than 4 charachters
+--	['script'] = 'CS1 - $1 문자 사용 ($2)',										-- |script-title=xx: has matching category; $1 is language name, $2 is ISO639-1 code
+--	['tracked-param'] = 'CS1 - 추적 매개변수: $1',								-- $1 is base (enumerators removed) parameter name
+--	['year-range-abbreviated'] = 'CS1 - 축약된 연도 범위',						-- probably temporary cat to identify scope of |date=, |year= values using YYYY–YY form
+	}
 
 
-
---[[--------------------------< T I T L E _ T Y P E S >--------------------------------------------------------
+--[[-------------------< T I T L E _ T Y P E S >--------------------------------
 
 Here we map a template's CitationClass to TitleType (default values for |type= parameter)
 
@@ -435,508 +1050,1096 @@ Here we map a template's CitationClass to TitleType (default values for |type= p
 
 local title_types = {
 	['AV-media-notes'] = '미디어 설명',
-	['DVD-notes'] = '미디어 설명',
+	['interview'] = '인터뷰',
 	['mailinglist'] = '메일링 리스트',
 	['map'] = '지도',
 	['podcast'] = '팟캐스트',
-	['pressrelease'] = '보도 자료',
+	['pressrelease'] = '보도자료',
 	['report'] = '보고서',
+	['speech'] = '연설',
 	['techreport'] = '기술 보고서',
-	['thesis'] = '학위논문',
+	['thesis'] = '학위 논문',
 	}
 
---[[--------------------------< E R R O R _ C O N D I T I O N S >----------------------------------------------
 
-Error condition table
+--[[===================<< E R R O R   M E S S A G I N G >>======================
+]]
 
-The following contains a list of IDs for various error conditions defined in the code.  For each ID, we specify a
-text message to display, an error category to include, and whether the error message should be wrapped as a hidden comment.
+--[[----------< E R R O R   M E S S A G E   S U P P L I M E N T S >-------------
+
+I18N for those messages that are supplemented with additional specific text that
+describes the reason for the error
+
+TODO: merge this with special_case_translations{}?
+]]
+
+local err_msg_supl = {
+	['char'] = '인식 불가능한 문자',											-- |isbn=, |sbn=
+	['check'] = '체크섬',														-- |isbn=, |sbn=
+	['flag'] = 'flag',															-- |archive-url=
+	['form'] = '인식 불가능한 형식',													-- |isbn=, |sbn=
+	['group'] = '인식 불가능한 그룹 ID',												-- |isbn=
+	['initials'] = '두문자어',													-- Vancouver
+	['invalid language code'] = '인식 불가능한 언어 코드',						-- |script-<param>=
+	['journal'] = '논문',													-- |bibcode=
+	['length'] = '길이',														-- |isbn=, |bibcode=, |sbn=
+	['liveweb'] = 'liveweb',													-- |archive-url=
+	['missing comma'] = '쉼표가 없음',										-- Vancouver
+	['missing prefix'] = '접두사가 없음',										-- |script-<param>=
+	['missing title part'] = '제목 부분이 없음',								-- |script-<param>=
+	['name'] = '이름',															-- Vancouver
+	['non-Latin char'] = '라틴 문자가 아님',									-- Vancouver
+	['path'] = 'path',															-- |archive-url=
+	['prefix'] = '인식 불가능한 접두사',												-- |isbn=
+	['punctuation'] = '문장 부호',											-- Vancouver
+	['save'] = 'save command',													-- |archive-url=
+	['suffix'] = '접미사',														-- Vancouver
+	['timestamp'] = 'timestamp',												-- |archive-url=
+	['unknown language code'] = '알 수 없는 언어 코드',						-- |script-<param>=
+	['value'] = '값',														-- |bibcode=
+	['year'] = '연도',															-- |bibcode=
+	}
+
+
+--[[--------------< E R R O R _ C O N D I T I O N S >---------------------------
+
+Error condition table.  This table has two sections: errors at the top, maintenance
+at the bottom.  Maint 'messaging' does not have a 'message' (message=nil)
+
+The following contains a list of IDs for various error conditions defined in the
+code.  For each ID, we specify a text message to display, an error category to
+include, and whether the error message should be wrapped as a hidden comment.
 
 Anchor changes require identical changes to matching anchor in Help:CS1 errors
+
+TODO: rename error_conditions{} to something more generic; create separate error
+and maint tables inside that?
 
 ]]
 
 local error_conditions = {
-	accessdate_missing_url = {
-		message = '<code style="'..code_style..'">&#124;확인날짜=</code>는 <code style="'..code_style..'">&#124;url=</code>을 필요로 함',
+	err_accessdate_missing_url = {
+		message = '<code class="cs1-code">&#124;확인날짜=</code>는 <code class="cs1-code">&#124;url=</code>을 필요로 함',
 		anchor = 'accessdate_missing_url',
 		category = '인용 오류 - URL 없이 확인날짜를 사용함',
-		hidden = true },
-	archive_missing_date = {
-		message = '<code style="'..code_style..'">&#124;보존url=</code>은 <code style="'..code_style..'">&#124;보존날짜=</code>를 필요로 함',
+		hidden = false
+ 		},
+	err_apostrophe_markup = {
+		message = '이탤릭체 또는 굵은 글씨 스타일의 마크업은 <code class="cs1-code">&#124;$1=</code>에서 사용할 수 없음',	-- $1 is parameter name
+		anchor = 'apostrophe_markup',
+		category = '인용 오류 - 마크업',
+		hidden = false
+ 		},
+	err_archive_missing_date = {
+		message = '<code class="cs1-code">&#124;보존url=</code>은 <code class="cs1-code">&#124;보존날짜=</code>를 필요로 함',
 		anchor = 'archive_missing_date',
 		category = '인용 오류 - 보존url',
-		hidden = false },
-	archive_missing_url = {
-		message = '<code style="'..code_style..'">&#124;보존url=</code>은 <code style="'..code_style..'">&#124;url=</code>을 필요로 함',
+		hidden = false
+		},
+	err_archive_missing_url = {
+		message = '<code class="cs1-code">&#124;보존url=</code>은 <code class="cs1-code">&#124;url=</code>을 필요로 함',
 		anchor = 'archive_missing_url',
 		category = '인용 오류 - 보존url',
-		hidden = false },
-	archive_url = {
-		message = '<code style="'..code_style..'">&#124;보존url=</code>이 잘못됨: $1',
+		hidden = false
+		},
+	err_archive_url = {
+		message = '<code class="cs1-code">&#124;보존url=</code>이 잘못됨: $1',	-- $1 is error message detail
 		anchor = 'archive_url',
 		category = '인용 오류 - 보존url',
-		hidden = false },
-	arxiv_missing = {
-		message = '<code style="'..code_style..'">&#124;arxiv=</code>가 필요함',
+		hidden = false
+		},
+	err_arxiv_missing = {
+		message = '<code class="cs1-code">&#124;arxiv=</code>가 필요함',
 		anchor = 'arxiv_missing',
 		category = '인용 오류 - arXiv',											-- same as bad arxiv
-		hidden = false },
-	arxiv_params_not_supported = {
-		message = 'arXiv 인용에서 지원되지 않는 변수를 사용함',
-		anchor = 'arxiv_params_not_supported',
-		category = '인용 오류 - arXiv',											-- same as bad arxiv
-		hidden = false },
-	bad_arxiv = {
-		message = '<code style="'..code_style..'">&#124;arxiv=</code> 값 확인 필요',
+		hidden = false
+		},
+	err_asintld_missing_asin = {
+		message = '<code class="cs1-code">&#124;$1=</code> 변수는 <code class="cs1-code">&#124;asin=</code>을 필요로 함',	-- $1 is parameter name
+		anchor = 'asintld_missing_asin',
+		category = '인용 오류 - ASIN TLD',
+		hidden = false
+		},
+	err_bad_arxiv = {
+		message = '<code class="cs1-code">&#124;arxiv=</code> 값 확인 필요',
 		anchor = 'bad_arxiv',
 		category = '인용 오류 - arXiv',
-		hidden = false },
-	bad_asin = {
-		message = '<code style="'..code_style..'">&#124;asin=</code> 값 확인 필요',
+		hidden = false
+		},
+	err_bad_asin = {
+		message = '<code class="cs1-code">&#124;asin=</code> 값 확인 필요',
 		anchor = 'bad_asin',
 		category ='인용 오류 - ASIN',
-		hidden = false },
-	bad_date = {
-		message = '다음 날짜 값 확인 필요: <code style="'..code_style..'">$1</code>',
+		hidden = false
+		},
+	err_bad_asin_tld = {
+		message = '<code class="cs1-code">&#124;asin-tld=</code> 값 확인 필요',
+		anchor = 'bad_asin_tld',
+		category ='인용 오류 - ASIN TLD',
+		hidden = false
+		},
+	err_bad_bibcode = {
+		message = '<code class="cs1-code">&#124;bibcode=</code> 값 확인 필요',		-- $1 is error message detail
+		anchor = 'bad_bibcode',
+		category = '인용 오류 - bibcode',
+		hidden = false
+		},
+	err_bad_biorxiv = {
+		message = '<code class="cs1-code">&#124;biorxiv=</code> 값 확인 필요',
+		anchor = 'bad_biorxiv',
+		category = '인용 오류 - bioRxiv',
+		hidden = false
+		},
+	err_bad_citeseerx = {
+		message = '<code class="cs1-code">&#124;citeseerx=</code> 값 확인 필요',
+		anchor = 'bad_citeseerx',
+		category = '인용 오류 - citeseerx',
+		hidden = false
+		},
+	err_bad_date = {
+		message = '다음 날짜 값 확인 필요: $1',									-- $1 is a parameter name list
 		anchor = 'bad_date',
 		category = '인용 오류 - 날짜',
-		hidden = true },
-	bad_doi = {
-		message = '<code style="'..code_style..'">&#124;doi=</code> 값 확인 필요',
+		hidden = false
+		},
+	err_bad_doi = {
+		message = '<code class="cs1-code">&#124;doi=</code> 값 확인 필요',
 		anchor = 'bad_doi',
 		category = '인용 오류 - DOI',
-		hidden = false },
-	bad_hdl = {
-		message = '<code style="'..code_style..'">&#124;hdl=</code> 값 확인 필요',
+		hidden = false
+		},
+	err_bad_hdl = {
+		message = '<code class="cs1-code">&#124;hdl=</code> 값 확인 필요',
 		anchor = 'bad_hdl',
 		category = '인용 오류 - HDL',
-		hidden = false },
-	bad_isbn = {
-		message = '<code style="'..code_style..'">&#124;isbn=</code> 값 확인 필요: $1',
+		hidden = false
+		},
+	err_bad_isbn = {
+		message = '<code class="cs1-code">&#124;isbn=</code> 값 확인 필요: $1',	-- $1 is error message detail
 		anchor = 'bad_isbn',
 		category = '인용 오류 - ISBN',
-		hidden = false },
-	bad_ismn = {
-		message = '<code style="'..code_style..'">&#124;ismn=</code> 값 확인 필요',
+		hidden = false
+		},
+	err_bad_ismn = {
+		message = '<code class="cs1-code">&#124;ismn=</code> 값 확인 필요',
 		anchor = 'bad_ismn',
 		category = '인용 오류 - ISMN',
-		hidden = false },
-	bad_issn = {
-		message = '<code style="'..code_style..'">&#124;$1issn=</code> 값 확인 필요',
+		hidden = false
+		},
+	err_bad_issn = {
+		message = '<code class="cs1-code">&#124;$1issn=</code> 값 확인 필요',	-- $1 is 'e' or '' for eissn or issn
 		anchor = 'bad_issn',
 		category = '인용 오류 - ISSN',
-		hidden = false },
-	bad_lccn = {
-		message = '<code style="'..code_style..'">&#124;lccn=</code> 값 확인 필요',
+		hidden = false
+		},
+	err_bad_jfm = {
+		message = '<code class="cs1-code">&#124;jfm=</code> 값 확인 필요',
+		anchor = 'bad_jfm',
+		category = '인용 오류 - JFM',
+		hidden = false
+		},
+	err_bad_jstor = {
+		message = '<code class="cs1-code">&#124;jstor=</code> 값 확인 필요',
+		anchor = 'bad_jstor',
+		category = '인용 오류 - JSTOR',
+		hidden = false
+		},
+	err_bad_lccn = {
+		message = '<code class="cs1-code">&#124;lccn=</code> 값 확인 필요',
 		anchor = 'bad_lccn',
 		category = '인용 오류 - LCCN',
-		hidden = false },
-	bad_message_id = {
-		message = '<code style="'..code_style..'">&#124;메시지id=</code> 값 확인 필요',
-		anchor = 'bad_message_id',
-		category = '인용 오류 - 메시지id',
-		hidden = false },
-	bad_ol = {
-		message = '<code style="'..code_style..'">&#124;ol=</code> 값 확인 필요',
-		anchor = 'bad_ol',
-		category = '인용 오류 - OL',
-		hidden = false },
-	bad_paramlink = {															-- for |title-link=, |author/editor/translator-link=, |series-link=, |episode-link=
-		message = '<code style="'..code_style..'">&#124;$1=</code> 값 확인 필요',
-		anchor = 'bad_paramlink',
-		category = '인용 오류 - 변수 링크',
-		hidden = false },
-	bad_pmc = {
-		message = '<code style="'..code_style..'">&#124;pmc=</code> 값 확인 필요',
-		anchor = 'bad_pmc',
-		category = '인용 오류 - PMC',
-		hidden = false },
-	bad_pmid = {
-		message = '<code style="'..code_style..'">&#124;pmid=</code> 값 확인 필요',
-		anchor = 'bad_pmid',
-		category = '인용 오류 - PMID',
-		hidden = false },
-	bad_oclc = {
-		message = '<code style="'..code_style..'">&#124;oclc=</code> 값 확인 필요',
+		hidden = false
+		},
+	err_bad_mr = {
+		message = '<code class="cs1-code">&#124;mr=</code> 값 확인 필요',
+		anchor = 'bad_mr',
+		category = '인용 오류 - MR',
+		hidden = false
+		},
+	err_bad_oclc = {
+		message = '<code class="cs1-code">&#124;oclc=</code> 값 확인 필요',
 		anchor = 'bad_oclc',
 		category = '인용 오류 - OCLC',
-		hidden = false },
-	bad_url = {
-		message = '$1 값 확인 필요',
+		hidden = false
+		},
+	err_bad_ol = {
+		message = '<code class="cs1-code">&#124;ol=</code> 값 확인 필요',
+		anchor = 'bad_ol',
+		category = '인용 오류 - OL',
+		hidden = false
+		},
+	err_bad_osti = {
+		message = '<code class="cs1-code">&#124;osti=</code> 값 확인 필요',
+		anchor = 'bad_osti',
+		category = '인용 오류 - OSTI',
+		hidden = false
+		},
+	err_bad_paramlink = {														-- for |title-link=, |author/editor/translator-link=, |series-link=, |episode-link=
+		message = '<code class="cs1-code">&#124;$1=</code> 값 확인 필요',		-- $1 is parameter name
+		anchor = 'bad_paramlink',
+		category = '인용 오류 - 변수 링크',
+		hidden = false
+		},
+	err_bad_pmc = {
+		message = '<code class="cs1-code">&#124;pmc=</code> 값 확인 필요',
+		anchor = 'bad_pmc',
+		category = '인용 오류 - PMC',
+		hidden = false
+		},
+	err_bad_pmid = {
+		message = '<code class="cs1-code">&#124;pmid=</code> 값 확인 필요',
+		anchor = 'bad_pmid',
+		category = '인용 오류 - PMID',
+		hidden = false
+		},
+	err_bad_rfc = {
+		message = '<code class="cs1-code">&#124;rfc=</code> 값 확인 필요',
+		anchor = 'bad_rfc',
+		category = '인용 오류 - RFC',
+		hidden = false
+		},
+	err_bad_s2cid = {
+		message = '<code class="cs1-code">&#124;s2cid=</code> 값 확인 필요',
+		anchor = 'bad_s2cid',
+		category = '인용 오류 - S2CID',
+		hidden = false
+		},
+	err_bad_sbn = {
+		message = '<code class="cs1-code">&#124;sbn=</code> 값 확인 필요: $1',	-- $1 is error message detail
+		anchor = 'bad_sbn',
+		category = '인용 오류 - SBN',
+		hidden = false
+		},
+	err_bad_ssrn = {
+		message = '<code class="cs1-code">&#124;ssrn=</code> 값 확인 필요',
+		anchor = 'bad_ssrn',
+		category = '인용 오류 - SSRN',
+		hidden = false
+		},
+	err_bad_url = {
+		message = '$1 값 확인 필요',												-- $1 is parameter name
 		anchor = 'bad_url',
 		category = '인용 오류 - URL',
-		hidden = false },
-	bare_url_missing_title = {
-		message = '$1은 제목을 필요로 함',
+		hidden = false
+		},
+	err_bad_usenet_id = {
+		message = '<code class="cs1-code">&#124;메시지id=</code> 값 확인 필요',
+		anchor = 'bad_message_id',
+		category = '인용 오류 - 메시지id',
+		hidden = false
+		},
+	err_bad_zbl = {
+		message = '<code class="cs1-code">&#124;zbl=</code> 값 확인 필요',
+		anchor = 'bad_zbl',
+		category = '인용 오류 - Zbl',
+		hidden = false
+		},
+	err_bare_url_missing_title = {
+		message = '$1은 제목을 필요로 함',											-- $1 is parameter name
 		anchor = 'bare_url_missing_title',
 		category = '인용 오류 - 제목 없이 URL을 사용함',
-		hidden = false },
-	chapter_ignored = {
-		message = '<code style="'..code_style..'">&#124;장=</code>이 무시됨',
+		hidden = false
+		},
+	err_biorxiv_missing = {
+		message = '<code class="cs1-code">&#124;biorxiv=</code> 값 필요',
+		anchor = 'biorxiv_missing',
+		category = '인용 오류 - bioRxiv',										-- same as bad bioRxiv
+		hidden = false
+		},
+	err_chapter_ignored = {
+		message = '<code class="cs1-code">&#124;$1=</code> 무시됨',			-- $1 is parameter name
 		anchor = 'chapter_ignored',
 		category = '인용 오류 - 장이 무시됨',
-		hidden = false },
-	citation_missing_title = {
-		message = '<code style="'..code_style..'">&#124;$1=</code>이(가) 없거나 비었음',
+		hidden = false
+		},
+	err_citation_missing_title = {
+		message = '<code class="cs1-code">&#124;$1=</code> 변수가 없거나 비었음',	-- $1 is parameter name
 		anchor = 'citation_missing_title',
 		category = '인용 오류 - 제목이 없음',
-		hidden = false },
-	cite_web_url = {															-- this error applies to cite web and to cite podcast
-		message = '<code style="'..code_style..'">&#124;url=</code>이 없거나 비었음',
+		hidden = false
+		},
+	err_citeseerx_missing = {
+		message = '<code class="cs1-code">&#124;citeseerx=</code> 값 필요',
+		anchor = 'citeseerx_missing',
+		category = '인용 오류 - citeseerx',										-- same as bad citeseerx
+		hidden = false
+		},
+	err_cite_web_url = {														-- this error applies to cite web and to cite podcast
+		message = '<code class="cs1-code">&#124;url=</code> 변수가 없거나 비었음',
 		anchor = 'cite_web_url',
 		category = '인용 오류 - URL이 없음',
-		hidden = true },
-	coauthors_missing_author = {
-		message = '<code style="'..code_style..'">&#124;공저자=</code>는 <code style="'..code_style..'">&#124;저자=</code>를 필요로 함',
-		anchor = 'coauthors_missing_author',
-		category = '인용 오류 - 저자 없이 공저자를 사용함',
-		hidden = false },
-	contributor_ignored = {
-		message = '<code style="'..code_style..'">&#124;contributor=</code> ignored</code>',
+		hidden = false
+		},
+	err_class_ignored = {
+		message = '<code class="cs1-code">&#124;분류=</code> ignored',
+		anchor = 'class_ignored',
+		category = '인용 오류 - arXiv 분류',											-- 로컬: 현재 분류명 "인용 오류 - 클래스". category와 중복되는데 수정 필요?
+		hidden = false
+		},
+	err_contributor_ignored = {
+		message = '<code class="cs1-code">&#124;contributor=</code> 무시됨',
 		anchor = 'contributor_ignored',
-		category = 'CS1 errors: contributor',
-		hidden = false },
-	contributor_missing_required_param = {
-		message = '<code style="'..code_style..'">&#124;contributor=</code> requires <code style="'..code_style..'">&#124;$1=</code>',
+		category = '인용 오류 - contributor',
+		hidden = false
+		},
+	err_contributor_missing_required_param = {
+		message = '<code class="cs1-code">&#124;contributor=</code>는 <code class="cs1-code">&#124;$1=</code>를 필요로 함',	-- $1 is parameter name
 		anchor = 'contributor_missing_required_param',
-		category = 'CS1 errors: contributor',
-		hidden = false },
-	deprecated_params = {
-		message = '더 이상 지원되지 않는 변수를 사용함',
+		category = '인용 오류 - contributor',
+		hidden = false
+		},
+	err_deprecated_params = {
+		message = '더 이상 지원되지 않는 변수를 사용함: <code class="cs1-code">&#124;$1=</code>',	-- $1 is parameter name
 		anchor = 'deprecated_params',
 		category = '인용 오류 - 오래된 변수를 사용함',
-		hidden = true },
-	empty_citation = {
+		hidden = false
+		},
+	err_disp_name = {
+		message = '잘못된 <code class="cs1-code">&#124;$1=$2</code>',			-- $1 is parameter name; $2 is the assigned value
+		anchor = 'disp_name',
+		category = '인용 오류 - 저자표시',
+		hidden = false,
+		},
+	err_doibroken_missing_doi = {
+		message = '<code class="cs1-code">&#124;$1=</code>는 <code class="cs1-code">&#124;doi=</code>를 필요로 함',	-- $1 is parameter name
+		anchor = 'doibroken_missing_doi',
+		category = '인용 오류 - DOI',
+		hidden = false
+		},
+	err_embargo_missing_pmc = {
+		message = '<code class="cs1-code">&#124;$1=</code>는 <code class="cs1-code">&#124;pmc=</code>를 필요로 함',	-- $1 is parameter name
+		anchor = 'embargo_missing_pmc',
+		category = '인용 오류 - PMC 엠바고',
+		hidden = false
+		},
+	err_empty_citation = {
 		message = '인용 틀이 비었음',
 		anchor = 'empty_citation',
 		category = '인용 오류 - 인용 틀이 비었음',
-		hidden = false },
-	first_missing_last = {
-		message = '이름 목록에서 <code style="'..code_style..'">&#124;이름$2=</code>이(가) 있지만 <code style="'..code_style..'">&#124;성$2=</code>이(가) 없음', -- 수정 필요
+		hidden = false
+		},
+	err_etal = {
+		message = '<code class="cs1-code">&#124;$1=</code>에서 et al.을 직접 사용함',	-- $1 is parameter name
+		anchor = 'explicit_et_al',
+		category = '인용 오류 - et al.',
+		hidden = false
+		},
+	err_extra_text_edition = {
+		message = '<code class="cs1-code">&#124;판=</code>에 불필요한 문구가 있음',
+		anchor = 'extra_text_edition',
+		category = '인용 오류 - 추가 문구: 판',
+		hidden = false,
+		},
+	err_extra_text_issue = {
+		message = '<code class="cs1-code">&#124;$1=</code>에 불필요한 문구가 있음',		-- $1 is parameter name
+		anchor = 'extra_text_issue',
+		category = '인용 오류 - 추가 문구: 호',
+		hidden = false,
+		},
+	err_extra_text_pages = {
+		message = '<code class="cs1-code">&#124;$1=</code>에 불필요한 문구가 있음',		-- $1 is parameter name
+		anchor = 'extra_text_pages',
+		category = '인용 오류 - 추가 문구: 쪽',
+		hidden = false,
+		},
+	err_extra_text_volume = {
+		message = '<code class="cs1-code">&#124;$1=</code>에 불필요한 문구가 있음',		-- $1 is parameter name
+		anchor = 'extra_text_volume',
+		category = '인용 오류 - 추가 문구: 권',
+		hidden = true,
+		},
+	err_first_missing_last = {
+		message = '<code class="cs1-code">&#124;$1=</code>에 <code class="cs1-code">&#124;$2=</code>이(가) 없음',	-- $1 is first alias, $2 is matching last alias
 		anchor = 'first_missing_last',
-		category = '인용 오류 - 저자 또는 편집자 없음',
-		hidden = false },
-	format_missing_url = {
-		message = '<code style="'..code_style..'">&#124;$1=</code>은 <code style="'..code_style..'">&#124;$2=</code>을 필요로 함',
+		category = '인용 오류 - 이름이 없음', -- author, contributor, editor, interviewer, translator
+		hidden = false
+		},
+	err_format_missing_url = {
+		message = '<code class="cs1-code">&#124;$1=</code>은 <code class="cs1-code">&#124;$2=</code>을 필요로 함',	-- $1 is format parameter $2 is url parameter
 		anchor = 'format_missing_url',
 		category = '인용 오류 - URL 없이 형식을 사용함',
-		hidden = true },
-	invalid_param_val = {
-		message = '다음 값 잘못됨: <code style="'..code_style..'">&#124;$1=$2</code>',
+		hidden = false
+		},
+	err_generic_name = {
+		message = '<code class="cs1-code">&#124;$1=</code>에 일반적인 이름을 사용함',	-- $1 is parameter name
+		anchor = 'generic_name',
+		category = '인용 오류 - 일반적인 이름',
+		hidden = false,
+		},
+	err_generic_title = {
+		message = '일반적인 제목을 사용함',
+		anchor = 'generic_title',
+		category = '인용 오류 - 일반적인 제목',
+		hidden = false,
+		},
+	err_invalid_param_val = {
+		message = '잘못된 <code class="cs1-code">&#124;$1=$2</code> 값',			-- $1 is parameter name $2 is parameter value
 		anchor = 'invalid_param_val',
 		category = '인용 오류 - 잘못된 변수 값',
-		hidden = false },
-	invisible_char = {
-		message = '$2에 $1가 있음(위치 $3)',
+		hidden = false
+		},
+	err_invisible_char = {
+		message = '$2에 $1가 있음(위치 $3)',									-- $1 is invisible char $2 is parameter name $3 is position number
 		anchor = 'invisible_char',
 		category = '인용 오류 - 보이지 않는 문자',
-		hidden = false },
-	missing_name = {
-		message = '이름 목록에서 <code style="'..code_style..'">&#124;성$2=</code>이(가) 없음', -- 수정 필요
-		anchor = 'missing_name',
-		category = '인용 오류 - 저자 또는 편집자 없음',
-		hidden = false },
-	param_has_ext_link = {
-		message = '<code style="'..code_style..'">$1</code>에 외부 링크가 있음',
+		hidden = false
+		},
+	err_missing_name = {
+		message = '<code class="cs1-code">&#124;$1$2=</code> 값 없음',			-- $1 is modified NameList; $2 is enumerator
+		anchor = 'missing_name',												-- 로컬: '인용 오류 - 저자 또는 편집자 없음' 삭제 필요
+		category = '인용 오류 - 이름이 없음',									-- author, contributor, editor, interviewer, translator
+		hidden = false
+		},
+	err_missing_periodical = {
+		message = '$1 인용은 <code class="cs1-code">&#124;$2=</code> 변수를 필요로 함',	-- $1 is cs1 template name; $2 is canonical periodical parameter name for cite $1
+		anchor = 'missing_periodical',
+		category = '인용 오류 - 저널 이름 없음',
+		hidden = true
+		},
+	err_missing_pipe = {
+		message = '<code class="cs1-code">&#124;$1=</code> 값에 수직선이 없음',	-- $1 is parameter name
+		anchor = 'missing_pipe',
+		category = '인용 오류 - 수직선 없음',
+		hidden = false
+		},
+	err_param_access_requires_param = {
+		message = '<code class="cs1-code">&#124;$1확인=</code>은 <code class="cs1-code">&#124;$1=</code>을(를) 필요로 함',	-- $1 is parameter name
+		anchor = 'param_access_requires_param',
+		category = '인용 오류 - 확인 변수가 없음',
+		hidden = false
+		},
+	err_param_has_ext_link = {
+		message = '<code class="cs1-code">$1</code>에 외부 링크가 있음',			-- $1 is parameter name
 		anchor = 'param_has_ext_link',
 		category = '인용 오류 - 외부 링크',
-		hidden = false },
-	parameter_ignored = {
-		message = '지원되지 않는 변수 무시됨: <code style="'..code_style..'">&#124;$1=</code>',
+		hidden = false
+		},
+	err_parameter_ignored = {
+		message = '지원되지 않는 변수 무시됨: <code class="cs1-code">&#124;$1=</code>',	-- $1 is parameter name
 		anchor = 'parameter_ignored',
 		category = '인용 오류 - 지원되지 않는 변수 무시됨',
-		hidden = true },
-	parameter_ignored_suggest = {
-		message = '지원되지 않는 변수 무시됨: <code style="'..code_style..'">&#124;$1=</code> (추천: <code style="'..code_style..'">&#124;$2=</code>)',
+		hidden = false
+		},
+	err_parameter_ignored_suggest = {
+		message = '지원되지 않는 변수 무시됨: <code class="cs1-code">&#124;$1=</code> (추천: <code class="cs1-code">&#124;$2=</code>)',	-- $1 is unknown parameter $2 is suggested parameter name
 		anchor = 'parameter_ignored_suggest',
 		category = '인용 오류 - 지원되지 않는 변수 무시됨',
-		hidden = true },
-	redundant_parameters = {
-		message = '필요 이상의 변수가 사용됨: $1',
+		hidden = false
+		},
+	err_redundant_parameters = {
+		message = '필요 이상의 변수가 사용됨: $1',								-- $1 is error message detail
 		anchor = 'redundant_parameters',
-		category = '인용 오류 - 필요 이상의 변수가 사용됨',
-		hidden = false },
-	text_ignored = {
-		message = '다음 글자 무시됨: &lsquo;$1&rsquo;',
+		category = '인용 오류 - 지원되지 않는 변수 무시됨',
+		hidden = false
+		},
+	err_script_parameter = {
+		message = '잘못된 <code class="cs1-code">&#124;$1=</code>: $2',		-- $1 is parameter name $2 is script language code or error detail
+		anchor = 'script_parameter',
+		category = '인용 오류 - 스크립트 변수',
+		hidden = false
+		},
+	err_ssrn_missing = {
+		message = '<code class="cs1-code">&#124;ssrn=</code> 값 필요',
+		anchor = 'ssrn_missing',
+		category = '인용 오류 - SSRN',											-- same as bad arxiv
+		hidden = false
+		},
+	err_text_ignored = {
+		message = '다음 글자 무시됨: "$1"',											-- $1 is ignored text
 		anchor = 'text_ignored',
 		category = '인용 오류 - 이름 없는 변수가 사용됨',
-		hidden = false },
-	trans_missing_title = {
-		message = '<code style="'..code_style..'">&#124;번역$1=</code>은 <code style="'..code_style..'">&#124;$1=</code>을 필요로 함',
+		hidden = false
+		},
+	err_trans_missing_title = {
+		message = '<code class="cs1-code">&#124;$1번역=</code>은 <code class="cs1-code">&#124;$1=</code> or <code class="cs1-code">&#124;script-$1=</code>를(을) 필요로 함',	-- $1 is base parameter name
 		anchor = 'trans_missing_title',
 		category = '인용 오류 - 번역된 제목',
-		hidden = false },
-	vancouver = {
-		message = '밴쿠버 양식 오류',
+		hidden = false
+		},
+	err_param_unknown_empty = {
+		message = '알 수 없는 빈 변수가 있음: $2',						-- $1 is 's' or empty space; $2 is emty unknown param list
+		anchor = 'param_unknown_empty',
+		category = '인용 오류 - 알 수 없는 빈 변수',
+		hidden = false
+		},
+	err_vancouver = {
+		message = '밴쿠버 양식 오류: 이름 $2에 $1이(가) 있음',						-- $1 is error detail, $2 is the nth name
 		anchor = 'vancouver',
 		category = '인용 오류 - 밴쿠버 양식',
-		hidden = false },
-	wikilink_in_url = {
-		message = 'URL과 위키 링크가 충돌함',
+		hidden = false
+		},
+	err_wikilink_in_url = {
+		message = 'URL과 위키 링크가 충돌함',										-- uses ndash
 		anchor = 'wikilink_in_url',
-		category = '인용 오류 - URL과 위키 링크가 충돌함',
-		hidden = false },
-}
+		category = '인용 오류 - URL과 위키 링크가 충돌함',							-- uses ndash
+		hidden = false
+		},
+
+
+--[[--------------------------< M A I N T >-------------------------------------
+
+maint messages do not have a message (message = nil); otherwise the structure
+is the same as error messages
+
+]]
+
+	maint_archived_copy = {
+		message = nil,
+		anchor = 'archived_copy',
+		category = 'CS1 관리 - 제목으로 archived copy를 사용함',
+		hidden = true,
+		},
+	maint_authors = {
+		message = nil,
+		anchor = 'authors',
+		category = 'CS1 관리 - 인물 변수를 사용함',
+		hidden = true,
+		},
+	maint_bot_unknown = {
+		message = nil,
+		anchor = 'bot:_unknown',
+		category = 'CS1 관리 - 봇: 원본 URL 상태를 알 수 없음',
+		hidden = true,
+		},
+	maint_date_auto_xlated = {													-- date auto-translation not supported by en.wiki
+		message = nil,
+		anchor = 'date_auto_xlated',
+		category = 'CS1 관리 - 자동 번역된 날짜',
+		hidden = true,
+		},
+	maint_date_format = {
+		message = nil,
+		anchor = 'date_format',
+		category = 'CS1 관리 - 날짜 형식',
+		hidden = true,
+		},
+	maint_date_year = {
+		message = nil,
+		anchor = 'date_year',
+		category = 'CS1 관리 - 날짜 형식',
+		hidden = true,
+		},
+	maint_doi_ignore = {
+		message = nil,
+		anchor = 'doi_ignore',
+		category = 'CS1 관리 - DOI 오류 무시',
+		hidden = true,
+		},
+	maint_doi_inactive = {
+		message = nil,
+		anchor = 'doi_inactive',
+		category = 'CS1 관리 - 비활성화된 DOI',
+		hidden = true,
+		},
+	maint_doi_inactive_dated = {
+		message = nil,
+		anchor = 'doi_inactive_dated',
+		category = 'CS1 관리 - 비활성화된 DOI',						-- $1 is year, $2 is month-name or empty string, $3 is space or empty string
+		hidden = true,
+		},
+	maint_extra_punct = {
+		message = nil,
+		anchor = 'extra_punct',
+		category = 'CS1 관리 - 추가 구두점',
+		hidden = true,
+		},
+	maint_isbn_ignore = {
+		message = nil,
+		anchor = 'ignore_isbn_err',
+		category = 'CS1 관리 - ISBN 오류 무시',
+		hidden = true,
+		},
+	maint_issn_ignore = {
+		message = nil,
+		anchor = 'ignore_issn',
+		category = 'CS1 관리 - ISBN 오류 무시',
+		hidden = true,
+		},
+	maint_jfm_format = {
+		message = nil,
+		anchor = 'jfm_format',
+		category = 'CS1 관리 - JFM 형식',
+		hidden = true,
+		},
+	maint_location = {
+		message = nil,
+		anchor = 'location',
+		category = 'CS1 관리 - 위치',
+		hidden = true,
+	},
+	maint_mr_format = {
+		message = nil,
+		anchor = 'mr_format',
+		category = 'CS1 관리 - MR 형식',
+		hidden = true,
+	},
+	maint_mult_names = {
+		message = nil,
+		anchor = 'mult_names',
+		category = 'CS1 관리 - 여러 이름',								-- $1 is '<name>s list'; gets value from special_case_translation table
+		hidden = true,
+		},
+	maint_numeric_names = {
+		message = nil,
+		anchor = 'numeric_names',
+		category = 'CS1 관리 - 숫자 이름',								-- $1 is '<name>s list'; gets value from special_case_translation table
+		hidden = true,
+		},
+	maint_others = {
+		message = nil,
+		anchor = 'others',
+		category = 'CS1 관리 - 기타',
+		hidden = true,
+		},
+	maint_others_avm = {
+		message = nil,
+		anchor = 'others_avm',
+		category = 'CS1 관리 - 기타',
+		hidden = true,
+	},
+	maint_pmc_embargo = {
+		message = nil,
+		anchor = 'embargo',
+		category = 'CS1 관리 - PMC 엠바고 만료',
+		hidden = true,
+		},
+	maint_pmc_format = {
+		message = nil,
+		anchor = 'pmc_format',
+		category = 'CS1 관리 - PMC 형식',
+		hidden = true,
+		},
+	maint_postscript = {
+		message = nil,
+		anchor = 'postscript',
+		category = 'CS1 관리 - 추신',
+		hidden = true,
+	},
+	maint_ref_duplicates_default = {
+		message = nil,
+		anchor = 'ref_default',
+		category = 'CS1 관리 - ref가 기본값과 중복됨',
+		hidden = true,
+	},
+	maint_unfit = {
+		message = nil,
+		anchor = 'unfit',
+		category = 'CS1 관리 - 부적합한 url',
+		hidden = true,
+		},
+	maint_unknown_lang = {
+		message = nil,
+		anchor = 'unknown_lang',
+		category = 'CS1 관리 - 인식할 수 없는 언어',
+		hidden = true,
+		},
+	maint_untitled = {
+		message = nil,
+		anchor = 'untitled',
+		category = 'CS1 관리 - 이름 없는 작품',
+		hidden = true,
+		},
+	maint_url_status = {
+		message = nil,
+		anchor = 'url_status',
+		category = 'CS1 관리 - url상태',
+		hidden = true,
+		},
+	maint_zbl = {
+		message = nil,
+		anchor = 'zbl',
+		category = 'CS1 관리 -  Zbl',
+		hidden = true,
+		},
+	}
+
 
 --[[--------------------------< I D _ H A N D L E R S >--------------------------------------------------------
 
-The following contains a list of values for various defined identifiers.  For each identifier we specify a
-variety of information necessary to properly render the identifier in the citation.
+The following contains a list of values for various defined identifiers.  For each
+identifier we specify a variety of information necessary to properly render the
+identifier in the citation.
 
-	parameters: a list of parameter aliases for this identifier
+	parameters: a list of parameter aliases for this identifier; first in the list is the canonical form
 	link: Wikipedia article name
-	label: the alternate name to apply to link
-	mode: 	'manual' when there is a specific function in the code to handle the identifier;
-			'external' for identifiers that link outside of Wikipedia;
-	prefix: the first part of a url that will be concatenated with a second part which usually contains the identifier
-	encode: true if uri should be percent encoded; otherwise false
+	redirect: a local redirect to a local Wikipedia article name;  at en.wiki, 'ISBN (식별자)' is a redirect to 'International Standard Book Number'
+	q: Wikidata q number for the identifier
+	label: the label preceeding the identifier; label is linked to a Wikipedia article (in this order):
+		redirect from id_handlers['<id>'].redirect when use_identifier_redirects is true
+		Wikidata-supplied article name for the local wiki from id_handlers['<id>'].q
+		local article name from id_handlers['<id>'].link
+	prefix: the first part of a URL that will be concatenated with a second part which usually contains the identifier
+	suffix: optional third part to be added after the identifier
+	encode: true if URI should be percent-encoded; otherwise false
 	COinS: identifier link or keyword for use in COinS:
-		for identifiers registered at info-uri.info use: info:....
+		for identifiers registered at info-uri.info use: info:.... where '...' is the appropriate identifier label 
 		for identifiers that have COinS keywords, use the keyword: rft.isbn, rft.issn, rft.eissn
-		for others make a url using the value in prefix, use the keyword: pre (not checked; any text other than 'info' or 'rft' works here)
+		for |asin= and |ol=, which require assembly, use the keyword: url
+		for others make a URL using the value in prefix/suffix and #label, use the keyword: pre (not checked; any text other than 'info', 'rft', or 'url' works here)
 		set to nil to leave the identifier out of the COinS
 	separator: character or text between label and the identifier in the rendered citation
+	id_limit: for those identifiers with established limits, this property holds the upper limit
+	access: use this parameter to set the access level for all instances of this identifier.
+		the value must be a valid access level for an identifier (see ['id-access'] in this file).
+	custom_access: to enable custom access level for an identifier, set this parameter
+		to the parameter that should control it (normally 'id-access')
+		
 ]]
 
 local id_handlers = {
 	['ARXIV'] = {
-		parameters = {'arxiv', 'ARXIV', 'eprint', '전자문서'}, 
+		parameters = {'arxiv', 'eprint', '전자문서'},
 		link = 'arXiv',
+		redirect = 'arXiv (식별자)',
+		q = 'Q118398',
 		label = 'arXiv',
-		mode = 'manual',
-		prefix = '//arxiv.org/abs/', 											-- protocol relative tested 2013-09-04
+		prefix = '//arxiv.org/abs/', 											-- protocol-relative tested 2013-09-04
 		encode = false,
 		COinS = 'info:arxiv',
 		separator = ':',
-	},
+		access = 'free',														-- free to read
+		},
 	['ASIN'] = {
-		parameters = { 'asin', 'ASIN' },	   
+		parameters = { 'asin', 'ASIN' },
 		link = '아마존 표준 식별 번호',
+		redirect = 'ASIN (식별자)',
+		q = 'Q1753278',
 		label = 'ASIN',
-		mode = 'manual',
 		prefix = '//www.amazon.',
-		COinS = nil,															-- no COinS for this id (needs thinking on implementation because |asin-tld=)
+		COinS = 'url',
 		separator = '&nbsp;',
 		encode = false;
-	},
+		},
 	['BIBCODE'] = {
-		parameters = {'bibcode', 'BIBCODE'}, 
+		parameters = {'bibcode'},
 		link = '비브코드',
+		redirect = '비브코드 (식별자)',
+		q = 'Q25754',
 		label = 'Bibcode',
-		mode = 'external',
-		prefix = 'http://adsabs.harvard.edu/abs/',
+		prefix = 'https://ui.adsabs.harvard.edu/abs/',
 		encode = false,
 		COinS = 'info:bibcode',
 		separator = ':',
-	},
-	['DOI'] = {
-		parameters = { 'doi', 'DOI' },
+		custom_access = 'bibcode-access',
+		},
+	['BIORXIV'] = {
+		parameters = {'biorxiv'},
+		link = 'bioRxiv',
+		redirect = 'bioRxiv (식별자)',
+		q = 'Q19835482',
+		label = 'bioRxiv',
+		prefix = '//doi.org/',
+		COinS = 'pre',															-- use prefix value
+		access = 'free',														-- free to read
+		encode = true,
+		separator = '&nbsp;',
+		},
+	['CITESEERX'] = {
+		parameters = {'citeseerx'},
+		link = 'CiteSeerX',
+		redirect = 'CiteSeerX (식별자)',
+		q = 'Q2715061',
+		label = 'CiteSeerX',
+		prefix = '//citeseerx.ist.psu.edu/viewdoc/summary?doi=',
+		COinS =  'pre',															-- use prefix value
+		access = 'free',														-- free to read
+		encode = true,
+		separator = '&nbsp;',
+		},
+	['DOI'] = {																	-- Used by InternetArchiveBot
+		parameters = { 'doi', 'DOI'},
 		link = '디지털 객체 식별자',
+		redirect = 'doi (식별자)',
+		q = 'Q25670',
 		label = 'doi',
-		mode = 'manual',
-		prefix = '//dx.doi.org/',
+		prefix = '//doi.org/',
 		COinS = 'info:doi',
 		separator = ':',
 		encode = true,
-	},
+		custom_access = 'doi-access',
+		},
 	['EISSN'] = {
-		parameters = {'eissn', 'EISSN'}, 
-		link = '국제 표준 일련 번호',
+		parameters = {'eissn', 'EISSN'},
+		link = '국제 표준 연속 간행물 번호',
+		redirect = 'eISSN (식별자)',
+		q = 'Q46339674',
 		label = 'eISSN',
-		mode = 'manual',
 		prefix = '//www.worldcat.org/issn/',
 		COinS = 'rft.eissn',
 		encode = false,
 		separator = '&nbsp;',
-	},
+		},
 	['HDL'] = {
 		parameters = { 'hdl', 'HDL' },
 		link = '핸들 시스템',
+		redirect = 'hdl (식별자)',
+		q = 'Q3126718',
 		label = 'hdl',
-		mode = 'manual',
 		prefix = '//hdl.handle.net/',
 		COinS = 'info:hdl',
 		separator = ':',
 		encode = true,
-	},
-	['ISBN'] = {
-		parameters = {'isbn', 'ISBN', 'isbn13', 'ISBN13'}, 
-		link = '국제 표준 도서 번호',
+		custom_access = 'hdl-access',
+		},
+	['ISBN'] = {																-- Used by InternetArchiveBot
+		parameters = {'isbn', 'ISBN'},
+		link = '국제 표준 연속 간행물 번호',
+		redirect = 'ISBN (식별자)',
+		q = 'Q33057',
 		label = 'ISBN',
-		mode = 'manual',
 		prefix = 'Special:BookSources/',
 		COinS = 'rft.isbn',
 		separator = '&nbsp;',
-	},
+		},
 	['ISMN'] = {
-		parameters = {'ismn', 'ISMN'}, 
-		link = '국제 표준 음악 번호',
+		parameters = {'ismn', 'ISMN'},
+		link = '국제표준음악번호',
+		redirect = 'ISMN (식별자)',
+		q = 'Q1666938',
 		label = 'ISMN',
-		mode = 'manual',
-		prefix = '',															-- not currently used; 
-		COinS = 'nil',															-- nil because we can't use pre or rft or info:
+		prefix = '',															-- not currently used;
+		COinS = nil,															-- nil because we can't use pre or rft or info:
 		separator = '&nbsp;',
-	},
+		},
 	['ISSN'] = {
-		parameters = {'issn', 'ISSN'}, 
-		link = '국제 표준 일련 번호',
+		parameters = {'issn', 'ISSN'},
+		link = '국제 표준 연속 간행물 번호',
+		redirect = 'ISSN (식별자)',
+		q = 'Q131276',
 		label = 'ISSN',
-		mode = 'manual',
 		prefix = '//www.worldcat.org/issn/',
 		COinS = 'rft.issn',
 		encode = false,
 		separator = '&nbsp;',
-	},
+		},
 	['JFM'] = {
-		parameters = {'jfm', 'JFM'}, 
+		parameters = {'jfm', 'JFM'},
 		link = '첸트랄블라트 마트',
+		redirect = 'JFM (식별자)',
+		q = '',
 		label = 'JFM',
-		mode = 'external',
 		prefix = '//zbmath.org/?format=complete&q=an:',
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
-	},
+		},
 	['JSTOR'] = {
-		parameters = {'jstor', 'JSTOR'}, 
+		parameters = {'jstor', 'JSTOR'},
 		link = 'JSTOR',
+		redirect = 'JSTOR (식별자)',
+		q = 'Q1420342',
 		label = 'JSTOR',
-		mode = 'external',
-		prefix = '//www.jstor.org/stable/', 									-- protocol relative tested 2013-09-04
+		prefix = '//www.jstor.org/stable/', 									-- protocol-relative tested 2013-09-04
 		COinS = 'pre',															-- use prefix value
 		encode = false,
 		separator = '&nbsp;',
-	},
+		custom_access = 'jstor-access',
+		},
 	['LCCN'] = {
-		parameters = {'LCCN', 'lccn'}, 
+		parameters = {'lccn', 'LCCN'},
 		link = '미국 의회도서관 제어 번호',
+		redirect = 'LCCN (식별자)',
+		q = 'Q620946',
 		label = 'LCCN',
-		mode = 'manual',
-		prefix = '//lccn.loc.gov/', 											-- protocol relative tested 2015-12-28
-		COinS = 'info:lccn',													-- use prefix value
+		prefix = '//lccn.loc.gov/', 											-- protocol-relative tested 2015-12-28
+		COinS = 'info:lccn',
 		encode = false,
 		separator = '&nbsp;',
-	},
+		},
 	['MR'] = {
-		parameters = {'MR', 'mr'}, 
-		link = '수학 리뷰',
+		parameters = {'mr', 'MR'},
+		link = 'Mathematical Reviews',
+		redirect = 'MR (식별자)',
+		q = 'Q211172',
 		label = 'MR',
-		mode = 'external',
-		prefix = '//www.ams.org/mathscinet-getitem?mr=', 						-- protocol relative tested 2013-09-04
+		prefix = '//www.ams.org/mathscinet-getitem?mr=', 						-- protocol-relative tested 2013-09-04
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
-	},
+		},
 	['OCLC'] = {
-		parameters = {'OCLC', 'oclc'}, 
+		parameters = {'oclc', 'OCLC'},
 		link = '온라인 컴퓨터 도서관 센터',
+		redirect = 'OCLC (식별자)',
+		q = 'Q190593',
 		label = 'OCLC',
-		mode = 'manual',
 		prefix = '//www.worldcat.org/oclc/',
 		COinS = 'info:oclcnum',
 		encode = true,
 		separator = '&nbsp;',
-	},
+		id_limit = 9999999999,													-- 10-digits
+		},
 	['OL'] = {
 		parameters = { 'ol', 'OL' },
 		link = '오픈 라이브러리',
+		redirect = 'OL (식별자)',
+		q = 'Q1201876',
 		label = 'OL',
-		mode = 'manual',
 		prefix = '//openlibrary.org/',
-		COinS = nil,															-- no COinS for this id (needs thinking on implementation because /authors/books/works/OL)
+		COinS = 'url',
 		separator = '&nbsp;',
 		encode = true,
-	},
+		custom_access = 'ol-access',
+		},
 	['OSTI'] = {
-		parameters = {'OSTI', 'osti'}, 
+		parameters = {'osti', 'OSTI'},
 		link = '미국 과학기술정보국',
+		redirect = 'OSTI (식별자)',
+		q = 'Q2015776',
 		label = 'OSTI',
-		mode = 'external',
-		prefix = '//www.osti.gov/energycitations/product.biblio.jsp?osti_id=',	-- protocol relative tested 2013-09-04
+		prefix = '//www.osti.gov/biblio/',										-- protocol-relative tested 2018-09-12
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
-	},
+		id_limit = 46000000,													-- 로컬: 2022.05 기준 23000000
+		custom_access = 'osti-access',
+		},
 	['PMC'] = {
-		parameters = {'PMC', 'pmc'}, 
+		parameters = {'pmc', 'PMC'},
 		link = '펍메드 센트럴',
+		redirect = 'PMC (식별자)',
+		q = 'Q229883',
 		label = 'PMC',
-		mode = 'manual',
-		prefix = '//www.ncbi.nlm.nih.gov/pmc/articles/PMC', 
-		suffix = " ",
+		prefix = '//www.ncbi.nlm.nih.gov/pmc/articles/PMC',
+		suffix = '',
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
-	},
+		id_limit = 18200000,													-- 로컬: 2022.05 기준 9100000
+		access = 'free',														-- free to read
+		},
 	['PMID'] = {
-		parameters = {'PMID', 'pmid'}, 
+		parameters = {'pmid', 'PMID'},
 		link = '펍메드',
+		redirect = 'PMID (식별자)',
+		q = 'Q2082879',
 		label = 'PMID',
-		mode = 'manual',
-		prefix = '//www.ncbi.nlm.nih.gov/pubmed/',
+		prefix = '//pubmed.ncbi.nlm.nih.gov/',
 		COinS = 'info:pmid',
 		encode = false,
 		separator = '&nbsp;',
-	},
+		id_limit = 71800000,													-- 로컬: 2022.05 기준 35900000
+		},
 	['RFC'] = {
-		parameters = {'RFC', 'rfc'}, 
+		parameters = {'rfc', 'RFC'},
 		link = 'RFC',
+		redirect = 'RFC (식별자)',
+		q = 'Q212971',
 		label = 'RFC',
-		mode = 'external',
 		prefix = '//tools.ietf.org/html/rfc',
 		COinS = 'pre',															-- use prefix value
 		encode = false,
 		separator = '&nbsp;',
-	},
+		id_limit = 18600,														-- 로컬: 2022.05 기준 9300
+		access = 'free',														-- free to read
+		},
+	['SBN'] = {
+		parameters = {'sbn', 'SBN'},
+		link = '표준도서번호',											-- redirect to International_Standard_Book_Number#History
+		redirect = 'SBN (식별자)',
+		label = 'SBN',
+		prefix = 'Special:BookSources/0-',										-- prefix has leading zero necessary to make 9-digit sbn a 10-digit isbn
+		COinS = nil,															-- nil because we can't use pre or rft or info:
+		separator = '&nbsp;',
+		},
 	['SSRN'] = {
-		parameters = {'SSRN', 'ssrn'}, 
-		link = '사회 과학 연구 네트워크',
+		parameters = {'ssrn', 'SSRN'},
+		link = '사회과학 연구 네트워크',
+		redirect = 'SSRN (식별자)',
+		q = 'Q7550801',
 		label = 'SSRN',
-		mode = 'external',
-		prefix = '//ssrn.com/abstract=', 										-- protocol relative tested 2013-09-04
+		prefix = '//ssrn.com/abstract=', 										-- protocol-relative tested 2013-09-04
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
-	},
+		id_limit = 8200000,														-- 로컬: 2022.05 기준 4100000
+		custom_access = 'ssrn-access',
+		},
+	['S2CID'] = {
+		parameters = {'s2cid', 'S2CID'},
+		link = '시맨틱 스콜라',
+		redirect = 'S2CID (식별자)',
+		q = 'Q22908627',
+		label = 'S2CID',
+		prefix = 'https://api.semanticscholar.org/CorpusID:',
+		COinS = 'pre',															-- use prefix value
+		encode = false,
+		separator = '&nbsp;',
+		id_limit = 500000000,													-- 로컬: 2022.05 기준 250000000
+		custom_access = 's2cid-access',
+		},
 	['USENETID'] = {
 		parameters = {'message-id'},
 		link = '유즈넷',
+		redirect = '유즈넷 (식별자)',
+		q = 'Q193162',
 		label = 'Usenet:',
-		mode = 'manual',
 		prefix = 'news:',
 		encode = false,
 		COinS = 'pre',															-- use prefix value
 		separator = '&nbsp;',
-	},
+		},
 	['ZBL'] = {
-		parameters = {'ZBL', 'zbl'}, 
+		parameters = {'zbl', 'ZBL' },
 		link = '첸트랄블라트 마트',
+		redirect = 'Zbl (식별자)',
+		q = 'Q190269',
 		label = 'Zbl',
-		mode = 'external',
 		prefix = '//zbmath.org/?format=complete&q=an:',
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
-	},
-}
+		},
+	}
+
+
+--[[--------------------------< E X P O R T S >---------------------------------
+]]
 
 return 	{
+	use_identifier_redirects = true,											-- when true use redirect name for identifier label links; always true at en.wiki
+	local_lang_cat_enable = false;												-- when true categorizes pages where |language=<local wiki's language>; always false at en.wiki
+	date_name_auto_xlate_enable = false;										-- when true translates English month-names to the local-wiki's language month names; always false at en.wiki
+	date_digit_auto_xlate_enable = false;										-- when true translates Western date digit to the local-wiki's language digits (date_names['local_digits']); always false at en.wiki
+	
+	global_df = get_date_format (),												-- tables and variables created when this module is loaded
+	punct_skip = build_skip_table (punct_skip, punct_meta_params),
+	url_skip = build_skip_table (url_skip, url_meta_params),
+
 	aliases = aliases,
-	defaults = defaults,
+	special_case_translation = special_case_translation,
+	date_names = date_names,
+	err_msg_supl = err_msg_supl,
 	error_conditions = error_conditions,
+	editor_markup_patterns = editor_markup_patterns,
+	et_al_patterns = et_al_patterns,
 	id_handlers = id_handlers,
-	keywords = keywords,
+	keywords_lists = keywords_lists,
+	keywords_xlate = keywords_xlate,
 	stripmarkers=stripmarkers,
 	invisible_chars = invisible_chars,
+	invisible_defs = invisible_defs,
+	indic_script = indic_script,
+	emoji = emoji,
+	local_lang_cat_enable = local_lang_cat_enable,
 	maint_cats = maint_cats,
 	messages = messages,
 	presentation = presentation,
 	prop_cats = prop_cats,
+	script_lang_codes = script_lang_codes,
+	lang_code_remap = lang_code_remap,
+	lang_name_remap = lang_name_remap,
+	this_wiki_code = this_wiki_code,
 	title_types = title_types,
 	uncategorized_namespaces = uncategorized_namespaces,
 	uncategorized_subpages = uncategorized_subpages,
 	templates_using_volume = templates_using_volume,
 	templates_using_issue = templates_using_issue,
 	templates_not_using_page = templates_not_using_page,
+	vol_iss_pg_patterns = vol_iss_pg_patterns,
+	
+	inter_wiki_map = inter_wiki_map,
+	mw_languages_by_tag_t = mw_languages_by_tag_t,
+	mw_languages_by_name_t = mw_languages_by_name_t,
+	citation_class_map_t = citation_class_map_t,
 	}

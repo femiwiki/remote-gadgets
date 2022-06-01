@@ -398,6 +398,7 @@ local basic_arguments = {
 	['zbl'] = true,
 	['ZBL'] = true,
 	['doi_깨진날짜'] = true,
+	['doi깨진날짜'] = true,
 	['isbn오류무시'] = true,
 	['경유'] = true,
 	['구독'] = true,
