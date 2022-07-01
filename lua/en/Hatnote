@@ -147,7 +147,7 @@ function p._hatnote(s, options)
 		:addClass(inline == 1 and 'hatnote-inline' or 'hatnote')
 		:addClass('navigation-not-searchable')
 		:addClass(extraclasses)
-		:addClass(options.selfref and 'selfref')
+		:addClass(options.selfref and 'selfref' or nil)
 		:wikitext(s)
 	
 	return mw.getCurrentFrame():extensionTag{

@@ -17,7 +17,8 @@ local dates, year_date_check, reformat_dates									-- functions in Module:Cita
 local is_set, in_array, substitute, error_comment, set_error, select_one,		-- functions in Module:Citation/CS1/Utilities
 	add_maint_cat, wrap_style, safe_for_italics, remove_wiki_link;
 
-local z ={};																	-- tables in Module:Citation/CS1/Utilities
+local utilities;																-- functions in Module:Citation/CS1/Utilities
+local z ={};																	-- table of tables in Module:Citation/CS1/Utilities
 
 local extract_ids, build_id_list, is_embargoed;									-- functions in Module:Citation/CS1/Identifiers
 
@@ -1103,41 +1104,76 @@ local function extract_names(args, list_name)
 	return names, etal;															-- all done, return our list of names
 end
 
---[[--------------------------< G E T _ I S O 6 3 9 _ C O D E >------------------------------------------------
+--[[--------------------------< N A M E _ T A G _ G E T >------------------------------------------------------
 
-Validates language names provided in |language= parameter if not an ISO639-1 or 639-2 code.
+attempt to decode |language=<lang_param> and return language name and matching tag; nil else.
 
-Returns the language name and associated two- or three-character code.  Because case of the source may be incorrect
-or different from the case that WikiMedia uses, the name comparisons are done in lower case and when a match is
-found, the Wikimedia version (assumed to be correct) is returned along with the code.  When there is no match, we
-return the original language name string.
+This function looks for:
+	<lang_param> as a tag in cfg.lang_code_remap{}
+	<lang_param> as a name in cfg.lang_name_remap{}
+	
+	<lang_param> as a name in cfg.mw_languages_by_name_t
+	<lang_param> as a tag in cfg.mw_languages_by_tag_t
+when those fail, presume that <lang_param> is an IETF-like tag that MediaWiki does not recognize.  Strip all
+script, region, variant, whatever subtags from <lang_param> to leave just a two or three character language tag
+and look for the new <lang_param> in cfg.mw_languages_by_tag_t{}
 
-mw.language.fetchLanguageNames(<local wiki language>, 'all') return a list of languages that in some cases may include
-extensions. For example, code 'cbk-zam' and its associated name 'Chavacano de Zamboanga' (MediaWiki does not support
-code 'cbk' or name 'Chavacano'.
-
-Names but that are included in the list will be found if that name is provided in the |language= parameter.  For example,
-if |language=Chavacano de Zamboanga, that name will be found with the associated code 'cbk-zam'.  When names are found
-and the associated code is not two or three characters, this function returns only the Wikimedia language name.
-
-Adapted from code taken from Module:Check ISO 639-1.
+on success, return name and matching tag; on failure return nil
 
 ]]
 
-local function get_iso639_code (lang, this_wiki_code)
-	local languages = mw.language.fetchLanguageNames(this_wiki_code, 'all')		-- get a list of language names known to Wikimedia
-																				-- ('all' is required for North Ndebele, South Ndebele, and Ojibwa)
-	local langlc = mw.ustring.lower(lang);										-- lower case version for comparisons
+local function name_tag_get (lang_param)
+	local lang_param_lc = mw.ustring.lower (lang_param);						-- use lowercase as an index into the various tables
+	local name;
+	local tag;
+
+	name = cfg.lang_code_remap[lang_param_lc] or lang_name[lang_param_lc];		-- assume <lang_param_lc> is a tag; attempt to get remapped language name 
+	if name then																-- when <name>, <lang_param> is a tag for a remapped language name
+		return name, lang_param;												-- so return <name> from remap and <lang_param>
+	end
+
+	tag = lang_param_lc:match ('^(%a%a%a?)%-.*');								-- still assuming that <lang_param_lc> is a tag; strip script, region, variant subtags
+	name = cfg.lang_code_remap[tag] or lang_name[tag];							-- attempt to get remapped language name with language subtag only
+	if name then																-- when <name>, <tag> is a tag for a remapped language name
+		return name, tag;														-- so return <name> from remap and <tag>
+	end
+
+	if cfg.lang_name_remap[lang_param_lc] then									-- not a tag, assume <lang_param_lc> is a name; attempt to get remapped language tag 
+		return cfg.lang_name_remap[lang_param_lc][1], cfg.lang_name_remap[lang_param_lc][2];	-- for this <lang_param_lc>, return a (possibly) new name and appropriate tag
+	end
+
+	tag = cfg.mw_languages_by_name_t[lang_param_lc];							-- assume that <lang_param_lc> is a language name; attempt to get its matching tag
 	
-	for code, name in pairs(languages) do										-- scan the list to see if we can find our language
-		if langlc == mw.ustring.lower(name) then
-			if 2 ~= code:len() and 3 ~= code:len() then							-- two- or three-character codes only; extensions not supported
-				return name;													-- so return the name but not the code
-			end
-			return name, code;													-- found it, return name to ensure proper capitalization and the the code
+	if tag then
+		name = cfg.lang_code_remap[tag] or lang_name[tag] or cfg.mw_languages_by_tag_t[tag]
+		if name then
+			return name, tag;													-- <lang_param_lc> is a name so return the name from the table and <tag>
 		end
 	end
-	return lang;																-- not valid language; return language in original case and nil for the code
+
+	tag = cfg.mw_languages_by_english_t[lang_param_lc];							-- assume that <lang_param_lc> is a language name in English; attempt to get its matching tag
+
+	if tag then
+		name = cfg.lang_code_remap[tag] or lang_name[tag] or cfg.mw_languages_by_tag_t[tag]
+		if name then
+			return name, tag;													-- <lang_param_lc> is a name so return the name from the table and <tag>
+		end
+	end
+
+	name = cfg.mw_languages_by_tag_t[lang_param_lc];							-- assume that <lang_param_lc> is a tag; attempt to get its matching language name
+	
+	if name then
+		return name, lang_param;												-- <lang_param_lc> is a tag so return <name> and the tag
+	end
+	
+	tag = lang_param_lc:match ('^(%a%a%a?)%-.*');								-- is <lang_param_lc> an IETF-like tag that MediaWiki doesn't recognize? <tag> gets the language subtag; nil else
+
+	if tag then
+		name = cfg.mw_languages_by_tag_t[tag];									-- attempt to get a language name using the shortened <tag>
+		if name then
+			return name, tag;													-- <lang_param_lc> is an unrecognized IETF-like tag so return <name> and language subtag
+		end
+	end
 end
 
 --[[--------------------------< L A N G U A G E _ P A R A M E T E R >------------------------------------------
@@ -1158,60 +1194,51 @@ separated from each other by commas.
 ]]
 
 local function language_parameter (lang)
-	local code;																	-- the two- or three-character language code
+	local tag;																	-- some form of IETF-like language tag; language subtag with optional region, sript, vatiant, etc subtags
+	local lang_subtag;															-- ve populates |language= with mostly unecessary region subtags the MediaWiki does not recognize; this is the base language subtag
 	local name;																	-- the language name
 	local language_list = {};													-- table of language names to be rendered
-	local names_table = {};														-- table made from the value assigned to |language=
+	local names_t = {};															-- table made from the value assigned to |language=
 
-	local this_wiki = mw.getContentLanguage();									-- get a language object for this wiki
-	local this_wiki_code = this_wiki:getCode()									-- get this wiki's language code
-	local this_wiki_name = mw.language.fetchLanguageName(this_wiki_code, this_wiki_code);	-- get this wiki's language name
+	local this_wiki_name = mw.language.fetchLanguageName (cfg.this_wiki_code, cfg.this_wiki_code);	-- get this wiki's language name
 
-	names_table = mw.text.split (lang, '%s*,%s*');								-- names should be a comma separated list
+	names_t = mw.text.split (lang, '%s*,%s*');									-- names should be a comma separated list
 
-	for _, lang in ipairs (names_table) do										-- reuse lang
+	for _, lang in ipairs (names_t) do											-- reuse lang here because we don't yet know if lang is a language name or a language tag
+		name, tag = name_tag_get (lang);										-- attempt to get name/tag pair for <lang>
 
-		if lang:match ('^%a%a%-') then											-- strip ietf language tags from code; TODO: is there a need to support 3-char with tag?
-			lang = lang:match ('(%a%a)%-')										-- keep only 639-1 code portion to lang; TODO: do something with 3166 alpha 2 country code?
-		end
-		if 2 == lang:len() or 3 == lang:len() then								-- if two-or three-character code
-			name = lang_name[lang] or mw.language.fetchLanguageName( lang:lower(), this_wiki_code);	-- get language name if |language= is a proper code: 로컬
-		end
 	
-		if is_set (name) then													-- if |language= specified a valid code
-			code = lang:lower();												-- save it
-		else
-			name, code = get_iso639_code (lang, this_wiki_code);				-- attempt to get code from name (assign name here so that we are sure of proper capitalization)
-		end
-	
-		if is_set (code) then													-- only 2- or 3-character codes
-			if this_wiki_code ~= code then										-- when the language is not the same as this wiki's language
-				if 2 == code:len() then											-- and is a two-character code
-					add_prop_cat ('foreign_lang_source', {name, code})			-- categorize it
---				else															-- or is a recognized language (but has a three-character code) -- 로컬
---					add_prop_cat ('foreign_lang_source_2', {code})				-- categorize it differently TODO: support mutliple three-character code categories per cs1|2 template -- 로컬
+		if utilities.is_set (tag) then
+			lang_subtag = tag:lower():gsub ('^(%a%a%a?)%-.*', '%1');			-- for categorization, strip any IETF-like tags from language tag
+
+			if cfg.this_wiki_code ~= lang_subtag then							-- when the language is not the same as this wiki's language
+				if 2 == lang_subtag:len() then									-- and is a two-character tag
+					add_prop_cat ('foreign_lang_source', {name, lang_subtag});	-- categorize it; tag appended to allow for multiple language categorization
+--				else															-- or is a recognized language (but has a three-character tag)
+--					utilities.add_prop_cat ('foreign-lang-source-2', {lang_subtag}, lang_subtag);			-- categorize it differently TODO: support multiple three-character tag categories per cs1|2 template?
 				end
+--			elseif cfg.local_lang_cat_enable then								-- when the language and this wiki's language are the same and categorization is enabled
+--				utilities.add_prop_cat ('local-lang-source', {name, lang_subtag});		-- categorize it
 			end
 		else
+			name = lang;														-- return whatever <lang> has so that we show something
 			add_maint_cat ('unknown_lang');										-- add maint category if not already added
 		end
 		
 		table.insert (language_list, name);
 		name = '';																-- so we can reuse it
 	end
-	
-	code = #language_list														-- reuse code as number of languages in the list
-	if 2 >= code then
-		name = table.concat (language_list, ', ')							-- insert '<space>and<space>' between two language names
-	elseif 2 < code then
-		language_list[code] = ', ' .. language_list[code];					-- prepend last name with 'and<space>'
-		name = table.concat (language_list, ', ')								-- and concatenate with '<comma><space>' separators
-	end
-	if this_wiki_name == name then
+
+	name = utilities.make_sep_list (#language_list, language_list);
+	if (1 == #language_list) and (lang_subtag == cfg.this_wiki_code) then		-- when only one language, find lang name in this wiki lang name; for |language=en-us, 'English' in 'American English'
 		return '';																-- if one language and that language is this wiki's return an empty string (no annotation)
 	end
 	return (" " .. wrap_msg ('language', name));								-- otherwise wrap with '(in ...)'
+	--[[ TODO: should only return blank or name rather than full list
+	so we can clean up the bunched parenthetical elements Language, Type, Format
+	]]
 end
+
 
 --[[--------------------------< S E T _ C S 1 _ S T Y L E >----------------------------------------------------
 
@@ -3161,7 +3188,7 @@ This is used by templates such as {{cite book}} to create the actual citation te
 
 function cs1.citation(frame)
 	local pframe = frame:getParent()
-	local validation, utilities, identifiers, metadata;
+	local validation, identifiers, metadata;
 	
 	if nil ~= string.find (frame:getTitle(), 'sandbox', 1, true) then			-- did the {{#invoke:}} use sandbox version?
 		cfg = mw.loadData ('Module:@ko/Citation/CS1/Configuration/sandbox');		-- load sandbox versions of support modules
