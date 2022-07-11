@@ -3,9 +3,9 @@
   "scripts": {
     "lint-filename": "yarn run lint-filename-etc && yarn run lint-filename-lua",
     "lint-filename-etc": "test -z \"$(yarn run --silent find-filename-etc)\" || (yarn run find-filename-etc && false)",
-    "find-filename-etc": "find pages/ gadgets/ -regextype posix-extended -not -regex \".+/([a-z\\._/-]|%3A)*\"",
+    "find-filename-etc": "find pages/ gadgets/ -type f -regextype posix-extended -not -regex \".+/([a-z\\._-]|%3A|%2F)+\"",
     "lint-filename-lua": "test -z \"$(yarn run --silent find-filename-lua)\" || (yarn run find-filename-lua && false)",
-    "find-filename-lua": "find lua/ -type f -not -regex \".+/\\([A-Z가-힣%][A-Za-z0-9가-힣%_-]+\\)?\"",
+    "find-filename-lua": "find lua/ -type f -regextype posix-extended -not -regex \".+/([A-Z가-힣]([A-Za-z0-9가-힣_-]|%3A|%20|%2F)+)\"",
     "lint": "prettier . --check && yarn run lint-filename",
     "fix": "prettier . --write"
   },
