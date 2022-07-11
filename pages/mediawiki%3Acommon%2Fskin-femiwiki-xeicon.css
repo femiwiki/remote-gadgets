@@ -1,0 +1,117 @@
+/* 이 문서는 페미위키 스킨의 메뉴에 아이템을 추가합니다. */
+
+/* 특수 문서 */
+#n-upload a {
+  padding-left: 0;
+}
+#n-upload a:before {
+  content: '\eb7e';
+}
+#n-facetedcategories a {
+  padding-left: 0;
+}
+#n-facetedcategories a:before {
+  content: '\eb98';
+}
+#n-specialpages a {
+  padding-left: 0;
+}
+#n-specialpages a:before {
+  content: '\ea01';
+}
+
+/* 확장 기능 */
+#pt-mobile-preferences a {
+  padding-left: 0;
+}
+#pt-mobile-preferences a:before {
+  content: '\e986';
+}
+#t-sanctions a {
+  padding-left: 0;
+}
+#t-sanctions a:before {
+  content: '\ea21';
+}
+
+/* 페미위키 메뉴 */
+#n-도움말 a {
+  padding-left: 0;
+}
+#n-도움말 a:before {
+  content: '\e9ad';
+}
+#n-질문게시판 a {
+  padding-left: 0;
+}
+#n-질문게시판 a:before {
+  content: '\e9aa';
+}
+#n-자주-묻는-질문 a {
+  padding-left: 0;
+}
+#n-자주-묻는-질문 a:before {
+  content: '\e9a6';
+}
+#n-실시간-채팅방 a {
+  padding-left: 0;
+}
+#n-실시간-채팅방 a:before {
+  content: '\e9f0';
+}
+#n-가입인사게시판 a {
+  padding-left: 0;
+}
+#n-가입인사게시판 a:before {
+  content: '\e9dd';
+}
+#n-자유게시판 a {
+  padding-left: 0;
+}
+#n-자유게시판 a:before {
+  content: '\ea1a';
+}
+#n-뉴스게시판 a {
+  padding-left: 0;
+}
+#n-뉴스게시판 a:before {
+  content: '\e9a8';
+}
+#n-제재안게시판 a {
+  padding-left: 0;
+}
+#n-제재안게시판 a:before {
+  content: '\eb06';
+}
+#n-최근-토론 a {
+  padding-left: 0;
+}
+#n-최근-토론 a:before {
+  content: '\e9d7';
+}
+#n-공지사항 a {
+  padding-left: 0;
+}
+#n-공지사항 a:before {
+  content: '\e9a6';
+}
+#n-개선-요청 a {
+  padding-left: 0;
+}
+#n-개선-요청 a:before {
+  content: '\ebac';
+}
+
+/* https://github.com/femiwiki/FemiwikiSkin/issues/564 이슈가 해결될 때까지 임시 */
+#t-emailuser a {
+  padding-left: 0;
+}
+#t-emailuser a:before {
+  content: '\ea06';
+}
+#t-mute a {
+  padding-left: 0;
+}
+#t-mute a:before {
+  content: '\eb39';
+}
