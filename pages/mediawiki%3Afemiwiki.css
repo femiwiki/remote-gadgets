@@ -3,6 +3,8 @@
 이 CSS 설정은 모든 스킨에 적용됩니다
 */
 
+@import '/index.php?title=MediaWiki:Common.css/skin-femiwiki-xeicon.css&action=raw&ctype=text/css';
+
 /*
 개인 도구의 "베타" 링크 숨기기
 [[주제:Uty456jw505lp6ym]]
