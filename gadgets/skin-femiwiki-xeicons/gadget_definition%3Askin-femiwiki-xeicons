@@ -8,7 +8,7 @@
   },
   "module": {
     "scripts": [],
-    "styles": ["skin-femiwiki-xeicons"],
+    "styles": ["skin-femiwiki-xeicons.css"],
     "peers": [],
     "dependencies": [],
     "messages": [],
