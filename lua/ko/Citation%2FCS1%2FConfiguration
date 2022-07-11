@@ -2,7 +2,6 @@
 This module was originally on https://ko.wikipedia.org/wiki/Module:Citation/CS1/Configuration and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
-
 local citation_config = {};
 
 -- override <code>...</code> styling to remove color, border, and padding.  <code> css is specified here:
@@ -17,7 +16,7 @@ Note: Namespace names should use underscores instead of spaces.
 
 ]]
 local uncategorized_namespaces = { '토론', '사용자', '사용자토론', '위키백과토론', '파일토론', '틀토론',
-	'도움말토론', '분류토론', '포털토론', '초안', '초안토론', '모듈토론', '미디어위키토론' };
+	'도움말토론', '분류', '분류토론', '포털토론', '초안', '초안토론', '모듈토론', '미디어위키토론' };
 
 local uncategorized_subpages = {'/[Ss]andbox', '/[Tt]estcases', '/연습장', '/시험장'};		-- list of Lua patterns found in page names of pages we should not categorize
 
@@ -644,43 +643,132 @@ TODO: find a better place for this?
 
 local indic_script = '[\224\164\128-\224\181\191\224\163\160-\224\183\191\225\128\128-\225\130\159\234\167\160-\234\167\191\234\169\160-\234\169\191]';
 
---[[--------------------------< L A N G U A G E S >------------------------------------------------------------
+--[[----------------------< L A N G U A G E   S U P P O R T >-------------------
 
-This table is used to hold ISO 639-1 two-character language codes that apply only to |script-title= and |script-chapter=
+These tables and constants support various language-specific functionality.
+
+]]
+
+local this_wiki_code = mw.getContentLanguage():getCode();						-- get this wiki's language code
+	if string.match (mw.site.server, 'wikidata') then
+		this_wiki_code = mw.getCurrentFrame():preprocess('{{int:lang}}');		-- on Wikidata so use interface language setting instead
+	end
+
+local mw_languages_by_tag_t = mw.language.fetchLanguageNames (this_wiki_code, 'all');	-- get a table of language tag/name pairs known to Wikimedia; used for interwiki tests
+local mw_languages_by_name_t = {};
+
+	for k, v in pairs (mw_languages_by_tag_t) do								-- build a 'reversed' table name/tag language pairs know to MediaWiki; used for |language=
+		v = mw.ustring.lower (v);												-- lowercase for tag fetch; get name's proper case from mw_languages_by_tag_t[<tag>]
+		if mw_languages_by_name_t[v] then										-- when name already in the table
+			if 2 == #k or 3 == #k then											-- if tag does not have subtags
+				mw_languages_by_name_t[v] = k;									-- prefer the shortest tag for this name
+			end
+		else																	-- here when name not in the table
+			mw_languages_by_name_t[v] = k;										-- so add name and matching tag
+		end
+	end
+
+local langdata = mw.loadData('Module:@ko/Langname/data')							-- 로컬: 언어 이름 지역화 
+local lang_name = langdata.lang_name
+
+	for k, v in pairs (lang_name) do											-- build a 'reversed' table name/tag language pairs know to MediaWiki; used for |language=
+		v = mw.ustring.lower (v);												-- lowercase for tag fetch; get name's proper case from mw_languages_by_tag_t[<tag>]
+		if mw_languages_by_name_t[v] then										-- when name already in the table
+			if 2 == #k or 3 == #k then											-- if tag does not have subtags
+				mw_languages_by_name_t[v] = k;									-- prefer the shortest tag for this name
+			end
+		else																	-- here when name not in the table
+			mw_languages_by_name_t[v] = k;										-- so add name and matching tag
+		end
+	end
+	
+local mw_languages_by_english_t = {};
+	for k, v in pairs (mw.language.fetchLanguageNames ('en', 'all')) do								-- build a 'reversed' table name/tag language pairs know to MediaWiki; used for |language=
+		v = mw.ustring.lower (v);												-- lowercase for tag fetch; get name's proper case from mw_languages_by_tag_t[<tag>]
+		if mw_languages_by_english_t[v] then										-- when name already in the table
+			if 2 == #k or 3 == #k then											-- if tag does not have subtags
+				mw_languages_by_english_t[v] = k;									-- prefer the shortest tag for this name
+			end
+		else																	-- here when name not in the table
+			mw_languages_by_english_t[v] = k;										-- so add name and matching tag
+		end
+	end
+
+local inter_wiki_map = {};														-- map of interwiki prefixes that are language-code prefixes
+	for k, v in pairs (mw.site.interwikiMap ('local')) do						-- spin through the base interwiki map (limited to local)
+		if mw_languages_by_tag_t[v["prefix"]] then								-- if the prefix matches a known language tag
+			inter_wiki_map[v["prefix"]] = true;									-- add it to our local map
+		end
+	end
+
+
+--[[--------------------< S C R I P T _ L A N G _ C O D E S >-------------------
+
+This table is used to hold ISO 639-1 two-character and ISO 639-3 three-character
+language codes that apply only to |script-title= and |script-chapter=
 
 ]]
 
 local script_lang_codes = {
-	'am', 'ar', 'be', 'bg', 'bn', 'bs', 'dv', 'el', 'fa', 'gu',					-- ISO 639-1 codes only for |script-title= and |script-chapter=
-	'he', 'hi', 'hy', 'ja', 'ka', 'kk', 'km', 'kn', 'ko', 'ku',
-	'mk', 'ml', 'mn', 'mr', 'my', 'ne', 'ps', 'ru', 'sd', 'si',
-	'sr', 'ta', 'tg', 'th', 'ug', 'uk', 'ur', 'uz', 'yi', 'zh'
+	'ab', 'am', 'ar', 'be', 'bg', 'bn', 'bo', 'bs', 'dv', 'dz', 'el', 'fa', 'gu', 
+	'he', 'hi', 'hy', 'ja', 'ka', 'kk', 'km', 'kn', 'ko', 'ku', 'ky', 'lo', 'mk',
+	'ml', 'mn', 'mr', 'my', 'ne', 'or', 'ota', 'ps', 'ru', 'sd', 'si', 'sr', 'syc',
+	'ta', 'te', 'tg', 'th', 'ti', 'ug', 'uk', 'ur', 'uz', 'yi', 'yue', 'zh'
 	};
 
 
---[[--------------------------< L A N G U A G E   R E M A P P I N G >------------------------------------------
+--[[---------------< L A N G U A G E   R E M A P P I N G >----------------------
 
 These tables hold language information that is different (correct) from MediaWiki's definitions
+
+For each ['code'] = 'language name' in lang_code_remap{} there must be a matching ['language name'] = {'language name', 'code'} in lang_name_remap{}
+
+lang_code_remap{}:
+	key is always lowercase ISO 639-1, -2, -3 language code or a valid lowercase IETF language tag
+	value is properly spelled and capitalized language name associated with key
+	only one language name per key;
+	key/value pair must have matching entry in lang_name_remap{}
+
+lang_name_remap{}:
+	key is always lowercase language name
+	value is a table the holds correctly spelled and capitalized language name [1] and associated code [2] (code must match a code key in lang_code_remap{})
+	may have multiple keys referring to a common preferred name and code; For example:
+		['kolsch'] and ['kölsch'] both refer to 'Kölsch' and 'ksh'
 
 ]]
 
 local lang_code_remap = {														-- used for |language= and |script-title= / |script-chapter=
-	['als'] = 'Tosk Albanian',													-- MediaWiki returns Alemannisch 
-	['bh'] = 'Bihari',															-- MediaWiki uses 'bh' as a subdomain name for Bhojpuri wWikipedia: bh.wikipedia.org
-	['bn'] = 'Bengali',															-- MediaWiki returns Bangla
-	['ca-valencia'] = 'Valencian',												-- IETF variant of Catalan
-	['crh'] = 'Crimean Tatar',													-- synonymous with Crimean Turkish (return value from {{#language:crh|en}})
+--	['als'] = 'Tosk Albanian',													-- MediaWiki returns Alemannisch 
+--	['bh'] = 'Bihari',															-- MediaWiki uses 'bh' as a subdomain name for Bhojpuri Wikipedia: bh.wikipedia.org
+--	['bla'] = 'Blackfoot',														-- MediaWiki/IANA/ISO 639: Siksika; use en.wiki preferred name
+--	['bn'] = 'Bengali',															-- MediaWiki returns Bangla
+--	['ca-valencia'] = 'Valencian',												-- IETF variant of Catalan
+--	['ilo'] = 'Ilocano',														-- MediaWiki/IANA/ISO 639: Iloko; use en.wiki preferred name
+--	['ksh'] = 'Kölsch',															-- MediaWiki: Colognian; use IANA/ISO 639 preferred name
+--	['ksh-x-colog'] = 'Colognian',												-- override MediaWiki ksh; no IANA/ISO 639 code for Colognian; IETF private code created at Module:Lang/data
+--	['mis-x-ripuar'] = 'Ripuarian',												-- override MediaWiki ksh; no IANA/ISO 639 code for Ripuarian; IETF private code created at Module:Lang/data
+--	['nan-tw'] = 'Taiwanese Hokkien',											-- make room for MediaWiki/IANA/ISO 639 nan: Min Nan Chinese and support en.wiki preferred name
 	}
 
 local lang_name_remap = {														-- used for |language=
-	['alemannisch'] = {'Swiss German', 'gsw'},									-- not an ISO or IANA language name; MediaWiki uses 'als' as a subdomain name for Alemannic Wikipedia: als.wikipedia.org
-	['bangla'] = {'Bengali', 'bn'},												-- MediaWiki returns Bangla (the endonym) but we want Bengali (the exonym); here we remap
-	['bengali'] = {'Bengali', 'bn'},											-- MediaWiki doesn't use exonym so here we provide correct language name and 639-1 code
-	['bihari'] = {'Bihari', 'bh'},												-- MediaWiki replaces 'Bihari' with 'Bhojpuri' so 'Bihari' cannot be found
-	['bhojpuri'] = {'Bhojpuri', 'bho'},											-- MediaWiki uses 'bh' as a subdomain name for Bhojpuri Wikipedia: bh.wikipedia.org
-	['crimean tatar'] = {'Crimean Tatar', 'crh'},								-- MediaWiki uses 'crh' as a subdomain name for Crimean Tatar Wikipedia: crh.wikipedia.org
-	['tosk albanian'] = {'Tosk Albanian', 'als'},								-- MediaWiki replaces 'Tosk Albanian' with 'Alemannisch' so 'Tosk Albanian' cannot be found
-	['valencian'] = {'Valencian', 'ca'},										-- variant of Catalan; categorizes as Catalan
+--	['alemannisch'] = {'Swiss German', 'gsw'},									-- not an ISO or IANA language name; MediaWiki uses 'als' as a subdomain name for Alemannic Wikipedia: als.wikipedia.org
+	['bangla'] = {'벵골어', 'bn'},												-- MediaWiki returns Bangla (the endonym) but we want Bengali (the exonym); here we remap
+	['bengali'] = {'벵골어', 'bn'},												-- MediaWiki doesn't use exonym so here we provide correct language name and 639-1 code
+--	['bhojpuri'] = {'Bhojpuri', 'bho'},											-- MediaWiki uses 'bh' as a subdomain name for Bhojpuri Wikipedia: bh.wikipedia.org
+--	['bihari'] = {'Bihari', 'bh'},												-- MediaWiki replaces 'Bihari' with 'Bhojpuri' so 'Bihari' cannot be found
+--	['blackfoot'] = {'Blackfoot', 'bla'},										-- MediaWiki/IANA/ISO 639: Siksika; use en.wiki preferred name
+--	['colognian'] = {'Colognian', 'ksh-x-colog'},								-- MediaWiki preferred name for ksh
+--	['ilocano'] = {'Ilocano', 'ilo'},											-- MediaWiki/IANA/ISO 639: Iloko; use en.wiki preferred name
+--	['kolsch'] = {'Kölsch', 'ksh'},												-- use IANA/ISO 639 preferred name (use non-diacritical o instead of umlaut ö)
+--	['kölsch'] = {'Kölsch', 'ksh'},												-- use IANA/ISO 639 preferred name
+--	['ripuarian'] = {'Ripuarian', 'mis-x-ripuar'},								-- group of dialects; no code in MediaWiki or in IANA/ISO 639
+--	['taiwanese hokkien'] = {'Taiwanese Hokkien', 'nan-TW'},					-- make room for MediaWiki/IANA/ISO 639 nan: Min Nan Chinese 
+--	['tosk albanian'] = {'Tosk Albanian', 'als'},								-- MediaWiki replaces 'Tosk Albanian' with 'Alemannisch' so 'Tosk Albanian' cannot be found
+ 	['valencian'] = {'발렌시아어', 'ca'},										-- variant of Catalan; categorizes as Catalan
+ 	['발렌시아어'] = {'발렌시아어', 'ca'},										-- variant of Catalan; categorizes as Catalan
+	['터키어'] = {'튀르키예어', 'tr'},
+	['튀르키예어'] = {'튀르키예어', 'tr'},
+	['日本語'] = {'일본어', 'ja'},
 	}
 
 --[[--------------------------< M A I N T E N A N C E _ C A T E G O R I E S >----------------------------------
@@ -1382,10 +1470,17 @@ return 	{
 	script_lang_codes = script_lang_codes,
 	lang_code_remap = lang_code_remap,
 	lang_name_remap = lang_name_remap,
+	this_wiki_code = this_wiki_code,
 	title_types = title_types,
 	uncategorized_namespaces = uncategorized_namespaces,
 	uncategorized_subpages = uncategorized_subpages,
 	templates_using_volume = templates_using_volume,
 	templates_using_issue = templates_using_issue,
 	templates_not_using_page = templates_not_using_page,
+
+	inter_wiki_map = inter_wiki_map,
+	mw_languages_by_tag_t = mw_languages_by_tag_t,
+	mw_languages_by_name_t = mw_languages_by_name_t,
+	mw_languages_by_english_t = mw_languages_by_english_t,
+
 	}

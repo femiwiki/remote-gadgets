@@ -27,7 +27,7 @@
     },
     "@en/Hatnote": {
       "pageid": 42498502,
-      "revid": 1063743122,
+      "revid": 1091749839,
       "title": "Module:Hatnote",
       "dependencies": [
         "@en/Arguments",
@@ -124,7 +124,7 @@
     },
     "@ko/Citation/CS1": {
       "pageid": 950941,
-      "revid": 30099152,
+      "revid": 32891951,
       "title": "\ubaa8\ub4c8:Citation/CS1",
       "dependencies": [
         "@ko/Citation/CS1/COinS",
@@ -157,8 +157,11 @@
     },
     "@ko/Citation/CS1/Configuration": {
       "pageid": 950942,
-      "revid": 32607617,
-      "title": "\ubaa8\ub4c8:Citation/CS1/Configuration"
+      "revid": 32892756,
+      "title": "\ubaa8\ub4c8:Citation/CS1/Configuration",
+      "dependencies": [
+        "@ko/Langname/data"
+      ]
     },
     "@ko/Citation/CS1/Configuration/sandbox": {
       "pageid": 1245454,
@@ -197,7 +200,7 @@
     },
     "@ko/Citation/CS1/Utilities": {
       "pageid": 1481765,
-      "revid": 25246120,
+      "revid": 32891875,
       "title": "\ubaa8\ub4c8:Citation/CS1/Utilities"
     },
     "@ko/Citation/CS1/Utilities/sandbox": {
@@ -261,7 +264,7 @@
     },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 32732726,
+      "revid": 32887665,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {

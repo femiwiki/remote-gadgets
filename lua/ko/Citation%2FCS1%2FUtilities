@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Citation/CS1/Utilities and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Citation/CS1/Utilities and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 
@@ -249,6 +249,38 @@ local function wrap_style (key, str)
 end
 
 
+--[[--------------------------< M A K E _ S E P _ L I S T >------------------------------------------------------------
+
+make a separated list of items using provided separators.
+	<sep_list> - typically '<comma><space>'
+	<sep_list_pair> - typically '<space>and<space>'
+	<sep_list_end> - typically '<comma><space>and<space>' or '<comma><space>&<space>'
+
+defaults to cfg.presentation['sep_list'], cfg.presentation['sep_list_pair'], and cfg.presentation['sep_list_end']
+if <sep_list_end> is specified, <sep_list> and <sep_list_pair> must also be supplied
+
+]]
+
+local function make_sep_list (count, list_seq, sep_list, sep_list_pair, sep_list_end)
+	local list = '';
+
+	if not sep_list then														-- set the defaults
+		sep_list = cfg.presentation['sep_list'];
+		sep_list_pair = cfg.presentation['sep_list_pair'];
+		sep_list_end = cfg.presentation['sep_list_end'];
+	end
+	
+	if 2 >= count then
+		list = table.concat (list_seq, sep_list_pair);							-- insert separator between two items; returns list_seq[1] then only one item
+	elseif 2 < count then
+		list = table.concat (list_seq, sep_list, 1, count - 1);					-- concatenate all but last item with plain list separator
+		list = table.concat ({list, list_seq[count]}, sep_list_end);			-- concatenate last item onto end of <list> with final separator
+	end
+	
+	return list;
+end
+
+
 --[[--------------------------< S E L E C T _ O N E >----------------------------------------------------------
 
 Chooses one matching parameter from a list of parameters to consider.  The list of parameters to consider is just
@@ -423,6 +455,7 @@ return {
 	safe_for_italics = safe_for_italics,
 	remove_wiki_link = remove_wiki_link,
 	is_wikilink = is_wikilink,
+	make_sep_list = make_sep_list,
 	make_wikilink = make_wikilink,
 	set_selected_modules = set_selected_modules,
 	strip_apostrophe_markup = strip_apostrophe_markup,
