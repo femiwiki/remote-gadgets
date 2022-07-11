@@ -1,0 +1,17 @@
+{
+  "settings": {
+    "rights": [],
+    "default": true,
+    "hidden": true,
+    "skins": ["femiwiki"],
+    "category": "view"
+  },
+  "module": {
+    "scripts": [],
+    "styles": ["skin-femiwiki-xeicons"],
+    "peers": [],
+    "dependencies": [],
+    "messages": [],
+    "type": "styles"
+  }
+}
