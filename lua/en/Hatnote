@@ -109,6 +109,14 @@ function p.disambiguate(page, disambiguator)
 	return mw.ustring.format('%s (%s)', page, disambiguator)
 end
 
+function p.defaultClasses(inline)
+	-- Provides the default hatnote classes as a space-separated string; useful
+	-- for hatnote-manipulation modules like [[Module:Hatnote group]].
+	return
+		(inline == 1 and 'hatnote-inline' or 'hatnote') .. ' ' ..
+		'navigation-not-searchable'
+end
+
 --------------------------------------------------------------------------------
 -- Hatnote
 --
@@ -144,12 +152,11 @@ function p._hatnote(s, options)
 
 	hatnote
 		:attr('role', 'note')
-		:addClass(inline == 1 and 'hatnote-inline' or 'hatnote')
-		:addClass('navigation-not-searchable')
+		:addClass(p.defaultClasses(inline))
 		:addClass(extraclasses)
 		:addClass(options.selfref and 'selfref' or nil)
 		:wikitext(s)
-	
+
 	return mw.getCurrentFrame():extensionTag{
 		name = 'templatestyles', args = { src = 'Module:Hatnote/styles.css' }
 	} .. tostring(hatnote)
