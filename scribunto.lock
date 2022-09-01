@@ -27,7 +27,7 @@
     },
     "@en/Hatnote": {
       "pageid": 42498502,
-      "revid": 1091749839,
+      "revid": 1105145280,
       "title": "Module:Hatnote",
       "dependencies": [
         "@en/Arguments",
@@ -180,7 +180,7 @@
     },
     "@ko/Citation/CS1/Identifiers": {
       "pageid": 1481764,
-      "revid": 32490056,
+      "revid": 33055547,
       "title": "\ubaa8\ub4c8:Citation/CS1/Identifiers"
     },
     "@ko/Citation/CS1/Identifiers/sandbox": {
@@ -264,7 +264,7 @@
     },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 32887665,
+      "revid": 33145721,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {
