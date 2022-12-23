@@ -306,13 +306,17 @@ sup.reference:target {
   box-shadow: none;
 }
 
-.oo-ui-buttonElement-frameless.oo-ui-widget-enabled.oo-ui-indicatorElement:not(.oo-ui-iconElement):not(.oo-ui-labelElement)
+.oo-ui-buttonElement-frameless.oo-ui-widget-enabled.oo-ui-indicatorElement:not(
+    .oo-ui-iconElement
+  ):not(.oo-ui-labelElement)
   > .oo-ui-buttonElement-button:focus {
   box-shadow: #221c5d 0 0 0 2px;
   outline-color: transparent;
 }
 
-.oo-ui-buttonElement-frameless.oo-ui-widget-enabled.oo-ui-indicatorElement:not(.oo-ui-iconElement):not(.oo-ui-labelElement)
+.oo-ui-buttonElement-frameless.oo-ui-widget-enabled.oo-ui-indicatorElement:not(
+    .oo-ui-iconElement
+  ):not(.oo-ui-labelElement)
   > .oo-ui-buttonElement-button:focus:active {
   box-shadow: none;
 }
@@ -663,11 +667,15 @@ sup.reference:target {
   border-color: #484e51;
 }
 
-.oo-ui-messageWidget.oo-ui-flaggedElement-error:not(.oo-ui-messageWidget-block) {
+.oo-ui-messageWidget.oo-ui-flaggedElement-error:not(
+    .oo-ui-messageWidget-block
+  ) {
   color: #e04444;
 }
 
-.oo-ui-messageWidget.oo-ui-flaggedElement-success:not(.oo-ui-messageWidget-block) {
+.oo-ui-messageWidget.oo-ui-flaggedElement-success:not(
+    .oo-ui-messageWidget-block
+  ) {
   color: #75ead1;
 }
 
@@ -1086,26 +1094,38 @@ ul.mw-gallery-packed-overlay li.gallerybox div.thumb {
 
 .mw-body #contentSub a:not([role='button']),
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']) {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']) {
   text-decoration-color: currentcolor;
 }
 
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']),
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']),
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']):visited {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']):visited {
   color: #7569c0;
 }
 
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']):active {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']):active {
   color: #ffb41d;
 }
 
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']):focus,
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']):focus,
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']):hover {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']):hover {
   text-decoration-color: currentcolor;
 }
 
@@ -1115,7 +1135,9 @@ ul.mw-gallery-packed-overlay li.gallerybox div.thumb {
 }
 
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).new {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).new {
   color: #f7485e;
 }
 
@@ -1126,17 +1148,23 @@ ul.mw-gallery-packed-overlay li.gallerybox div.thumb {
   .mw-warning-with-logexcerpt
   a:not([role='button']).new:visited,
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).new:visited {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).new:visited {
   color: #b06a6a;
 }
 
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).stub {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).stub {
   color: #dc8496;
 }
 
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).mw-selflink {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).mw-selflink {
   color: inherit;
   text-decoration-color: inherit;
 }
@@ -1148,7 +1176,9 @@ ul.mw-gallery-packed-overlay li.gallerybox div.thumb {
   .mw-warning-with-logexcerpt
   a:not([role='button']).mw-selflink:hover,
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).mw-selflink:hover {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).mw-selflink:hover {
   text-decoration-color: inherit;
 }
 
@@ -1168,31 +1198,45 @@ ul.mw-gallery-packed-overlay li.gallerybox div.thumb {
   .mw-warning-with-logexcerpt
   a:not([role='button']).mw-selflink:visited,
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).mw-selflink:active,
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).mw-selflink:active,
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).mw-selflink:visited {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).mw-selflink:visited {
   color: inherit;
 }
 
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).extiw {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).extiw {
   color: #679fd5;
 }
 
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).extiw:visited {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).extiw:visited {
   color: #ca96ca;
 }
 
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).external:active,
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).external:active,
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).extiw:active {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).extiw:active {
   color: #d08354;
 }
 
 .oo-ui-widget:not(.ve-ui-surface):not(.ve-ui-mwTocWidget)
-  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(.mw-echo-ui-notificationItemWidget-linkWrapper):not([role='button']).external {
+  a:not(.oo-ui-tool-link):not(.oo-ui-buttonElement-button):not(
+    .mw-echo-ui-notificationItemWidget-linkWrapper
+  ):not([role='button']).external {
   color: #7569c0;
   background-color: transparent;
   background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAABCRpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuNC4wIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25zLmFkb2JlLmNvbS90aWZmLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOmV4aWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vZXhpZi8xLjAvIgogICAgICAgICAgICB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1lbnRzLzEuMS8iCiAgICAgICAgICAgIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyI+CiAgICAgICAgIDx0aWZmOlJlc29sdXRpb25Vbml0PjI8L3RpZmY6UmVzb2x1dGlvblVuaXQ+CiAgICAgICAgIDx0aWZmOkNvbXByZXNzaW9uPjU8L3RpZmY6Q29tcHJlc3Npb24+CiAgICAgICAgIDx0aWZmOlhSZXNvbHV0aW9uPjcyPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPgogICAgICAgICA8dGlmZjpZUmVzb2x1dGlvbj43MjwvdGlmZjpZUmVzb2x1dGlvbj4KICAgICAgICAgPGV4aWY6UGl4ZWxYRGltZW5zaW9uPjE2PC9leGlmOlBpeGVsWERpbWVuc2lvbj4KICAgICAgICAgPGV4aWY6Q29sb3JTcGFjZT4xPC9leGlmOkNvbG9yU3BhY2U+CiAgICAgICAgIDxleGlmOlBpeGVsWURpbWVuc2lvbj4xNjwvZXhpZjpQaXhlbFlEaW1lbnNpb24+CiAgICAgICAgIDxkYzpzdWJqZWN0PgogICAgICAgICAgICA8cmRmOlNlcS8+CiAgICAgICAgIDwvZGM6c3ViamVjdD4KICAgICAgICAgPHhtcDpNb2RpZnlEYXRlPjIwMTY6MDk6MjggMTY6MDk6NTA8L3htcDpNb2RpZnlEYXRlPgogICAgICAgICA8eG1wOkNyZWF0b3JUb29sPlBpeGVsbWF0b3IgMy41LjE8L3htcDpDcmVhdG9yVG9vbD4KICAgICAgPC9yZGY6RGVzY3JpcHRpb24+CiAgIDwvcmRmOlJERj4KPC94OnhtcG1ldGE+Cjyg9PgAAAFdSURBVDgRY2QgABIC5gswcfwq+P+fMR6oVAGIP/xnYNjA8JO1cMGGxA+M+PSDNDOy/94PVGOARd2F/z9ZHZmwSMCFQDbDNIuI8jL4hxgzgGgoMGBg/92P1wCgs/1BikGaGjqDgAYYMXRNjoAbAnR+AEti+CyQE3EBsNPVtSQZuLjY4Gqs7dUYNq45C+ILsAAJBxALH7h57TnDt2+/wIaA6KMHb8GUP2AEugAYqBBniojywCTA9JvXXxjevP4MZoO8AXIJyDCYGCPj/0aQC8AA5CyQH2Hg0cO3DF1NW2BcsKY3ByGGQQUv/PvBNgFrIMI0f/sKdDY3GzzQYBpBNoOiEJQO4C6AWwVkTOnZzQDTXFbnw7Bi4XGYsw/MX5nmiKwWqwtySlzBtoI0y8kLI6vHYGN1AUgTKL6JAVhdQIxGmBq4C25eewZMHDBhVBoUnbgA3IAbwPgFYVIBxV4AAIeZew2JzkKNAAAAAElFTkSuQmCC);
@@ -4445,17 +4489,23 @@ body.skin-vector #ca-talk.hasOpenTopic > span > a::after {
 }
 
 .oo-ui-processDialog
-  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(.oo-ui-flaggedElement-destructive)
+  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(
+    .oo-ui-flaggedElement-destructive
+  )
   > .oo-ui-buttonElement-button:active,
 .oo-ui-processDialog
-  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(.oo-ui-flaggedElement-destructive)
+  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(
+    .oo-ui-flaggedElement-destructive
+  )
   > .oo-ui-buttonElement-button:hover {
   border-right-color: #3e4346;
   border-left-color: transparent;
 }
 
 .oo-ui-processDialog
-  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(.oo-ui-flaggedElement-destructive)
+  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(
+    .oo-ui-flaggedElement-destructive
+  )
   > .oo-ui-buttonElement-button:focus {
   border-color: #272069;
 }
@@ -4468,17 +4518,23 @@ body.skin-vector #ca-talk.hasOpenTopic > span > a::after {
 }
 
 .oo-ui-processDialog-actions-primary
-  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(.oo-ui-flaggedElement-destructive)
+  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(
+    .oo-ui-flaggedElement-destructive
+  )
   > .oo-ui-buttonElement-button:active,
 .oo-ui-processDialog-actions-primary
-  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(.oo-ui-flaggedElement-destructive)
+  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(
+    .oo-ui-flaggedElement-destructive
+  )
   > .oo-ui-buttonElement-button:hover {
   border-left-color: #3e4346;
   border-right-color: transparent;
 }
 
 .oo-ui-processDialog-actions-primary
-  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(.oo-ui-flaggedElement-destructive)
+  .oo-ui-actionWidget:not(.oo-ui-flaggedElement-progressive):not(
+    .oo-ui-flaggedElement-destructive
+  )
   > .oo-ui-buttonElement-button:focus {
   border-color: #272069;
 }
