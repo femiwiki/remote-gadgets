@@ -115,3 +115,10 @@
 #t-mute a:before {
   content: '\eb39';
 }
+/* https://github.com/femiwiki/FemiwikiSkin/issues/645 */
+#pt-userpage a {
+  padding-left: 0;
+}
+#pt-userpage a:before {
+  content: '\e900';
+}
