@@ -68,6 +68,14 @@ https://github.com/femiwiki/FemiwikiSkin/issues/246
 }
 
 /*
+다크모드 핵 모든 브라우저 적용
+https://github.com/femiwiki/femiwiki/issues/324
+*/
+html.client-darkmode body {
+  background-color: #fff;
+}
+
+/*
 https://github.com/femiwiki/OOUIFemiwikiTheme/issues/12
 */
 .oo-ui-buttonElement-frameless.oo-ui-widget-enabled
