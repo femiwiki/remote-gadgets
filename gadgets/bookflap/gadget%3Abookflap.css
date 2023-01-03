@@ -54,12 +54,34 @@
 }
 
 .book-flap-side {
+  position: fixed;
   box-sizing: border-box;
   max-width: 15rem;
-  margin-top: 2.3em;
+  top: 4.3rem;
+  bottom: 1rem;
   padding: 1.3rem;
   background-color: #f9f9f9;
   pointer-events: auto;
+  overflow-y: auto;
+  scrollbar-color: #c8c5e3 #e4e4e4;
+  scrollbar-width: thin;
+}
+
+.book-flap-side::-webkit-scrollbar {
+  width: 0.6rem;
+}
+
+.book-flap-side::-webkit-scrollbar-track {
+  background-color: #e4e4e4;
+  border-radius: 100px;
+}
+
+.book-flap-side::-webkit-scrollbar-thumb {
+  border-radius: 100px;
+  border: 6px solid rgba(0, 0, 0, 0.1);
+  border-left: 0;
+  border-right: 0;
+  background-color: #c8c5e3;
 }
 
 .book-flap-side .book-flap-title {
@@ -162,7 +184,6 @@ body.fw-legacy-small-elements #book-flap-rightside {
 When the small-elements feature is enabled:
 @font-size-root-default: 16.5; // px
 @content-width: 50rem;
-
 Otherwise:
 @font-size-root-default: 19; // px
 @content-width: 43.4rem;
