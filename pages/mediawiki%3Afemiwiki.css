@@ -128,4 +128,18 @@ https://github.com/femiwiki/OOUIFemiwikiTheme/issues/12
   .mwe-popups.mwe-popups:after {
     content: none;
   }
+
+  /*
+  360px~480px 화면에서도 폰트 사이즈 줄이기
+  참고:
+    기본값(큰 요소 활성화): 19 (https://github.com/femiwiki/FemiwikiSkin/blob/96328705/resources/skins.femiwiki/elements.less#L11)
+    폭 480px 미만: 16.5 (아래 스타일에 의해)
+    폭 360px 미만: 16 (https://github.com/femiwiki/FemiwikiSkin/blob/96328705/resources/skins.femiwiki/elements.less#L13)
+    큰 요소 비활성화: 16.5 (https://github.com/femiwiki/FemiwikiSkin/blob/96328705/resources/skins.femiwiki.smallElements/styles.less#L8)
+    큰 요소 비활성화 폭 480px 미만: 16.5 (아래 스타일에 의해)
+    큰 요소 비활성화 폭 360px 미만: 16 (https://github.com/femiwiki/FemiwikiSkin/blob/96328705/resources/skins.femiwiki/elements.less#L13)
+  */
+  html {
+    font-size: 16.5px;
+  }
 }
