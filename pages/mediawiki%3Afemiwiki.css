@@ -85,6 +85,22 @@ https://github.com/femiwiki/OOUIFemiwikiTheme/issues/12
   background-color: rgba(0, 36, 73, 0.08235294);
 }
 
+/*
+낮은 단계 문단 제목 구분 용이하도록 스타일 임시 변경
+*/
+body .mw-parser-output h3 {
+  font-size: 1.143rem;
+  border-bottom: 1px solid #d7c9f5;
+}
+body .mw-parser-output h4 {
+  font-size: 1.143rem;
+  border-bottom: 1px dotted #d7c9f5;
+}
+body .mw-parser-output h5 {
+  font-size: 1rem;
+  border-bottom: none;
+}
+
 @media screen and (max-width: 480px) {
   /*
   ULS가 이상한 문제 우회
