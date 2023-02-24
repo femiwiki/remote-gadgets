@@ -47,6 +47,31 @@ local function in_array( needle, haystack )
 	return false;
 end
 
+--[[--------------------------< H A S _ A C C E P T _ A S _ W R I T T E N >------------------------------------
+
+When <str> is wholly wrapped in accept-as-written markup, return <str> without markup and true; return <str> and false else
+
+with allow_empty = false, <str> must have at least one character inside the markup
+with allow_empty = true, <str> the markup frame can be empty like (()) to distinguish an empty template parameter from the specific condition "has no applicable value" in citation-context.
+
+After further evaluation the two cases might be merged at a later stage, but should be kept separated for now.
+
+]]
+
+local function has_accept_as_written (str, allow_empty)
+	if not is_set (str) then
+		return str, false;
+	end
+
+	local count;
+
+	if true == allow_empty then
+		str, count = str:gsub ('^%(%((.*)%)%)$', '%1'); 						-- allows (()) to be an empty set
+	else
+		str, count = str:gsub ('^%(%((.+)%)%)$', '%1');
+	end
+	return str, 0 ~= count;
+end
 
 --[[--------------------------< S U B S T I T U T E >----------------------------------------------------------
 
@@ -69,6 +94,64 @@ local function error_comment( content, hidden )
 	return substitute( hidden and cfg.presentation['hidden-error'] or cfg.presentation['visible-error'], content );
 end
 
+--[[--------------------------< H Y P H E N _ T O _ D A S H >--------------------------------------------------
+
+Converts a hyphen to a dash under certain conditions.  The hyphen must separate
+like items; unlike items are returned unmodified.  These forms are modified:
+	letter - letter (A - B)
+	digit - digit (4-5)
+	digit separator digit - digit separator digit (4.1-4.5 or 4-1-4-5)
+	letterdigit - letterdigit (A1-A5) (an optional separator between letter and
+		digit is supported – a.1-a.5 or a-1-a-5)
+	digitletter - digitletter (5a - 5d) (an optional separator between letter and
+		digit is supported – 5.a-5.d or 5-a-5-d)
+
+any other forms are returned unmodified.
+
+str may be a comma- or semicolon-separated list
+
+]]
+
+local function hyphen_to_dash (str)
+	if not is_set (str) then
+		return str;
+	end
+
+	local accept;																-- boolean
+
+	str = str:gsub ("(%(%(.-%)%))", function(m) return m:gsub(",", "，"):gsub(";", "；") end) -- replace commas and semicolons in accept-as-written markup with similar unicode characters so they'll be ignored during the split	
+	str = str:gsub ('&[nm]dash;', {['&ndash;'] = '–', ['&mdash;'] = '—'});		-- replace &mdash; and &ndash; entities with their characters; semicolon mucks up the text.split
+	str = str:gsub ('&#45;', '-'); -- replace HTML numeric entity with hyphen character
+	str = str:gsub ('&nbsp;', ' '); -- replace &nbsp; entity with generic keyboard space character
+	
+	local out = {};
+	local list = mw.text.split (str, '%s*[,;]%s*');								-- split str at comma or semicolon separators if there are any
+
+	for _, item in ipairs (list) do												-- for each item in the list
+		item, accept = has_accept_as_written (item);							-- remove accept-this-as-written markup when it wraps all of item
+		if not accept and mw.ustring.match (item, '^%w*[%.%-]?%w+%s*[%-–—]%s*%w*[%.%-]?%w+$') then	-- if a hyphenated range or has endash or emdash separators
+			if item:match ('^%a+[%.%-]?%d+%s*%-%s*%a+[%.%-]?%d+$') or			-- letterdigit hyphen letterdigit (optional separator between letter and digit)
+				item:match ('^%d+[%.%-]?%a+%s*%-%s*%d+[%.%-]?%a+$') or			-- digitletter hyphen digitletter (optional separator between digit and letter)
+				item:match ('^%d+[%.%-]%d+%s*%-%s*%d+[%.%-]%d+$') or			-- digit separator digit hyphen digit separator digit
+				item:match ('^%d+%s*%-%s*%d+$') or								-- digit hyphen digit
+				item:match ('^%a+%s*%-%s*%a+$') then							-- letter hyphen letter
+					item = item:gsub ('(%w*[%.%-]?%w+)%s*%-%s*(%w*[%.%-]?%w+)', '%1–%2');	-- replace hyphen, remove extraneous space characters
+			else
+				item = mw.ustring.gsub (item, '%s*[–—]%s*', '–');				-- for endash or emdash separated ranges, replace em with en, remove extraneous whitespace
+			end
+		end
+		table.insert (out, item);												-- add the (possibly modified) item to the output table
+	end
+
+	local temp_str = '';														-- concatenate the output table into a comma separated string
+	temp_str, accept = has_accept_as_written (table.concat (out, ', '));		-- remove accept-this-as-written markup when it wraps all of concatenated out
+	if accept then
+		temp_str = has_accept_as_written (str);									-- when global markup removed, return original str; do it this way to suppress boolean second return value
+		return temp_str:gsub("，", ","):gsub("；", ";");
+	else
+		return temp_str:gsub("，", ","):gsub("；", ";");						-- else, return assembled temp_str
+	end
+end
 
 --[=[-------------------------< M A K E _ W I K I L I N K >----------------------------------------------------
 
@@ -448,6 +531,8 @@ return {
 	in_array = in_array,
 	substitute = substitute,
 	error_comment = error_comment,
+	has_accept_as_written = has_accept_as_written,
+	hyphen_to_dash = hyphen_to_dash,
 	set_error = set_error,
 	select_one = select_one,
 	add_maint_cat = add_maint_cat,
