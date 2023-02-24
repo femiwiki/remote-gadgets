@@ -241,6 +241,36 @@
         "@ko/Yesno"
       ]
     },
+    "@ko/Footnotes/anchor id list/data": {
+      "pageid": 3086599,
+      "revid": 33300340,
+      "title": "\ubaa8\ub4c8:Footnotes/anchor id list/data"
+    },
+    "@ko/Footnotes/anchor_id_list": {
+      "pageid": 3086600,
+      "revid": 33300339,
+      "title": "\ubaa8\ub4c8:Footnotes/anchor id list",
+      "dependencies": [
+        "@ko/Footnotes/anchor id list/data",
+        "@ko/Footnotes/whitelist"
+      ]
+    },
+    "@ko/Footnotes/whitelist": {
+      "pageid": 3201154,
+      "revid": 33300335,
+      "title": "\ubaa8\ub4c8:Footnotes/whitelist"
+    },
+    "@ko/Footnotes2": {
+      "pageid": 1181297,
+      "revid": 33616964,
+      "title": "\ubaa8\ub4c8:Footnotes2",
+      "dependencies": [
+        "@ko/Arguments",
+        "@ko/Citation/CS1/Utilities",
+        "@ko/Footnotes/anchor_id_list",
+        "@ko/Footnotes/whitelist"
+      ]
+    },
     "@ko/Hangul": {
       "pageid": 933341,
       "revid": 26422357,
