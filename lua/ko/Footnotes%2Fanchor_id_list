@@ -2,7 +2,7 @@
 This module was originally on https://ko.wikipedia.org/wiki/Module:Footnotes/anchor_id_list and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
-require('Module:No globals');
+require('Module:@ko/No globals');
 local data = mw.loadData ('Module:@ko/Footnotes/anchor id list/data');
 local whitelist = mw.loadData ('Module:@ko/Footnotes/whitelist');
 local Lang_obj = mw.language.getContentLanguage();								-- used by template_list_add() to uppercase first letter of template name TODO: better way to do that?
