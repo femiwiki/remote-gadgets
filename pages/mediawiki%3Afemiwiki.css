@@ -85,22 +85,6 @@ https://github.com/femiwiki/OOUIFemiwikiTheme/issues/12
   background-color: rgba(0, 36, 73, 0.08235294);
 }
 
-/*
-낮은 단계 문단 제목 구분 용이하도록 스타일 임시 변경
-*/
-body .mw-parser-output h3 {
-  font-size: 1.143rem;
-  border-bottom: 1px solid #d7c9f5;
-}
-body .mw-parser-output h4 {
-  font-size: 1.143rem;
-  border-bottom: 1px dotted #d7c9f5;
-}
-body .mw-parser-output h5 {
-  font-size: 1rem;
-  border-bottom: none;
-}
-
 @media screen and (max-width: 480px) {
   /*
   ULS가 이상한 문제 우회
@@ -143,19 +127,5 @@ body .mw-parser-output h5 {
   .mwe-popups.mwe-popups:before,
   .mwe-popups.mwe-popups:after {
     content: none;
-  }
-
-  /*
-  360px~480px 화면에서도 폰트 사이즈 줄이기
-  참고:
-    기본값(큰 요소 활성화): 19 (https://github.com/femiwiki/FemiwikiSkin/blob/96328705/resources/skins.femiwiki/elements.less#L11)
-    폭 480px 미만: 16.5 (아래 스타일에 의해)
-    폭 360px 미만: 16 (https://github.com/femiwiki/FemiwikiSkin/blob/96328705/resources/skins.femiwiki/elements.less#L13)
-    큰 요소 비활성화: 16.5 (https://github.com/femiwiki/FemiwikiSkin/blob/96328705/resources/skins.femiwiki.smallElements/styles.less#L8)
-    큰 요소 비활성화 폭 480px 미만: 16.5 (아래 스타일에 의해)
-    큰 요소 비활성화 폭 360px 미만: 16 (https://github.com/femiwiki/FemiwikiSkin/blob/96328705/resources/skins.femiwiki/elements.less#L13)
-  */
-  html {
-    font-size: 16.5px;
   }
 }
