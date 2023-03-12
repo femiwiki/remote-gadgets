@@ -4,6 +4,7 @@
     "default": false,
     "hidden": false,
     "skins": [],
+    "targets": ["desktop", "mobile"],
     "category": "edit"
   },
   "module": {

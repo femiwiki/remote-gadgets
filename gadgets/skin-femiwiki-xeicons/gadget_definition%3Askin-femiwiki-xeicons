@@ -4,6 +4,7 @@
     "default": true,
     "hidden": true,
     "skins": ["femiwiki"],
+    "targets": ["desktop", "mobile"],
     "category": "view"
   },
   "module": {

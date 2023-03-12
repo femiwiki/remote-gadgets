@@ -4,6 +4,7 @@
     "default": false,
     "hidden": true,
     "skins": ["vector"],
+    "targets": ["desktop", "mobile"],
     "category": ""
   },
   "module": {

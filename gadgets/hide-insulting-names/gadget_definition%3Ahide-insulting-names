@@ -4,6 +4,7 @@
     "default": true,
     "hidden": false,
     "skins": [],
+    "targets": ["desktop", "mobile"],
     "category": "view"
   },
   "module": {
