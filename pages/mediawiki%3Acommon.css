@@ -65,3 +65,10 @@ body.mw-special-Homepage.growthexperiments-homepage-desktop
   pointer-events: none;
   color: #54595d;
 }
+
+/*
+CirrusSearch가 없으면 작동하지 않는 고급 검색 옵션 숨김
+*/
+.mw-advancedSearch-expandablePane-options {
+  display: none;
+}
