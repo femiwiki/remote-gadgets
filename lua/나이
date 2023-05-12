@@ -13,7 +13,13 @@ local function koreanAge(y1, y2)
   return y2-y1+1
 end
 
+-- UnlinkedWikibase 호환 필요
+local broken = true
+
 function p.main(frame)
+  if broken then
+    return ''
+  end
   local args = frame.args[1] ~= nil and frame.args or frame:getParent().args
   -- unpack(args)이 불가하여 하드코딩
   local y1 = tonumber(args[1])
