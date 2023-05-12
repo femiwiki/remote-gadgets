@@ -1,1 +1,68 @@
+local wbGetEntity = mw.wikibase.getEntity
+local wbGetEntityIdForTitle = mw.wikibase.getEntityIdForTitle
+
+--- https://phabricator.wikimedia.org/T330562
+local function convertTo1IndexedArray(array)
+	local newArray = {}
+
+	local zeroIndexed = array[0] ~= nil
+	for k, v in pairs(array) do
+		if type(v) == 'table' then
+			v = convertTo1IndexedArray(v)
+		end
+		local newK = zeroIndexed and type(k) == 'number' and k+1 or k
+		newArray[newK] = v
+	end
+	return newArray
+end
+
+local function getWikidataEntityIdForEntity(entity)
+  if entity == nil then return nil end
+  local statements = entity:getBestStatements( 'P64' )
+  if #statements == 0 then return nil end
+  
+  return statements[1].mainsnak.datavalue.value
+end
+
+mw.wikibase.getEntityIdForCurrentPage = function()
+  local entity = wbGetEntity()
+  return getWikidataEntityIdForEntity(entity)
+end
+
+mw.wikibase.getEntityIdForTitle = function(pageTitle)
+  local id = wbGetEntityIdForTitle(pageTitle)
+  local entity = wbGetEntity(id)
+  return getWikidataEntityIdForEntity(entity)
+end
+
+mw.wikibase.entityExists = function( id )
+  return mw.ext.UnlinkedWikibase.getEntity( id ) ~= nil
+end
+
+mw.wikibase.getEntity = function( id )
+  if id == nil then
+    return mw.wikibase.getEntityIdForCurrentPage()
+  end
+  return convertTo1IndexedArray(mw.ext.UnlinkedWikibase.getEntity( id ))
+end
+
+mw.wikibase.getLabelByLang = function( id, languageCode )
+  local entity = mw.wikibase.getEntity(id)
+  local labels = entity.labels
+  if labels[languageCode] ~= nil then
+    return labels[languageCode].value
+  end
+  if labels.en ~= nil then
+    return labels.en.value
+  end
+  return ''
+end
+
+-- mw.wikibase.getSitelink = function( itemId, globalSiteId )
+--   return 'todo'
+-- end
+-- mw.wikibase.getDescription = function( id )
+--   return 'todo'
+-- end
+
 return require('Module:@en/Wd')
