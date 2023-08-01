@@ -4,6 +4,7 @@ This module was originally on https://en.wikipedia.org/wiki/Module:Navbar/config
 ]]
 return {
 	['templatestyles'] = 'Module:Navbar/styles.css',
+	['hlist_templatestyles'] = 'Hlist/styles.css',
 	['box_text'] = 'This box: ',			-- default text box when not plain or mini
 	['title_namespace'] = 'Template',		-- namespace to default to for title
 	['invalid_title'] = 'Invalid title ',

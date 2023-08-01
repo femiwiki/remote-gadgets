@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Official_website and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Official_website and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 local makeUrl = require('Module:@ko/URL')._url
@@ -48,7 +48,7 @@ local fetchWikidataUrl
 fetchWikidataUrl = function()
 	-- Get objects for all official sites on Wikidata.
 	local websites = quickPcall(function ()
-		return mw.wikibase.getEntityObject().claims.P856
+		return mw.wikibase.getAllStatements(mw.wikibase.getEntityIdForCurrentPage(), 'P856')
 	end)
 
 	-- Clone the objects in case other code needs them in their original order.
@@ -91,8 +91,7 @@ end
 -- Render the URL link, plus other visible output.
 local function renderUrl(options)
 	if not options.url and not options.wikidataurl then
-		local entity = mw.wikibase.getEntityObject() or {}
-		local qid = entity.id
+		local qid = mw.wikibase.getEntityIdForCurrentPage()
 		local result = '<strong class="error">' ..
 			'URL이 없습니다. 여기에 URL을 지정하거나 위키데이터에 URL을 추가해 주십시오.' ..
 			'</strong>'
@@ -107,16 +106,15 @@ local function renderUrl(options)
 		makeUrl(options.url or options.wikidataurl, options.display)
 	)
 	if options.wikidataurl and not options.url then
-		local entity = mw.wikibase.getEntityObject() or {}
-		local qid = entity.id
+		local qid = mw.wikibase.getEntityIdForCurrentPage()
 		if qid then
 			ret[#ret + 1] = '[[파일:OOjs UI icon edit-ltr-progressive.svg |frameless |text-top |10px |alt=위키데이터에서 편집하기 |link=https://www.wikidata.org/wiki/' .. qid .. '#P856|위키데이터에서 편집하기]]'
 		end
 	end
 	if options.format == 'flash' then
 		ret[#ret + 1] = mw.getCurrentFrame():expandTemplate{
-			title = 'Link note',
-			args = {note = '[[어도비 플래시 플레이어]] 필요'}
+			title = 'Color',
+			args = {'#505050', '([[어도비 플래시 플레이어]] 필요)'}
 		}
 	end
 	if options.mobile then

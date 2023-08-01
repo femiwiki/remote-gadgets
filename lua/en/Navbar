@@ -154,7 +154,11 @@ function p._navbar(args)
 			:wikitext(args[1])
 	end
 	
-	return mw.getCurrentFrame():extensionTag{
+	local frame = mw.getCurrentFrame()
+	-- hlist -> navbar is best-effort to preserve old Common.css ordering.
+	return frame:extensionTag{
+		name = 'templatestyles', args = { src = cfg.hlist_templatestyles }
+	} .. frame:extensionTag{
 		name = 'templatestyles', args = { src = cfg.templatestyles }
 	} .. tostring(div:done())
 end

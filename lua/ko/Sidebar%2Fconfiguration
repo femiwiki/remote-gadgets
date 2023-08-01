@@ -14,6 +14,8 @@ return {
 		title_not_to_add_navbar = '틀:사이드바',
 		collapse_title_not_to_add_navbar = '틀:접이식 사이드바',
 		templatestyles = '모듈:Sidebar/styles.css',
+		hlist_templatestyles = 'Hlist/styles.css',
+		plainlist_templatestyles = 'Plainlist/styles.css',
 		category = {
 			child = '[[분류:자식 변수를 사용하는 사이드바가 있는 문서]]',
 			conversion = '[[분류:스타일 변환이 필요한 사이드바]]'

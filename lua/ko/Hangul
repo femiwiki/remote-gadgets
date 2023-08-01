@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Hangul and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Hangul and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 --[[
@@ -92,9 +92,13 @@ function func.josa(frame)
     local input_defaultjosa = frame.args.defaultjosa
     local override = getBoolean(frame.args.override or false)
     local josaonly = getBoolean(frame.args.josaonly or false)
- 
+    
+    return func._josa(input_string, input_josa, input_defaultjosa, override, josaonly)
+end
+
+function func._josa(input_string, input_josa, input_defaultjosa, override, josaonly)
     local output_josa
- 
+    
     if override then
         output_josa = input_defaultjosa or input_josa
     else

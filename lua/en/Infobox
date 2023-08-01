@@ -9,6 +9,44 @@ local root
 local empty_row_categories = {}
 local category_in_empty_row_pattern = '%[%[%s*[Cc][Aa][Tt][Ee][Gg][Oo][Rr][Yy]%s*:[^]]*]]'
 local has_rows = false
+local lists = {
+	plainlist_t = {
+		patterns = {
+			'^plainlist$',
+			'%splainlist$',
+			'^plainlist%s',
+			'%splainlist%s'
+		},
+		found = false,
+		styles = 'Plainlist/styles.css'
+	},
+	hlist_t = {
+		patterns = {
+			'^hlist$',
+			'%shlist$',
+			'^hlist%s',
+			'%shlist%s'
+		},
+		found = false,
+		styles = 'Hlist/styles.css'
+	}
+}
+
+local function has_list_class(args_to_check)
+	for _, list in pairs(lists) do
+		if not list.found then
+			for _, arg in pairs(args_to_check) do
+				for _, pattern in ipairs(list.patterns) do
+					if mw.ustring.find(arg or '', pattern) then
+						list.found = true
+						break
+					end
+				end
+				if list.found then break end
+			end
+		end
+	end
+end
 
 local function fixChildBoxes(sval, tt)
 	local function notempty( s ) return s and s:match( '%S' ) end
@@ -115,6 +153,8 @@ local function addRow(rowArgs)
 	
 	if rowArgs.header and rowArgs.header ~= '_BLANK_' then
 		has_rows = true
+		has_list_class({ rowArgs.rowclass, rowArgs.class, args.headerclass })
+		
 		root
 			:tag('tr')
 				:addClass(rowArgs.rowclass)
@@ -133,10 +173,10 @@ local function addRow(rowArgs)
 				'[[Category:Pages using infobox templates with ignored data cells]]'
 			)
 		end
-	elseif rowArgs.data and rowArgs.data:gsub(
-			category_in_empty_row_pattern, ''
-		):match('^%S') then
+	elseif rowArgs.data and rowArgs.data:gsub(category_in_empty_row_pattern, ''):match('^%S') then
 		has_rows = true
+		has_list_class({ rowArgs.rowclass, rowArgs.class })
+		
 		local row = root:tag('tr')
 		row:addClass(rowArgs.rowclass)
 		row:cssText(rowArgs.rowstyle)
@@ -170,6 +210,8 @@ local function renderTitle()
 	if not args.title then return end
 
 	has_rows = true
+	has_list_class({args.titleclass})
+	
 	root
 		:tag('caption')
 			:addClass('infobox-title')
@@ -177,12 +219,15 @@ local function renderTitle()
 			-- @deprecated next; target .infobox-<name> .infobox-title
 			:cssText(args.titlestyle)
 			:wikitext(args.title)
+	
 end
 
 local function renderAboveRow()
 	if not args.above then return end
 
 	has_rows = true
+	has_list_class({ args.aboveclass })
+	
 	root
 		:tag('tr')
 			:tag('th')
@@ -198,6 +243,8 @@ local function renderBelowRow()
 	if not args.below then return end
 
 	has_rows = true
+	has_list_class({ args.belowclass })
+	
 	root
 		:tag('tr')
 			:tag('td')
@@ -213,6 +260,8 @@ local function addSubheaderRow(subheaderArgs)
 	if subheaderArgs.data and
 		subheaderArgs.data:gsub(category_in_empty_row_pattern, ''):match('^%S') then
 		has_rows = true
+		has_list_class({ subheaderArgs.rowclass, subheaderArgs.class })
+		
 		local row = root:tag('tr')
 		row:addClass(subheaderArgs.rowclass)
 
@@ -255,6 +304,8 @@ local function addImageRow(imageArgs)
 		imageArgs.data:gsub(category_in_empty_row_pattern, ''):match('^%S') then
 
 		has_rows = true
+		has_list_class({ imageArgs.rowclass, imageArgs.class })
+		
 		local row = root:tag('tr')
 		row:addClass(imageArgs.rowclass)
 
@@ -366,7 +417,7 @@ end
 local function renderItalicTitle()
 	local italicTitle = args['italic title'] and mw.ustring.lower(args['italic title'])
 	if italicTitle == '' or italicTitle == 'force' or italicTitle == 'yes' then
-		root:wikitext(mw.getCurrentFrame():expandTemplate({title = 'italic title'}))
+		root:wikitext(require('Module:@en/Italic title')._main({}))
 	end
 end
 
@@ -407,31 +458,53 @@ Will have to do some bizarre conversion category like with sidebar.
 local function loadTemplateStyles()
 	local frame = mw.getCurrentFrame()
 	
+	local hlist_templatestyles = ''
+	if lists.hlist_t.found then
+		hlist_templatestyles = frame:extensionTag{
+			name = 'templatestyles', args = { src = lists.hlist_t.styles }
+		}
+	end
+	
+	local plainlist_templatestyles = ''
+	if lists.plainlist_t.found then
+		plainlist_templatestyles = frame:extensionTag{
+			name = 'templatestyles', args = { src = lists.plainlist_t.styles }
+		}
+	end
+	
 	-- See function description
 	local base_templatestyles = frame:extensionTag{
 		name = 'templatestyles', args = { src = 'Module:Infobox/styles.css' }
 	}
 
 	local templatestyles = ''
-	if args['templatestyles'] then templatestyles = frame:extensionTag{
+	if args['templatestyles'] then
+		templatestyles = frame:extensionTag{
 			name = 'templatestyles', args = { src = args['templatestyles'] }
 		}
 	end
 	
 	local child_templatestyles = ''
-	if args['child templatestyles'] then child_templatestyles = frame:extensionTag{
+	if args['child templatestyles'] then
+		child_templatestyles = frame:extensionTag{
 			name = 'templatestyles', args = { src = args['child templatestyles'] }
 		}
 	end
 	
 	local grandchild_templatestyles = ''
-	if args['grandchild templatestyles'] then grandchild_templatestyles = frame:extensionTag{
+	if args['grandchild templatestyles'] then
+		grandchild_templatestyles = frame:extensionTag{
 			name = 'templatestyles', args = { src = args['grandchild templatestyles'] }
 		}
 	end
-
+	
 	return table.concat({
-		base_templatestyles, -- see function description
+		-- hlist -> plainlist -> base is best-effort to preserve old Common.css ordering.
+		-- this ordering is not a guarantee because the rows of interest invoking
+		-- each class may not be on a specific page
+		hlist_templatestyles,
+		plainlist_templatestyles,
+		base_templatestyles,
 		templatestyles,
 		child_templatestyles,
 		grandchild_templatestyles
@@ -463,6 +536,8 @@ local function _infobox()
 			:addClass(args.bodyclass)
 			-- @deprecated next; target .infobox-<name>
 			:cssText(args.bodystyle)
+		
+		has_list_class({ args.bodyclass })
 
 		renderTitle()
 		renderAboveRow()

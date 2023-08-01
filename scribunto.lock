@@ -12,12 +12,12 @@
     },
     "@en/Exponential search": {
       "pageid": 45500622,
-      "revid": 920258706,
+      "revid": 1138644443,
       "title": "Module:Exponential search"
     },
     "@en/Format link": {
       "pageid": 69546539,
-      "revid": 1064575531,
+      "revid": 1114037571,
       "title": "Module:Format link",
       "dependencies": [
         "@en/Arguments",
@@ -27,7 +27,7 @@
     },
     "@en/Hatnote": {
       "pageid": 42498502,
-      "revid": 1105145280,
+      "revid": 1108677080,
       "title": "Module:Hatnote",
       "dependencies": [
         "@en/Arguments",
@@ -46,15 +46,25 @@
     },
     "@en/Infobox": {
       "pageid": 38808424,
-      "revid": 1055523885,
+      "revid": 1129941009,
       "title": "Module:Infobox",
       "dependencies": [
+        "@en/Italic title",
         "@en/Navbar"
+      ]
+    },
+    "@en/Italic title": {
+      "pageid": 39697931,
+      "revid": 1117462724,
+      "title": "Module:Italic title",
+      "dependencies": [
+        "@en/Arguments",
+        "@en/Yesno"
       ]
     },
     "@en/Navbar": {
       "pageid": 38827227,
-      "revid": 1054994468,
+      "revid": 1130341346,
       "title": "Module:Navbar",
       "dependencies": [
         "@en/Arguments",
@@ -64,7 +74,7 @@
     },
     "@en/Navbar/configuration": {
       "pageid": 66010105,
-      "revid": 1054995103,
+      "revid": 1130341048,
       "title": "Module:Navbar/configuration"
     },
     "@en/String": {
@@ -85,12 +95,12 @@
     },
     "@en/Wd": {
       "pageid": 51376229,
-      "revid": 1073619513,
+      "revid": 1164720990,
       "title": "Module:Wd"
     },
     "@en/Wd/i18n": {
       "pageid": 54004752,
-      "revid": 951882658,
+      "revid": 1164721158,
       "title": "Module:Wd/i18n"
     },
     "@en/Yesno": {
@@ -105,17 +115,19 @@
     },
     "@ko/Catalog lookup link": {
       "pageid": 2580206,
-      "revid": 25021582,
+      "revid": 33641757,
       "title": "\ubaa8\ub4c8:Catalog lookup link",
       "dependencies": [
-        "@ko/Arguments",
-        "@ko/No globals"
+        "@ko/Arguments"
       ]
     },
     "@ko/Check for unknown parameters": {
       "pageid": 1305515,
-      "revid": 26246987,
-      "title": "\ubaa8\ub4c8:Check for unknown parameters"
+      "revid": 33547260,
+      "title": "\ubaa8\ub4c8:Check for unknown parameters",
+      "dependencies": [
+        "@ko/If preview"
+      ]
     },
     "@ko/Check isxn": {
       "pageid": 1789415,
@@ -124,7 +136,7 @@
     },
     "@ko/Citation/CS1": {
       "pageid": 950941,
-      "revid": 32891951,
+      "revid": 35215065,
       "title": "\ubaa8\ub4c8:Citation/CS1",
       "dependencies": [
         "@ko/Citation/CS1/COinS",
@@ -180,7 +192,7 @@
     },
     "@ko/Citation/CS1/Identifiers": {
       "pageid": 1481764,
-      "revid": 33055547,
+      "revid": 33523354,
       "title": "\ubaa8\ub4c8:Citation/CS1/Identifiers"
     },
     "@ko/Citation/CS1/Identifiers/sandbox": {
@@ -243,12 +255,12 @@
     },
     "@ko/Footnotes/anchor id list/data": {
       "pageid": 3086599,
-      "revid": 33300340,
+      "revid": 33641687,
       "title": "\ubaa8\ub4c8:Footnotes/anchor id list/data"
     },
     "@ko/Footnotes/anchor_id_list": {
       "pageid": 3086600,
-      "revid": 33300339,
+      "revid": 33641682,
       "title": "\ubaa8\ub4c8:Footnotes/anchor id list",
       "dependencies": [
         "@ko/Footnotes/anchor id list/data",
@@ -262,7 +274,7 @@
     },
     "@ko/Footnotes2": {
       "pageid": 1181297,
-      "revid": 33616964,
+      "revid": 34877826,
       "title": "\ubaa8\ub4c8:Footnotes2",
       "dependencies": [
         "@ko/Arguments",
@@ -273,7 +285,7 @@
     },
     "@ko/Hangul": {
       "pageid": 933341,
-      "revid": 26422357,
+      "revid": 33652202,
       "title": "\ubaa8\ub4c8:Hangul",
       "dependencies": [
         "@ko/Hangul/data"
@@ -286,20 +298,33 @@
     },
     "@ko/ISOdate": {
       "pageid": 1258807,
-      "revid": 13768844,
+      "revid": 35215067,
       "title": "\ubaa8\ub4c8:ISOdate",
       "dependencies": [
         "@ko/Date2"
       ]
     },
+    "@ko/If preview": {
+      "pageid": 1894773,
+      "revid": 32596723,
+      "title": "\ubaa8\ub4c8:If preview",
+      "dependencies": [
+        "@ko/If preview/configuration"
+      ]
+    },
+    "@ko/If preview/configuration": {
+      "pageid": 3213840,
+      "revid": 32596717,
+      "title": "\ubaa8\ub4c8:If preview/configuration"
+    },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 33145721,
+      "revid": 35343244,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {
       "pageid": 930485,
-      "revid": 28573476,
+      "revid": 35127696,
       "title": "\ubaa8\ub4c8:Navbar",
       "dependencies": [
         "@ko/Arguments",
@@ -308,7 +333,7 @@
     },
     "@ko/Navbox": {
       "pageid": 930488,
-      "revid": 27556220,
+      "revid": 35127656,
       "title": "\ubaa8\ub4c8:Navbox",
       "dependencies": [
         "@ko/Arguments",
@@ -316,14 +341,9 @@
         "@ko/Navbar"
       ]
     },
-    "@ko/No globals": {
-      "pageid": 1149293,
-      "revid": 12865081,
-      "title": "\ubaa8\ub4c8:No globals"
-    },
     "@ko/Official website": {
       "pageid": 1921209,
-      "revid": 25623969,
+      "revid": 34634801,
       "title": "\ubaa8\ub4c8:Official website",
       "dependencies": [
         "@ko/Arguments",
@@ -332,18 +352,17 @@
     },
     "@ko/Sidebar": {
       "pageid": 945357,
-      "revid": 30620866,
+      "revid": 34822011,
       "title": "\ubaa8\ub4c8:Sidebar",
       "dependencies": [
         "@ko/Arguments",
         "@ko/Navbar",
-        "@ko/No globals",
         "@ko/Sidebar/configuration"
       ]
     },
     "@ko/Sidebar/configuration": {
       "pageid": 3086768,
-      "revid": 30620873,
+      "revid": 34822010,
       "title": "\ubaa8\ub4c8:Sidebar/configuration"
     },
     "@ko/TableTools": {
@@ -353,7 +372,7 @@
     },
     "@ko/URL": {
       "pageid": 947620,
-      "revid": 21411274,
+      "revid": 33873207,
       "title": "\ubaa8\ub4c8:URL"
     },
     "@ko/Yesno": {
@@ -363,7 +382,7 @@
     },
     "@mediawikiwiki/Template translation": {
       "pageid": 131816,
-      "revid": 4694670,
+      "revid": 6016441,
       "title": "Module:Template translation"
     }
   }

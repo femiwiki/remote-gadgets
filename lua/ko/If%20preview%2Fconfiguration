@@ -1,0 +1,30 @@
+--[[
+This module was originally on https://ko.wikipedia.org/wiki/Module:If_preview/configuration and forked by Legunto
+(https://github.com/femiwiki/legunto).
+]]
+--[[
+We perform the actual check for whether this is a preview here since
+preprocessing is relatively expensive.
+]]
+local frame = mw.getCurrentFrame()
+
+local function is_preview()
+	local revision_id = frame:preprocess('{{REVISIONID}}')
+	-- {{REVISIONID}} is usually the empty string when previewed.
+	-- I don't know why we're checking for nil but hey, maybe someday things
+	-- would have broken
+	return revision_id == nil or revision_id == ''
+end
+
+local function templatestyles()
+	return frame:extensionTag{
+		name = '틀스타일', args = { src = 'Module:If preview/styles.css' }
+	}
+end
+
+return {
+	preview = is_preview(),
+	templatestyles = templatestyles(),
+	warning_infrastructure = '%s<div class="preview-warning"><strong>미리 보기 경고:</strong> %s</div>',
+	missing_warning = '이 틀에 경고 문구가 없습니다. 경고를 추가해 주십시오.'
+}

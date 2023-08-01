@@ -25,28 +25,23 @@ function this.checkLanguage(subpage, default)
         (even if they are considered valid in BCP 47, in which they are
         case-insensitive; they are not "SupportedLanguages" for MediaWiki, so
         they are not "KnownLanguageTags" for MediaWiki).
-        To be more restrictive, we exclude any character
+        To be more restrictive, we exclude tags
+        * for specific uses in template subpages and unusable as language tags;
         * that is not ASCII and not a lowercase letter, minus-hyphen, or digit,
           or does not start by a letter or does not finish by a letter or digit;
-        * or that has more than 8 characters between hyphens;
-        * or that has two hyphens;
-        * or with specific uses in template subpages and unusable as languages.
+        * or that has subtags with more than 8 characters between hyphens;
+        * or that has two hyphens.
     --]]
-    or  string.find(subpage, "^[%l][%-%d%l]*[%d%l]$") ~= nil
-    and string.find(subpage, "[%d%l][%d%l][%d%l][%d%l][%d%l][%d%l][%d%l][%d%l][%d%l]") == nil
-    and string.find(subpage, "%-%-") == nil
-    and subpage ~= "doc"
+    or  subpage ~= "doc"
     and subpage ~= "layout"
+    and subpage ~= "button"
+    and subpage ~= "buttons"
     and subpage ~= "sandbox"
+    and subpage ~= "testcase"
     and subpage ~= "testcases"
-    and subpage ~= "init"
-    and subpage ~= "preload"
-    and subpage ~= "subpage"
-    and subpage ~= "subpage2"
-    and subpage ~= "sub-subpage"
-    and subpage ~= "sub-sub-subpage"
-    and subpage ~= "sub-sub-sub-subpage"
-    then
+    and string.find(subpage, "^[%l][%-%d%l]*[%d%l]$") ~= nil
+    and string.find(subpage, "[%d%l][%d%l][%d%l][%d%l][%d%l][%d%l][%d%l][%d%l][%d%l]") == nil
+    and string.find(subpage, "%-%-") == nil then
         return subpage
     end
     -- Otherwise there's currently no known language subpage
@@ -73,7 +68,7 @@ function this._getLanguageSubpage(title)
 	end
 	if not title then
 		-- invalid title
-		return mw.language.getContentLanguage():getCode()
+		return nil
 	end
 	--[[This code does not work in all namespaces where the Translate tool works.
 	--  It works in the main namespace on Meta because it allows subpages there
@@ -91,7 +86,7 @@ function this._getLanguageSubpage(title)
 	--]]
 	local titleparts = mw.text.split(title.fullText, '/')
 	local subpage = titleparts[#titleparts]
-	return this.checkLanguage(subpage, mw.language.getContentLanguage():getCode())
+	return this.checkLanguage(subpage, '')
 end
 
 --[[Get the last subpage of the current page if it is a translation.
@@ -101,30 +96,28 @@ function this.getCurrentLanguageSubpage()
 end
 
 --[[Get the first part of the language code of the subpage, before the '-'.
-    ]]
+--]]
 function this.getMainLanguageSubpage()
-	parts = mw.text.split( this.getCurrentLanguageSubpage(), '-' )
+	parts = mw.text.split(this.getCurrentLanguageSubpage(), '-')
 	return parts[1]
 end
 
 --[[Get the last subpage of the current frame if it is a translation.
     Not used locally.
-    ]]
+--]]
 function this.getFrameLanguageSubpage(frame)
 	return this._getLanguageSubpage(frame:getParent():getTitle())
 end
 
---[[Get the language of the current page.
-    Not used locally.
-    ]]
+--[[Get the language of the current page. Not used locally.
+--]]
 function this.getLanguage()
     local subpage = mw.title.getCurrentTitle().subpageText
     return this.checkLanguage(subpage, mw.language.getContentLanguage():getCode())
 end
 
---[[Get the language of the current frame.
-    Not used locally.
-    ]]
+--[[Get the language of the current frame. Not used locally.
+--]]
 function this.getFrameLanguage(frame)
     local titleparts = mw.text.split(frame:getParent():getTitle(), '/')
     local subpage = titleparts[#titleparts]
@@ -134,8 +127,7 @@ end
 function this.title(namespace, basepagename, subpage)
     local message, title
     local pagename = basepagename
-    if (subpage or '') ~= ''
-    then
+    if (subpage or '') ~= '' then
         pagename = pagename .. '/' .. subpage
     end
     local valid, title = xpcall(function()
@@ -145,8 +137,7 @@ function this.title(namespace, basepagename, subpage)
             -- says it should return a title, even in that case...
             message = msg
         end)
-    if valid and title ~= nil and (title.id or 0) ~= 0
-    then
+    if valid and title ~= nil and (title.id or 0) ~= 0 then
         return title
     end
     return { -- "pseudo" mw.title object with id = nil in case of error
@@ -164,56 +155,46 @@ end
     This version does not expand the returned template name: this solves the
     problem of self-recursion in TNT when translatable templates need themselves
     to transclude other translable templates (such as Tnavbar).
-    ]]
+--]]
 function this.getTranslatedTemplate(frame, withStatus)
     local args = frame.args
     local pagename = args['template']
-    
     --[[Check whether the pagename is actually in the Template namespace, or
         if we're transcluding a main-namespace page.
         (added for backward compatibility of Template:TNT)
         ]]
-    local title
-    local namespace = args['tntns'] or ''
-    if (namespace ~= '') -- Checks for tntns parameter for custom ns.
-    then
+    local namespace, title = args['tntns'] or ''
+    if namespace ~= '' then -- Checks for tntns parameter for custom ns.
         title = this.title(namespace, pagename) -- Costly
     else -- Supposes that set page is in ns10.
     	namespace = 'Template'
         title = this.title(namespace, pagename) -- Costly
-        if title.id == nil
-        then -- not found in the Template namespace, assume the main namespace (for backward compatibility)
+        if title.id == nil then -- not found in the Template namespace, assume the main namespace (for backward compatibility)
     	    namespace = ''
             title = this.title(namespace, pagename) -- Costly
         end
     end
-    
     -- Get the last subpage and check if it matches a known language code.
     local subpage = args['uselang'] or ''
-    if (subpage == '')
-    then
+    if subpage == '' then
         subpage = this.getCurrentLanguageSubpage()
     end
-    if (subpage == '')
-    then
+    if subpage == '' then
         -- Check if a translation of the pagename exists in English
         local newtitle = this.title(namespace, pagename, 'en') -- Costly
         -- Use the translation when it exists
-        if newtitle.id ~= nil
-        then
+        if newtitle.id ~= nil then
             title = newtitle
         end
     else
         -- Check if a translation of the pagename exists in that language
         local newtitle = this.title(namespace, pagename, subpage) -- Costly
-        if newtitle.id == nil
-        then
+        if newtitle.id == nil then
             -- Check if a translation of the pagename exists in English
             newtitle = this.title(namespace, pagename, 'en') -- Costly
         end
         -- Use the translation when it exists
-        if newtitle.id ~= nil
-        then
+        if newtitle.id ~= nil then
             title = newtitle
         end
     end
@@ -237,7 +218,7 @@ end
     translatable templates, as it will recurse on TNT. Use TNTN instead
     to return only the effective template name to expand externally, with
     template parameters also provided externally.
-    ]]
+--]]
 function this.renderTranslatedTemplate(frame)
 	local title, found = this.getTranslatedTemplate(frame, true)
     -- At this point the title should exist prior to performing the expansion
@@ -248,25 +229,18 @@ function this.renderTranslatedTemplate(frame)
 	if not found then
 		return '[[' .. title .. ']]'
 	end
-
     -- Copy args pseudo-table to a proper table so we can feed it to expandTemplate.
     -- Then render the pagename.
     local args = frame.args
     local pargs = (frame:getParent() or {}).args
     local arguments = {}
-    if (args['noshift'] or '') == ''
-    then
+    if (args['noshift'] or '') == '' then
         for k, v in pairs(pargs) do
-            -- numbered args >= 1 need to be shifted
             local n = tonumber(k) or 0
-            if (n > 0)
-            then
-                if (n >= 2)
-                then
-                    arguments[n - 1] = v
-                end
-            else
+            if n <= 0 then -- unnumbered args
                 arguments[k] = v
+            elseif n >= 2 then -- numbered args >= 2 need to be shifted
+                arguments[n - 1] = v
             end
         end
     else -- special case where TNT is used as autotranslate
@@ -279,7 +253,6 @@ function this.renderTranslatedTemplate(frame)
     arguments['tntns'] = nil -- discard the specified namespace override
     arguments['uselang'] = args['uselang'] -- argument forwarded into parent frame
     arguments['noshift'] = args['noshift'] -- argument forwarded into parent frame
-    
     return frame:expandTemplate{title = ':' .. title, args = arguments}
 end
 
@@ -287,25 +260,19 @@ end
     TemplateSandbox; mocking it with this method means templates won't be
     localized but at least TemplateSandbox substitutions will work properly.
     Won't work with complex uses.
-    ]]
+--]]
 function this.mockTNT(frame)
     local pargs = (frame:getParent() or {}).args
     local arguments = {}
     for k, v in pairs(pargs) do
-        -- numbered args >= 1 need to be shifted
         local n = tonumber(k) or 0
-        if (n > 0)
-        then
-            if (n >= 2)
-            then
-                arguments[n - 1] = v
-            end
-        else
+        if n <= 0 then -- unnumbered args
             arguments[k] = v
+        elseif n >= 2 then -- numbered args >= 2 need to be shifted
+            arguments[n - 1] = v
         end
     end
-    if not pargs[1]
-    then
+    if not pargs[1] then
     	return ''
 	end
     return frame:expandTemplate{title = 'Template:' .. pargs[1], args = arguments}

@@ -109,16 +109,16 @@ local function target_check (anchor_id, args)
 	elseif 1 < tally then
 		msg = '여러 대상 (' .. tally .. '×): ' .. anchor_id;				-- more than one anchor_id in this article
 		category = 0 == namespace and '[[분류:Harv 및 Sfn에 여러 대상 오류가 있는 문서]]' or '';								-- only categorize in article space
-		return '<span class="error harv-error" style="display: inline; font-size:100%"> ' .. args.template .. ' error: ' .. msg .. ' ([[:Category:Harv and Sfn template errors|help]])</span>' .. category;
+		return '<span class="error harv-error" style="display: inline; font-size:100%"> ' .. args.template .. ' error: ' .. msg .. ' ([[:en:Category:Harv and Sfn template errors|help]])</span>' .. category;
 	end
 
---	category = 0 == namespace and '[[Category:Harv and Sfn template errors]]' or '';	-- only categorize in article space
+--	category = 0 == namespace and '<!--[[Category:Harv and Sfn template errors]]-->' or '';	-- only categorize in article space
 	category = 0 == namespace and category or '';								-- only categorize in article space
 
 --use this version to show error messages
---	return msg and '<span class="error harv-error" style="display: inline; font-size:100%"> ' .. args.template .. ' error: ' .. msg .. ' ([[:Category:Harv and Sfn template errors|help]])</span>' .. category or '';
+--	return msg and '<span class="error harv-error" style="display: inline; font-size:100%"> ' .. args.template .. ' error: ' .. msg .. ' ([[:en:Category:Harv and Sfn template errors|help]])</span>' .. category or '';
 --use this version to hide error messages
-	return msg and '<span class="error harv-error" style="display: none; font-size:100%"> ' .. args.template .. ' error: ' .. msg .. ' ([[:Category:Harv and Sfn template errors|help]])</span>' .. category or '';
+	return msg and '<span class="error harv-error" style="display: none; font-size:100%"> ' .. args.template .. ' error: ' .. msg .. ' ([[:en:Category:Harv and Sfn template errors|help]])</span>' .. category or '';
 
 end
 

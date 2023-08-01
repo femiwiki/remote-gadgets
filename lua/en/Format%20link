@@ -171,8 +171,11 @@ function p._formatLink(options)
 	if catMissing and (mw.ustring.len(catMissing) > 0) then
 		local title = nil
 		if parsed.page then title = mw.title.new(parsed.page) end
-		if title and (not title.isExternal) and (not title.exists) then
-			category = mw.ustring.format('[[Category:%s]]', catMissing)
+		if title and (not title.isExternal) then
+			local success, exists = pcall(function() return title.exists end)
+			if success and not exists then
+				category = mw.ustring.format('[[Category:%s]]', catMissing)
+			end
 		end
 	end
 	
