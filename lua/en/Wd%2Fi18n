@@ -14,7 +14,8 @@ function p.init(aliasesP)
 			["extra-required-parameter"]   = "Parameter '$1' must be defined as optional",
 			["no-function-specified"]      = "You must specify a function to call",  -- equal to the standard module error message
 			["main-called-twice"]          = 'The function "main" cannot be called twice',
-			["no-such-function"]           = 'The function "$1" does not exist'  -- equal to the standard module error message
+			["no-such-function"]           = 'The function "$1" does not exist',  -- equal to the standard module error message
+            ["malformed-reference"]        = "Error: Unable to display the reference properly. See [[Module:wd/doc#References|the documentation]] for details.[[Category:Module:Wd reference errors]]"
 		},
 		["info"] = {
 			["edit-on-wikidata"] = "Edit this on Wikidata"
@@ -57,22 +58,24 @@ function p.init(aliasesP)
 			["none"]    = "none"
 		},
 		["cite"] = {
-			["version"] = "2",  -- increment this each time the below parameters are changed to avoid conflict errors
+			["version"] = "4",  -- increment this each time the below parameters are changed to avoid conflict errors
 			["web"] = {
 				-- <= left side: all allowed reference properties for *web page sources* per https://www.wikidata.org/wiki/Help:Sources
 				-- => right side: corresponding parameter names in (equivalent of) [[:en:Template:Cite web]] (if non-existent, keep empty i.e. "")
-				[aliasesP.statedIn]        = "website",
-				[aliasesP.referenceURL]    = "url",
-				[aliasesP.publicationDate] = "date",
-				[aliasesP.retrieved]       = "access-date",
-				[aliasesP.title]           = "title",
-				[aliasesP.archiveURL]      = "archive-url",
-				[aliasesP.archiveDate]     = "archive-date",
-				[aliasesP.language]        = "language",
-				[aliasesP.author]          = "author",  -- existence of author1, author2, author3, etc. is assumed
-				[aliasesP.publisher]       = "publisher",
-				[aliasesP.quote]           = "quote",
-				[aliasesP.pages]           = "pages"  -- extra option
+				[aliasesP.statedIn]         = "website",
+				[aliasesP.referenceURL]     = "url",
+				[aliasesP.publicationDate]  = "date",
+				[aliasesP.retrieved]        = "access-date",
+				[aliasesP.title]            = "title",
+				[aliasesP.archiveURL]       = "archive-url",
+				[aliasesP.archiveDate]      = "archive-date",
+				[aliasesP.language]         = "language",
+				[aliasesP.author]           = "author",  -- existence of author1, author2, author3, etc. is assumed
+				[aliasesP.authorNameString] = "author",
+				[aliasesP.publisher]        = "publisher",
+				[aliasesP.quote]            = "quote",
+				[aliasesP.pages]            = "pages",  -- extra option
+				[aliasesP.publishedIn]      = "website"
 			},
 			["q"] = {
 				-- <= left side: all allowed reference properties for *sources other than web pages* per https://www.wikidata.org/wiki/Help:Sources

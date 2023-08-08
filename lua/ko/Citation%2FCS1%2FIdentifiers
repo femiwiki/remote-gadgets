@@ -852,7 +852,7 @@ than test_limit; the value in local variable test_limit will need to be updated 
 ]]
 
 local function pmc(id, embargo)
-	local test_limit = 9000000;													-- update this value as PMCs approach
+	local test_limit = 10000000;													-- update this value as PMCs approach
 	local handler = cfg.id_handlers['PMC'];
 	local err_cat = '';															-- presume that PMC is valid
 	local id_num;

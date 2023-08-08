@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Catalog_lookup_link and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Catalog_lookup_link and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 --[[
@@ -29,7 +29,7 @@ new parameters that support access icons:
 
 ]]
 
-require('Module:@ko/No globals');
+require('strict');
 local getArgs = require ('Module:@ko/Arguments').getArgs;
 local lock_icons = {															--icon classes are defined in Module:Citation/CS1/styles.css
 	['free'] = {'cs1-lock-free', 'Freely accessible'},

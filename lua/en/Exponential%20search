@@ -3,6 +3,7 @@ This module was originally on https://en.wikipedia.org/wiki/Module:Exponential_s
 (https://github.com/femiwiki/legunto).
 ]]
 -- This module provides a generic exponential search algorithm.
+require[[strict]]
 
 local checkType = require('libraryUtil').checkType
 local floor = math.floor

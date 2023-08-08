@@ -2,7 +2,7 @@
 This module was originally on https://ko.wikipedia.org/wiki/Module:Footnotes/anchor_id_list and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
-require('Module:@ko/No globals');
+require('strict');
 local data = mw.loadData ('Module:@ko/Footnotes/anchor id list/data');
 local whitelist = mw.loadData ('Module:@ko/Footnotes/whitelist');
 local Lang_obj = mw.language.getContentLanguage();								-- used by template_list_add() to uppercase first letter of template name TODO: better way to do that?
@@ -135,7 +135,7 @@ local function sfnref_get (template)
 	else
 		return nil;																-- not an sfnref or harvid template
 	end
-
+	
 	local i = 2;																-- indexer into parts{} table
 	local j = 2;																-- indexer into anchor_id{} table which already has 'CITEREF' at [1]
 	while parts[i] and 7 > j do													-- loop through what should be just positional parameters for names and year (2-6 four names and a date)
@@ -181,7 +181,7 @@ local function date_get (template, aliases)
 				if rvalue then													-- if rvalue is something
 					rvalue = mw.text.trim (rvalue);								-- trim it
 				end
-
+				
 				if not rvalue or '' == rvalue then								-- if rvale was nothing or trimed to nothing
 					rvalue = nil;												-- ensure that it is unset so we can try the next parameter in the list
 				end
@@ -202,7 +202,7 @@ local function date_get (template, aliases)
 	return '';																	-- no date param or date param doesn't hold a recognized date; empty string for concatenation
 end
 
-
+ 
 --[[--------------------------< V N A M E S _ G E T >----------------------------------------------------------
 
 extract names from |vauthors= or |veditors=; there is no |vcontributors= parameter.
@@ -218,9 +218,9 @@ local function vnames_get (params, vparam)
 
 	if params[vparam] then														-- test for |vauthors= or |veditor=
 		split = mw.text.split (params[vparam], '%s*,%s*');						-- this will separate portions of ((Black, Brown, White, an Co.))
-
+	
 		local i = 1;															-- an indexer
-
+		
 		while split[i] do
 			if split[i]:match ('^%(%(.*[^%)][^%)]$') then						-- first segment of comma-separated accept-as-witten; this segment has the opening doubled parens
 				local name = split[i];
@@ -233,7 +233,7 @@ local function vnames_get (params, vparam)
 					i=i+1;														-- bump indexer
 				end
 				table.insert (vnames, name);									-- and add accept-as-witten name to the vnames table
-
+	
 			else
 				table.insert (vnames, split[i]);								-- and add name to the vnames table
 			end
@@ -276,7 +276,7 @@ local function names_get (params, aliases_list)
 		for i, alias in ipairs (aliases_list) do
 			if not names[enum] then												-- hanven't found a previous alias with this [enum]? see if we can find this alias with this enum
 				enum_alias = alias:gsub ('#', enum);							-- replace '#' to make 'lastn'
-
+	
 				if 1 == enum then												-- because |last= and last1= are exact aliases
 					if params[enum_alias] then									-- test |last1= first
 						names[enum] = params[enum_alias];						-- found so save the value assigned to |last1=
@@ -353,7 +353,7 @@ Wikilink markup does not belong in an anchor id and can / does confuse the code 
 harvc templates so here we remove any wiki markup:
 	[[link|label]] -> label
 	[[link]] -> link
-
+	
 ]=]
 
 local function wikilink_strip (template)
@@ -440,7 +440,7 @@ local function anchor_id_make_harvc (template)
 	if params.id then															-- custom anchor for this {{harvc}} template (text)
 		return params.id;														-- |id= value as written
 	end
-
+	
 	anchor_id = names_get (params, aliases_harvc_author);						-- get the harvc contributor names
 
 	if anchor_id then															-- if names were gotten
@@ -473,7 +473,7 @@ local function anchor_id_make_wrapper (template)
 	local date_default;
 	local vol;
 	local params = {};															-- table of template parameters
-
+	
 	template_name = template_name_get (template);								-- get first char uppercase trimmed template name; ignore subpages ~/new, ~/sandbox
 	if not template_name or template_skip[template_name] then
 		return nil;																-- could not extract template name from (possibly corrupted) template (extraneous opening { in the template will cause this)
@@ -533,11 +533,11 @@ local function anchor_id_make_wrapper (template)
 
 	elseif 'none' == ref then													-- |ref=none
 		return nil;																-- anchor id expicitly suppressed
-
+		
 	else
 		anchor_id = ref;														-- |ref=<text> may match an anchor id override value in {{harv}} template |ref= parameter
 	end
-
+	
 	return anchor_id;															-- anchor_id text; nil else
 end
 
@@ -562,18 +562,18 @@ local function anchor_id_make_cs12 (template)
 	local anchor_id;															-- the assembled anchor id from this template
 	local date;
 	local params = {};															-- table of template parameters
-
+	
 	template_name = template_name_get (template);								-- get first char uppercase trimmed template name; ignore subpages ~/new, ~/sandbox
 	if not template_name or template_skip[template_name] then
 		return nil;																-- could not extract template name from (possibly corrupted) template (extraneous opening { in the template will cause this)
 	end
 
 	if redirects_patent[template_name] then
-		date = date_get (template, alias_patterns_patent_date);					-- get date; done here because might be in {{date}}
+		date = date_get (template, alias_patterns_patent_date);					-- get date; done here because might be in {{date}} 
 	else
 		date = date_get (template, alias_patterns_date);
 	end
-
+	
 	ref = template:match ('|%s*ref%s*=%s*(%b{})');								-- first look for |ref={{sfnref}} or |ref={{harvid}} because we will strip templates from the cs1|2 template
 	if not ref then
 		if template:match ('|%s*ref%s*=([^|}]+)') then							-- |ref={{template}} not found; if there is a |ref= param with an assigned value
@@ -615,11 +615,11 @@ local function anchor_id_make_cs12 (template)
 
 	elseif 'none' == ref and not redirects_patent[template_name] then			-- |ref=none; not supported by cite patent
 		return nil;																-- anchor id expicitly suppressed
-
+		
 	else
 		anchor_id = ref;														-- |ref=<text> may match an anchor id override value in {{harv}} template |ref= parameter
 	end
-
+	
 	return anchor_id;															-- anchor_id text; nil else
 end
 
@@ -635,9 +635,9 @@ local function list_add (item, list, encode)
 		if encode then															-- for anchor IDs ...
 			item = mw.uri.anchorEncode (item);									-- encode to remove wikimarkup, convert spaces to underscores etc
 		end
-
+		
 		if not list[item] then													-- if not already saved
-			list[item] = 1;														-- save it
+			list[item] = 1;														-- save it 
 		else																	-- here when this item already saved
 			list[item] = list[item] + 1;										-- to indicate that there are multiple items
 		end
@@ -656,27 +656,27 @@ local function anchor_id_make_anchor (template, anchor_id_list)
 	template = template:gsub ('^{{[^|]+|', ''):gsub ('}}$', '', 1);				-- remove outer {{ and }} and template name
 
 	template = wikilink_strip (template);										-- strip any wikilink markup (there shouldn't be any but just in case)
-
+	
 	local params = {};
 	local anchor_id;
-
+	
 	for param in template:gmatch ('%b{}') do									-- loop through the template; remove and save templates (presumed to be sfnref or harvid)
 		table.insert (params, param);											-- save it
 		template = template:gsub ('%b{}', '', 1);								-- remove it from source template
 	end
-
+	
 	for _, t in ipairs (params) do												-- spin through the templates in params
 		anchor_id = sfnref_get (t);												-- attempt to decode {{sfnref}} and {{harvid}}
 		if anchor_id then														-- nil when not {{sfnref}} or {{harvid}}
 			list_add (anchor_id, anchor_id_list, true);							-- add anchor ID to the list
 		end
 	end
-
+	
 	template = template:gsub ('|%s*|', '|');									-- when pipe follows pipe with or without white space, remove extraneous pipe
 	template = template:gsub ('^|', ''):gsub('|$', '');							-- remove extraneous leading and trailing pipes
 
 	params = mw.text.split (template, '%s*|%s*');								-- split at the pipe and remove extraneous space characters
-
+	
 	for _, t in ipairs (params) do												-- spin through the anchor IDs
 		anchor_id = mw.text.trim (t);											-- trim white space
 		if '' ~= anchor_id then													-- should always have something
@@ -723,13 +723,13 @@ local function anchor_id_list_make ()
 	if '' == Article_content then												-- when there is no article content
 		return '';																-- no point in continuing
 	end
-
+	
 	local template;																-- place to hold the template that we found
 	local template_name;
 	local anchor_id;															-- place to hold an anchor id as it is extracted / decoded
 
 	local find_pattern = '%f[{]{{[^{]';
-	local tstart, tend = Article_content:find (find_pattern);					-- find the first template; do not find template variables: {{{template var|}}}
+	local tstart, tend = Article_content:find (find_pattern);					-- find the first template; do not find template variables: {{{template var|}}} 
 
 	while tstart do
 		template = Article_content:match ('%b{}', tstart);						-- get the whole template
@@ -764,16 +764,16 @@ local function anchor_id_list_make ()
 		elseif data.known_templates_harvc [template_name] then
 			anchor_id = anchor_id_make_harvc (template);						-- extract an anchor id from this template
 			list_add (anchor_id, anchor_id_list, true);
-
+			
 		elseif data.known_templates_wikicite [template_name] then
 			local ref = template:match ('|%s*ref%s*=%s*(%b{})');				-- first look for |ref={{sfnref}} or |ref={{harvid}}
-
+			
 			if ref then
 				anchor_id = sfnref_get (ref);
-
+	
 			elseif template:match ('|%s*ref%s*=([^|}]+)') then
 				anchor_id = template:match ('|%s*ref%s*=([^|}]+)');				-- plain-text
-
+	
 			elseif template:match ('|%s*id%s*=%s*(%b{})') then
 				ref = template:match ('|%s*id%s*=%s*(%b{})');
 				anchor_id = 'Reference-' .. sfnref_get (ref);
@@ -784,14 +784,14 @@ local function anchor_id_list_make ()
 			else
 				anchor_id = nil;												-- no matches, ensure that anchor_id has no value
 			end
-
+			
 			if anchor_id then
 				list_add (anchor_id, anchor_id_list, true);
 			end
 
 		elseif data.known_templates_anchor [template_name] then
 			anchor_id_make_anchor (template, anchor_id_list);					-- extract anchor ids from this template if any
-
+		
 		elseif data.known_templates_sfn_whitelist [template_name] then
 			template = template:gsub ('^{{[^|]+|', ''):gsub ('}}$', '', 1);		-- remove outer {{ and }} and template name
 			template = mw.text.trim (template, '%s|');							-- trim leading trailing white space and pipes
@@ -803,7 +803,7 @@ local function anchor_id_list_make ()
 					article_whitelist[anchor_id] = 1;							-- add to the whitelist
 				end
 			end
-
+		
 		elseif template_name and whitelist.wrapper_templates[template_name] then
 			anchor_id = anchor_id_make_wrapper (template);						-- extract an anchor id from this template if possible
 			list_add (anchor_id, anchor_id_list, true);

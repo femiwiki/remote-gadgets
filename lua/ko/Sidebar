@@ -2,67 +2,12 @@
 This module was originally on https://ko.wikipedia.org/wiki/Module:Sidebar and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
---
--- This module implements {{Sidebar}}
---
-require('Module:@ko/No globals')
+require('strict')
 local cfg = mw.loadData('Module:@ko/Sidebar/configuration')
 
 local p = {}
 
 local getArgs = require('Module:@ko/Arguments').getArgs
-
---[[
-Categorizes calling templates and modules with a 'style' parameter of any sort
-for tracking to convert to TemplateStyles.
-
-TODO after a long cleanup: Catch sidebars in other namespaces than Template and Module.
-TODO would probably want to remove /log and /archive as CS1 does
-]]
-local function categorizeTemplatesWithInlineStyles(args)
-	local title = mw.title.getCurrentTitle()
-	if title.namespace ~= 10 and title.namespace ~= 828 then return '' end
-	for _, pattern in ipairs (cfg.i18n.pattern.uncategorized_conversion_titles) do
-		if title.text:match(pattern) then return '' end
-	end
-	
-	for key, _ in pairs(args) do
-		if mw.ustring.find(key, cfg.i18n.pattern.style_conversion) or key == 'width' then
-			return cfg.i18n.category.conversion
-		end
-	end
-end
-
---[[
-For compatibility with the original {{sidebar with collapsible lists}}
-implementation, which passed some parameters through {{#if}} to trim their
-whitespace. This also triggered the automatic newline behavior.
-]]
--- See ([[meta:Help:Newlines and spaces#Automatic newline]])
-local function trimAndAddAutomaticNewline(s)
-	s = mw.ustring.gsub(s, "^%s*(.-)%s*$", "%1")
-	if mw.ustring.find(s, '^[#*:;]') or mw.ustring.find(s, '^{|') then
-		return '\n' .. s
-	else
-		return s
-	end
-end
-
---[[
-Finds whether a sidebar has a subgroup sidebar.
-]]
-local function hasSubgroup(s)
-	if mw.ustring.find(s, cfg.i18n.pattern.subgroup) then
-		return true
-	else
-		return false
-	end
-end
-
-
-
-
-
 
 --[[
 i18n conversion
@@ -159,6 +104,129 @@ local function i18nConv(localArgs, koArgs)
 end
 
 --[[
+Categorizes calling templates and modules with a 'style' parameter of any sort
+for tracking to convert to TemplateStyles.
+
+TODO after a long cleanup: Catch sidebars in other namespaces than Template and Module.
+TODO would probably want to remove /log and /archive as CS1 does
+]]
+local function categorizeTemplatesWithInlineStyles(args)
+	local title = mw.title.getCurrentTitle()
+	if title.namespace ~= 10 and title.namespace ~= 828 then return '' end
+	for _, pattern in ipairs (cfg.i18n.pattern.uncategorized_conversion_titles) do
+		if title.text:match(pattern) then return '' end
+	end
+	
+	for key, _ in pairs(args) do
+		if mw.ustring.find(key, cfg.i18n.pattern.style_conversion) or key == 'width' then
+			return cfg.i18n.category.conversion
+		end
+	end
+end
+
+--[[
+For compatibility with the original {{sidebar with collapsible lists}}
+implementation, which passed some parameters through {{#if}} to trim their
+whitespace. This also triggered the automatic newline behavior.
+]]
+-- See ([[meta:Help:Newlines and spaces#Automatic newline]])
+local function trimAndAddAutomaticNewline(s)
+	s = mw.ustring.gsub(s, "^%s*(.-)%s*$", "%1")
+	if mw.ustring.find(s, '^[#*:;]') or mw.ustring.find(s, '^{|') then
+		return '\n' .. s
+	else
+		return s
+	end
+end
+
+--[[
+Finds whether a sidebar has a subgroup sidebar.
+]]
+local function hasSubgroup(s)
+	if mw.ustring.find(s, cfg.i18n.pattern.subgroup) then
+		return true
+	else
+		return false
+	end
+end
+
+local function has_navbar(navbar_mode, sidebar_name)
+	return navbar_mode ~= cfg.i18n.navbar_none and
+		navbar_mode ~= cfg.i18n.navbar_off and
+		(
+			sidebar_name or
+			mw.getCurrentFrame():getParent():getTitle():gsub(cfg.i18n.pattern.sandbox, '') ~=
+			cfg.i18n.title_not_to_add_navbar
+		)
+end
+
+local function has_list_class(args, htmlclass)
+	local patterns = {
+		'^' .. htmlclass .. '$',
+		'%s' .. htmlclass .. '$',
+		'^' .. htmlclass .. '%s',
+		'%s' .. htmlclass .. '%s'
+	}
+	
+	for arg, value in pairs(args) do
+		if type(arg) == 'string' and mw.ustring.find(arg, 'class') then
+			for _, pattern in ipairs(patterns) do
+				if mw.ustring.find(args[arg] or '', pattern) then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
+
+-- there are a lot of list classes in the wild, so we add their TemplateStyles
+local function add_list_styles(args)
+	local frame = mw.getCurrentFrame()
+	local function add_list_templatestyles(htmlclass, templatestyles)
+		if has_list_class(args, htmlclass) then
+			return frame:extensionTag{
+				name = 'templatestyles', args = { src = templatestyles }
+			}
+		else
+			return ''
+		end
+	end
+	
+	local plainlist_styles = add_list_templatestyles('plainlist', cfg.i18n.plainlist_templatestyles)
+	local hlist_styles = add_list_templatestyles('hlist', cfg.i18n.hlist_templatestyles)
+	
+	-- a second workaround for [[phab:T303378]]
+	-- when that issue is fixed, we can actually use has_navbar not to emit the
+	-- tag here if we want
+	if has_navbar(args.navbar, args.name) and hlist_styles == '' then
+		hlist_styles = frame:extensionTag{
+			name = 'templatestyles', args = { src = cfg.i18n.hlist_templatestyles}
+		}
+	end
+
+	-- hlist -> plainlist is best-effort to preserve old Common.css ordering. [hlist_note]
+	return hlist_styles .. plainlist_styles
+end
+
+-- work around [[phab:T303378]]
+-- for each arg: find all the templatestyles strip markers, insert them into a
+-- table. then remove all templatestyles markers from the arg
+local function move_hiding_templatestyles(args)
+	local gfind = string.gfind
+	local gsub = string.gsub
+	local templatestyles_markers = {}
+	local strip_marker_pattern = '(\127[^\127]*UNIQ%-%-templatestyles%-%x+%-QINU[^\127]*\127)'
+	for k, arg in pairs(args) do
+		for marker in gfind(arg, strip_marker_pattern) do
+			table.insert(templatestyles_markers, marker)
+		end
+		args[k] = gsub(arg, strip_marker_pattern, '')
+	end
+	return templatestyles_markers
+end
+
+--[[
 Main sidebar function. Takes the frame, args, and an optional collapsibleClass.
 The collapsibleClass is and should be used only for sidebars with collapsible
 lists, as in p.collapsible.
@@ -172,6 +240,7 @@ function p.sidebar(frame, args, collapsibleClass)
 	args = i18nConv(args, param_ko_common)
 	args = i18nConv(args, param_ko_sidebar)
 
+	local hiding_templatestyles = table.concat(move_hiding_templatestyles(args))
 	local root = mw.html.create()
 	local child = args.child and mw.text.trim(args.child) == cfg.i18n.child_yes
 
@@ -342,21 +411,17 @@ function p.sidebar(frame, args, collapsibleClass)
 					:wikitext(args.below)
 	end
 
-	if not child then
-		if args.navbar ~= cfg.i18n.navbar_none and args.navbar ~= cfg.i18n.navbar_off and
-			(args.name or frame:getParent():getTitle():gsub(cfg.i18n.pattern.sandbox, '') ~=
-			cfg.i18n.title_not_to_add_navbar) then
-			root
-				:tag('tr')
-					:tag('td')
-						:addClass(cfg.i18n.class.navbar)
-						:cssText(args.navbarstyle)
-						:wikitext(require('Module:@ko/Navbar')._navbar{
-							args.name,
-							mini = 1,
-							fontstyle = args.navbarfontstyle
-						})
-		end
+	if not child and has_navbar(args.navbar, args.name) then
+		root
+			:tag('tr')
+				:tag('td')
+					:addClass(cfg.i18n.class.navbar)
+					:cssText(args.navbarstyle)
+					:wikitext(require('Module:@ko/Navbar')._navbar{
+						args.name,
+						mini = 1,
+						fontstyle = args.navbarfontstyle
+					})
 	end
 	
 	local base_templatestyles = frame:extensionTag{
@@ -385,10 +450,12 @@ function p.sidebar(frame, args, collapsibleClass)
 	end
 
 	return table.concat({
+		add_list_styles(args), -- see [hlist_note] above about ordering
 		base_templatestyles,
 		templatestyles,
 		child_templatestyles,
 		grandchild_templatestyles,
+		hiding_templatestyles,
 		tostring(root),
 		(child and cfg.i18n.category.child or ''),
 		categorizeTemplatesWithInlineStyles(args)
@@ -445,11 +512,9 @@ function p.collapsible(frame)
 
 	local contentArgs = {}
 	
-	local is_centered_list_titles
+	local is_centered_list_titles = false
 	if args['centered list titles'] and args['centered list titles'] ~= '' then
 		is_centered_list_titles = true
-	else
-		is_centered_list_titles = false
 	end
 
 	for k, v in pairs(args) do

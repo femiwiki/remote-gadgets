@@ -5,7 +5,7 @@ This module was originally on https://ko.wikipedia.org/wiki/Module:Footnotes/anc
 -- copied from Module:Ref info/data - maybe overkill here?
 -- for this application make lists from the redirect lists and force all template names first character uppercase
 
-require('Module:@ko/No globals');
+require('strict');
 
 --[[--------------------------< C S 1 _ T E M P L A T E _ P A T T E R N S >------------------------------------
 
@@ -19,7 +19,7 @@ local cs1_template_patterns = {													-- lua patterns of the cannonical na
 		'[Cc]ite ArXiv',
 
 	'[Cc]ite AV media',															-- canonical
-		'[Cc]ite audio', '[Cc]ite AV', '[Cc]ite AV ?Media', '[Cc]ite av media',
+		'[Cc]ite audio', '[Cc]ite AV', '[Cc]ite AV ?Media', '[Cc]ite av media', 
 		'[Cc]ite cd', '[Cc]ite DVD', '[Cc]ite dvd', '[Cc]ite film',
 		'[Cc]ite image', '[Cc]ite media', '[Cc]ite movie',
 		'[Cc]ite music video', '[Cc]ite radio', '[Cc]ite song',
@@ -37,14 +37,14 @@ local cs1_template_patterns = {													-- lua patterns of the cannonical na
 		'[Cc] book', '[Cc]it book', '[Cc]ite books', '[Cc]ite chapter',
 		'[Cc]ite ebook', '[Cc]ite manual', '[Cc]ite page',
 		'[Cc]ite publication', '[Cc]ite score',
-		'[Cc]ite work', '[Cc]ite%-?book',
+		'[Cc]ite work', '[Cc]ite%-?book', 
 		'[Bb]okref', '[Cc]itace monografie', '[Cc]itar livro',					-- non-English redirects; TODO: tally separately?
 		'[Cc]iteer boek', '[Oo]uvrage', '[Rr]ef%-llibre', '서적 인용',
 
 	'[Cc]ite citeseerx',														-- canonical
 	'[Cc]ite conference',														-- canonical
 		'[Cc]ita conferenza', '[Cc]ite proceedings', '[Cc]onference reference',	-- cita conferenza is non-English; TODO: tally separately?
-
+		
 	'[Cc]ite ?encyclopedia',													-- cite encyclopedia is the canonical name
 		'[Cc]ite contribution', '[Cc]ite dic', '[Cc]ite dictionary',
 		'[Cc]ite encyclopaedia', '[Cc]ite encyclopædia', '[Ee]ncyclopedia',
@@ -78,7 +78,7 @@ local cs1_template_patterns = {													-- lua patterns of the cannonical na
 
 	'[Cc]ite newsgroup',														-- canonical
 		'[Cc]ite usenet',
-
+		
 	'[Cc]ite podcast',															-- canonical
 	'[Cc]ite [Pp]ress release',													-- press release is the canonical form
 		'[Cc]ite media release', '[Cc]ite news release', '[Cc]ite pr',
@@ -92,7 +92,7 @@ local cs1_template_patterns = {													-- lua patterns of the cannonical na
 	'[Cc]ite speech',															-- canonical
 	'[Cc]ite ssrn',																-- canonical
 		'[Cc]ite SSRN',
-
+		
 	'[Cc]ite tech ?report',														-- techreport is the canonical form
 		'[Cc]ite standard', '[Cc]ite technical report', '[Tt]echrep reference',
 
@@ -244,36 +244,36 @@ local known_templates_sfn_whitelist = {};
 			'^%[(%a)%a%]',														-- leading character (usually uppercase)
 			'^%[%a(%a)%]',														-- leading character (usually lowercase)
 			}
-
+			
 		c = tostring (pattern:match ('%u'));									-- tostring() required because I don't know why; lua chokes complaining that c is not a string
 		name = pattern:gsub ('^%[%a%a%]', c);									-- replace bracketed first character [Xx] with selected character from the match
-
+		
 		if name:match ('(.-)%[(%a)(%a)%](.*)') then								-- mixed case optional letters
 			lead, c, l, tail = name:match ('(.-)%[(%a)(%a)%](.*)');
 			add_stripped (list, lead .. c .. tail);								-- uppercase
 			add_stripped (list, lead .. l .. tail);								-- lowercase
-
+	
 		elseif name:match ('^([^%[]+)(%[ %%%-%]%?)(.+)$') then					-- [ %-]?
 			lead, c, tail = name:match ('^([^%[]+)(%[ %%%-%]%?)(.+)$');
 			add_stripped (list, lead .. tail);									-- neither char
 			add_stripped (list, lead .. ' ' .. tail);							-- space
 			add_stripped (list, lead .. '-' .. tail);							-- hyphen
-
+	
 		elseif name:match ('^([^%[]+)(%[%%%-%]%?)(.+)$') then					-- [%-]?
 			lead, c, tail = name:match ('^([^%[]+)(%[%%%-%]%?)(.+)$');
 			add_stripped (list, lead .. tail);									-- no hyphen
 			add_stripped (list, lead .. '-' .. tail);							-- hyphen
-
+	
 		elseif name:match ('^([^%[]+)(%[ %%%-%])(.+)$') then					-- [ %-]
 			lead, c, tail = name:match ('^([^%[]+)(%[ %%%-%])(.+)$');
 			add_stripped (list, lead .. ' ' .. tail);							-- space
 			add_stripped (list, lead .. '-' .. tail);							-- hyphen
-
+	
 		elseif name:match ('^([^%?]+)(%%%-%?)(.+)$') then						-- %-?
 			lead, c, tail = name:match ('^([^%?]+)(%%%-%?)(.+)$');
 			add_stripped (list, lead .. tail);									-- no hyphen
 			add_stripped (list, lead .. '-' .. tail);							-- hyphen
-
+	
 		elseif name:match ('^(.-)(%%%-)(.+)$') then								-- %-
 			lead, c, tail = name:match ('^(.-)(%%%-)(.+)$');
 			add_stripped (list, lead .. '-' .. tail);							-- hyphen
@@ -282,7 +282,7 @@ local known_templates_sfn_whitelist = {};
 			lead, c, tail = name:match ('^(.-)(.)%?(.*)$');
 			add_stripped (list, lead .. tail);									-- no character
 			add_stripped (list, lead .. c .. tail);								-- character
-
+	
 		else
 			add_stripped (list, name);											-- no patterns so save as is
 		end

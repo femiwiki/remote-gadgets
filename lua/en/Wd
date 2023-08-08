@@ -4,6 +4,7 @@ This module was originally on https://en.wikipedia.org/wiki/Module:Wd and forked
 ]]
 -- Original module located at [[:en:Module:Wd]] and [[:en:Module:Wd/i18n]].
 
+require("strict")
 local p = {}
 local arg = ...
 local i18n
@@ -75,8 +76,10 @@ local aliasesP = {
 	-----------------------
 	image                   = "P18",
 	author                  = "P50",
+	authorNameString        = "P2093",
 	publisher               = "P123",
 	importedFrom            = "P143",
+	wikimediaImportURL      = "P4656",
 	statedIn                = "P248",
 	pages                   = "P304",
 	language                = "P407",
@@ -97,7 +100,10 @@ local aliasesP = {
 	archiveDate             = "P2960",
 	inferredFrom            = "P3452",
 	typeOfReference         = "P3865",
-	column                  = "P3903"
+	column                  = "P3903",
+	subjectNamedAs          = "P1810",
+	wikidataProperty        = "P1687",
+	publishedIn             = "P1433"
 }
 
 local aliasesQ = {
@@ -150,90 +156,6 @@ local rankTable = {
 	["normal"]     = 2,
 	["deprecated"] = 3
 }
-
-local Config = {}
-
--- allows for recursive calls
-function Config:new()
-	local cfg = {}
-	setmetatable(cfg, self)
-	self.__index = self
-
-	cfg.separators = {
-		-- single value objects wrapped in arrays so that we can pass by reference
-		["sep"]   = {copyTable(defaultSeparators["sep"])},
-		["sep%s"] = {copyTable(defaultSeparators["sep%s"])},
-		["sep%q"] = {copyTable(defaultSeparators["sep%q"])},
-		["sep%r"] = {copyTable(defaultSeparators["sep%r"])},
-		["punc"]  = {copyTable(defaultSeparators["punc"])}
-	}
-
-	cfg.entity = nil
-	cfg.entityID = nil
-	cfg.propertyID = nil
-	cfg.propertyValue = nil
-	cfg.qualifierIDs = {}
-	cfg.qualifierIDsAndValues = {}
-
-	cfg.bestRank = true
-	cfg.ranks = {true, true, false}  -- preferred = true, normal = true, deprecated = false
-	cfg.foundRank = #cfg.ranks
-	cfg.flagBest = false
-	cfg.flagRank = false
-
-	cfg.periods = {true, true, true}  -- future = true, current = true, former = true
-	cfg.flagPeriod = false
-	cfg.atDate = {parseDate(os.date('!%Y-%m-%d'))}  -- today as {year, month, day}
-
-	cfg.mdyDate = false
-	cfg.singleClaim = false
-	cfg.sourcedOnly = false
-	cfg.editable = false
-	cfg.editAtEnd = false
-
-	cfg.inSitelinks = false
-
-	cfg.langCode = mw.language.getContentLanguage().code
-	cfg.langName = mw.language.fetchLanguageName(cfg.langCode, cfg.langCode)
-	cfg.langObj = mw.language.new(cfg.langCode)
-
-	cfg.siteID = mw.wikibase.getGlobalSiteId()
-
-	cfg.states = {}
-	cfg.states.qualifiersCount = 0
-	cfg.curState = nil
-
-	cfg.prefetchedRefs = nil
-
-	return cfg
-end
-
-local State = {}
-
-function State:new(cfg, type)
-	local stt = {}
-	setmetatable(stt, self)
-	self.__index = self
-
-	stt.conf = cfg
-	stt.type = type
-
-	stt.results = {}
-
-	stt.parsedFormat = {}
-	stt.separator = {}
-	stt.movSeparator = {}
-	stt.puncMark = {}
-
-	stt.linked = false
-	stt.rawValue = false
-	stt.shortName = false
-	stt.anyLanguage = false
-	stt.unitOnly = false
-	stt.singleValue = false
-
-	return stt
-end
 
 local function replaceAlias(id)
 	if aliasesP[id] then
@@ -322,7 +244,7 @@ end
 
 -- used to make frame.args mutable, to replace #frame.args (which is always 0)
 -- with the actual amount and to simply copy tables
-function copyTable(tIn)
+local function copyTable(tIn)
 	if not tIn then
 		return nil
 	end
@@ -374,7 +296,7 @@ local function parseWikidataURL(url)
 	return nil
 end
 
-function parseDate(dateStr, precision)
+local function parseDate(dateStr, precision)
 	precision = precision or "d"
 
 	local i, j, index, ptr
@@ -405,7 +327,7 @@ function parseDate(dateStr, precision)
 
 	if i then
 		-- year
-		parts[index] = tonumber(mw.ustring.gsub(dateStr:sub(ptr, i-1), "^\+(.+)$", "%1"), 10)  -- remove '+' sign (explicitly give base 10 to prevent error)
+		parts[index] = tonumber(dateStr:sub(ptr, i-1), 10)  -- explicitly give base 10 to prevent error
 
 		if parts[index] == -0 then
 			parts[index] = tonumber("0")  -- for some reason, 'parts[index] = 0' may actually store '-0', so parse from string instead
@@ -653,6 +575,90 @@ local function sortOnRank(claims)
 	return sorted
 end
 
+local Config = {}
+
+-- allows for recursive calls
+function Config:new()
+	local cfg = {}
+	setmetatable(cfg, self)
+	self.__index = self
+
+	cfg.separators = {
+		-- single value objects wrapped in arrays so that we can pass by reference
+		["sep"]   = {copyTable(defaultSeparators["sep"])},
+		["sep%s"] = {copyTable(defaultSeparators["sep%s"])},
+		["sep%q"] = {copyTable(defaultSeparators["sep%q"])},
+		["sep%r"] = {copyTable(defaultSeparators["sep%r"])},
+		["punc"]  = {copyTable(defaultSeparators["punc"])}
+	}
+
+	cfg.entity = nil
+	cfg.entityID = nil
+	cfg.propertyID = nil
+	cfg.propertyValue = nil
+	cfg.qualifierIDs = {}
+	cfg.qualifierIDsAndValues = {}
+
+	cfg.bestRank = true
+	cfg.ranks = {true, true, false}  -- preferred = true, normal = true, deprecated = false
+	cfg.foundRank = #cfg.ranks
+	cfg.flagBest = false
+	cfg.flagRank = false
+
+	cfg.periods = {true, true, true}  -- future = true, current = true, former = true
+	cfg.flagPeriod = false
+	cfg.atDate = {parseDate(os.date('!%Y-%m-%d'))}  -- today as {year, month, day}
+
+	cfg.mdyDate = false
+	cfg.singleClaim = false
+	cfg.sourcedOnly = false
+	cfg.editable = false
+	cfg.editAtEnd = false
+
+	cfg.inSitelinks = false
+
+	cfg.langCode = mw.language.getContentLanguage().code
+	cfg.langName = mw.language.fetchLanguageName(cfg.langCode, cfg.langCode)
+	cfg.langObj = mw.language.new(cfg.langCode)
+
+	cfg.siteID = mw.wikibase.getGlobalSiteId()
+
+	cfg.states = {}
+	cfg.states.qualifiersCount = 0
+	cfg.curState = nil
+
+	cfg.prefetchedRefs = nil
+
+	return cfg
+end
+
+local State = {}
+
+function State:new(cfg, type)
+	local stt = {}
+	setmetatable(stt, self)
+	self.__index = self
+
+	stt.conf = cfg
+	stt.type = type
+
+	stt.results = {}
+
+	stt.parsedFormat = {}
+	stt.separator = {}
+	stt.movSeparator = {}
+	stt.puncMark = {}
+
+	stt.linked = false
+	stt.rawValue = false
+	stt.shortName = false
+	stt.anyLanguage = false
+	stt.unitOnly = false
+	stt.singleValue = false
+
+	return stt
+end
+
 -- if id == nil then item connected to current page is used
 function Config:getLabel(id, raw, link, short)
 	local label = nil
@@ -873,7 +879,7 @@ function Config:getValue(snak, raw, link, short, anyLang, unitOnly, noSpecial, t
 
 			if not unitOnly then
 				-- get value and strip + signs from front
-				value = mw.ustring.gsub(datavalue['amount'], "^\+(.+)$", "%1")
+				value = mw.ustring.gsub(datavalue['amount'], "^%+(.+)$", "%1")
 
 				if raw then
 					return value
@@ -1285,7 +1291,7 @@ function Config:getValue(snak, raw, link, short, anyLang, unitOnly, noSpecial, t
 				latLink = table.concat({latDegrees, latMinutes, latSeconds}, "_")
 				lonLink = table.concat({lonDegrees, lonMinutes, lonSeconds}, "_")
 
-				value = "[https://tools.wmflabs.org/geohack/geohack.php?language="..self.langCode.."&params="..latLink.."_"..latDirectionEN.."_"..lonLink.."_"..lonDirectionEN.."_globe:"..globe.." "..value.."]"
+				value = "[https://geohack.toolforge.org/geohack.php?language="..self.langCode.."&params="..latLink.."_"..latDirectionEN.."_"..lonLink.."_"..lonDirectionEN.."_globe:"..globe.." "..value.."]"
 			end
 
 			return value
@@ -1807,13 +1813,29 @@ function State:getReference(statement)
 	local useParams = nil
 	local value = ""
 	local ref = {}
+	local referenceEmpty = true  -- will be set to false if at least one parameter is left unremoved
+    local numAuthorParameters = 0
+    local numAuthorNameStringParameters = 0
+    local tempLink
+    local additionalRefProperties = {}  -- will hold properties of the reference which are not in statement.snaks, namely backup title from "subject named as" and URL from an external ID
+    local wikidataPropertiesOfSource  -- will contain "Wikidata property" properties of the item in stated in, if any
 
-	local version = 1  -- increment this each time the below logic is changed to avoid conflict errors
+	local version = 4  -- increment this each time the below logic is changed to avoid conflict errors
 
 	if statement.snaks then
 		-- don't include "imported from", which is added by a bot
 		if statement.snaks[aliasesP.importedFrom] then
 			statement.snaks[aliasesP.importedFrom] = nil
+		end
+		
+		-- don't include "Wikimedia import URL"
+		if statement.snaks[aliasesP.wikimediaImportURL] then
+			statement.snaks[aliasesP.wikimediaImportURL] = nil
+			-- don't include "retrieved" if no "referenceURL" is present,
+			-- as "retrieved" probably belongs to "Wikimedia import URL"
+			if statement.snaks[aliasesP.retrieved] and not statement.snaks[aliasesP.referenceURL] then
+				statement.snaks[aliasesP.retrieved] = nil
+			end
 		end
 
 		-- don't include "inferred from", which is added by a bot
@@ -1835,13 +1857,40 @@ function State:getReference(statement)
 		if self:getReferenceDetail(statement.snaks, aliasesP.language) == self.conf.langName then
 			statement.snaks[aliasesP.language] = nil
 		end
+        
+        if statement.snaks[aliasesP.statedIn] and not statement.snaks[aliasesP.referenceURL] then
+        	-- "stated in" was given but "reference URL" was not.
+        	-- get "Wikidata property" properties from the item in "stated in"
+        	-- if any of the returned properties of the external-id datatype is in statement.snaks, generate a URL from it and use the URL in the reference
+        	
+        	-- find the "Wikidata property" properties in the item from "stated in"
+        	wikidataPropertiesOfSource = mw.text.split(p._properties{p.flags.raw, aliasesP.wikidataProperty, [p.args.eid] = self.conf:getValue(statement.snaks[aliasesP.statedIn][1], true, false)}, ", ", true)
+        	for i, wikidataPropertyOfSource in pairs(wikidataPropertiesOfSource) do
+        		if statement.snaks[wikidataPropertyOfSource] and statement.snaks[wikidataPropertyOfSource][1].datatype == "external-id" then
+        			tempLink = self.conf:getValue(statement.snaks[wikidataPropertyOfSource][1], false, true)  -- not raw, linked
+        			if mw.ustring.match(tempLink, "^%[%Z- %Z+%]$") then  -- getValue returned a URL.
+        		    	additionalRefProperties[aliasesP.referenceURL] = mw.ustring.gsub(tempLink, "^%[(%Z-) %Z+%]$", "%1")  -- the URL is in wiki markup, so strip the square brackets and the display text
+        			    statement.snaks[wikidataPropertyOfSource] = nil
+        			    break
+        			end
+        		end
+        	end
+        end
+        
+        -- don't include "subject named as", but use it as the title when "title" is not present but a URL is
+        if statement.snaks[aliasesP.subjectNamedAs] then
+        	if not statement.snaks[aliasesP.title] and (statement.snaks[aliasesP.referenceURL] or additionalRefProperties[aliasesP.referenceURL]) then
+        		additionalRefProperties[aliasesP.title] = statement.snaks[aliasesP.subjectNamedAs][1].datavalue.value
+        	end
+        	statement.snaks[aliasesP.subjectNamedAs] = nil
+        end
 
 		-- retrieve all the parameters
 		for i in pairs(statement.snaks) do
 			label = ""
 
 			-- multiple authors may be given
-			if i == aliasesP.author then
+			if i == aliasesP.author or i == aliasesP.authorNameString then
 				params[i] = self:getReferenceDetails(statement.snaks, i, false, self.linked, true)  -- link = true/false, anyLang = true
 			else
 				params[i] = {self:getReferenceDetail(statement.snaks, i, false, (self.linked or (i == aliasesP.statedIn)) and (statement.snaks[i][1].datatype ~= 'url'), true)}  -- link = true/false, anyLang = true
@@ -1850,6 +1899,8 @@ function State:getReference(statement)
 			if #params[i] == 0 then
 				params[i] = nil
 			else
+				referenceEmpty = false
+				
 				if statement.snaks[i][1].datatype == 'external-id' then
 					key = "external-id"
 					label = self.conf:getLabel(i)
@@ -1869,17 +1920,55 @@ function State:getReference(statement)
 						if i18n['cite'][j][key] then
 							-- continue if an option is available in the corresponding cite template
 							if i18n['cite'][j][key] ~= "" then
-								citeParams[j][i18n['cite'][j][key]] = label .. params[i][1]
+                                -- handle non-author properties (and author properties ("author" and "author name string"), if they don't use the same template parameter)
+                                if (i ~= aliasesP.author and i ~= aliasesP.authorNameString) or (i18n['cite'][j][aliasesP.author] ~= i18n['cite'][j][aliasesP.authorNameString]) then
+								    citeParams[j][i18n['cite'][j][key]] = label .. params[i][1]
+                                    -- to avoid problems with non-author multiple parameters (if existent), the following old code is retained
+								    for k=2, #params[i] do
+                                        citeParams[j][i18n['cite'][j][key]..k] = label .. params[i][k]
+							    	end
+                                -- handle "author" and "author name string" specially if they use the same template parameter
+                                elseif i == aliasesP.author or i == aliasesP.authorNameString then
+                                    if params[aliasesP.author] ~= nil then
+                                        numAuthorParameters = #params[aliasesP.author]
+                                    else
+                                        numAuthorParameters = 0
+                                    end
 
-								-- if there are multiple parameter values (authors), add those too
-								for k=2, #params[i] do
-									citeParams[j][i18n['cite'][j][key]..k] = label .. params[i][k]
-								end
+                                    if params[aliasesP.authorNameString] ~= nil then
+                                        numAuthorNameStringParameters = #params[aliasesP.authorNameString]
+                                    else
+                                        numAuthorNameStringParameters = 0
+                                    end
+
+                                    -- execute only if both "author" and "author name string" satisfy this condition: the property is both in params and in statement.snaks or it is neither in params nor in statement.snaks
+                                    -- reason: parameters are added to params each iteration of the loop, not before the loop
+                                    if ((statement.snaks[aliasesP.author] == nil) == (numAuthorParameters == 0)) and ((statement.snaks[aliasesP.authorNameString] == nil) == (numAuthorNameStringParameters == 0)) then
+                                        for k=1, numAuthorParameters + numAuthorNameStringParameters do
+                                            if k <= numAuthorParameters then  -- now handling the authors from the "author" property
+                                                citeParams[j][i18n['cite'][j][aliasesP.author]..k] = label .. params[aliasesP.author][k]
+                                            else  -- now handling the authors from "author name string"
+                                                citeParams[j][i18n['cite'][j][aliasesP.authorNameString]..k] = label .. params[aliasesP.authorNameString][k - numAuthorParameters]
+                                            end
+							        	end
+                                    end
+                                end
 							end
 						else
 							citeMismatch[j] = true
 						end
 					end
+				end
+			end
+		end
+		
+		-- use additional properties
+		for i in pairs(additionalRefProperties) do
+			for j in pairs(citeParams) do
+				if not citeMismatch[j] and i18n["cite"][j][i] then
+					citeParams[j][i18n["cite"][j][i]] = additionalRefProperties[i]
+				else
+					citeMismatch[j] = true
 				end
 			end
 		end
@@ -1916,51 +2005,11 @@ function State:getReference(statement)
 				value = mw.getCurrentFrame():expandTemplate{title=useCite, args=useParams}
 			end
 
-		-- (3) else, do some default rendering of name-value pairs, but only if at least "stated in", "reference URL" or "title" is present
-		elseif params[aliasesP.statedIn] or params[aliasesP.referenceURL] or params[aliasesP.title] then
-			citeParams['default'] = {}
-
-			-- start by adding authors up front
-			if params[aliasesP.author] and #params[aliasesP.author] > 0 then
-				citeParams['default'][#citeParams['default'] + 1] = table.concat(params[aliasesP.author], " & ")
-			end
-
-			-- combine "reference URL" and "title" into one link if both are present
-			if params[aliasesP.referenceURL] and params[aliasesP.title] then
-				citeParams['default'][#citeParams['default'] + 1] = '[' .. params[aliasesP.referenceURL][1] .. ' "' .. params[aliasesP.title][1] .. '"]'
-			elseif params[aliasesP.referenceURL] then
-				citeParams['default'][#citeParams['default'] + 1] = params[aliasesP.referenceURL][1]
-			elseif params[aliasesP.title] then
-				citeParams['default'][#citeParams['default'] + 1] = '"' .. params[aliasesP.title][1] .. '"'
-			end
-
-			-- then add "stated in"
-			if params[aliasesP.statedIn] then
-				citeParams['default'][#citeParams['default'] + 1] = "''" .. params[aliasesP.statedIn][1] .. "''"
-			end
-
-			-- remove previously added parameters so that they won't be added a second time
-			params[aliasesP.author] = nil
-			params[aliasesP.referenceURL] = nil
-			params[aliasesP.title] = nil
-			params[aliasesP.statedIn] = nil
-
-			-- add the rest of the parameters
-			for i, v in pairs(params) do
-				i = self.conf:getLabel(i)
-
-				if i ~= "" then
-					citeParams['default'][#citeParams['default'] + 1] = i .. ": " .. v[1]
-				end
-			end
-
-			value = table.concat(citeParams['default'], "; ")
-
-			if value ~= "" then
-				value = value .. "."
-			end
+		-- (3) if the citation couldn't be displayed using Cite web or Cite Q, but has properties other than the removed ones, throw an error
+		elseif not referenceEmpty then
+			value = "<span style=\"color: crimson\">" .. errorText("malformed-reference") .. "</span>"
 		end
-
+	
 		if value ~= "" then
 			value = {value}  -- create one value object
 
