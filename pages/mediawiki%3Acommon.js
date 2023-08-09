@@ -6,7 +6,7 @@ gtagScript.setAttribute(
   'src',
   'https://www.googletagmanager.com/gtag/js?id=UA-82072330-1'
 );
-gtagScript.addEventListener('load', () => {
+gtagScript.addEventListener('load', function () {
   window.dataLayer = window.dataLayer || [];
   function gtag() {
     dataLayer.push(arguments);
