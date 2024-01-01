@@ -974,6 +974,12 @@ local error_conditions = {
 		category = '인용 오류 - MR',
 		hidden = false
 		},
+	bad_naid = {
+		message = '<code class="cs1-code">&#124;naid=</code> 값 확인 필요',
+		anchor = 'bad_naid',
+		category = '인용 오류 - NAID',
+		hidden = false
+		},
 	bad_ol = {
 		message = '<code style="'..code_style..'">&#124;ol=</code> 값 확인 필요',
 		anchor = 'bad_ol',
@@ -998,6 +1004,11 @@ local error_conditions = {
 		message = '<code style="'..code_style..'">&#124;oclc=</code> 값 확인 필요',
 		anchor = 'bad_oclc',
 		category = '인용 오류 - OCLC',
+		hidden = false },
+    bad_s2cid = {
+		message = 'Check <code class="cs1-code">&#124;s2cid=</code> 값 확인 필요',
+		anchor = 'bad_s2cid',
+		category = '인용 오류 - S2CID',
 		hidden = false },
 	bad_ssrn = {
 		message = '<code class="cs1-code">&#124;ssrn=</code> 값 확인 필요',
@@ -1355,6 +1366,16 @@ local id_handlers = {
 		encode = true,
 		separator = '&nbsp;',
 	},
+	['NAID'] = {
+		parameters = {'NAID', 'naid'},
+		link = 'CiNii',
+		label = 'NAID',
+		mode = 'external',
+		prefix = 'https://ci.nii.ac.jp/naid/',
+		COinS = 'info:naid',
+		encode = false,
+		separator = '&nbsp;',
+	},
 	['OCLC'] = {
 		parameters = {'OCLC', 'oclc'}, 
 		link = '온라인 컴퓨터 도서관 센터',
@@ -1416,6 +1437,17 @@ local id_handlers = {
 		encode = false,
 		separator = '&nbsp;',
 	},
+    ['S2CID'] = {
+		parameters = {'s2cid', 'S2CID'},
+		link = '시맨틱 스칼라',
+		redirect = '시맨틱 스칼라',
+		label = 'S2CID',
+        mode = 'external',
+		prefix = 'https://api.semanticscholar.org/CorpusID:',
+		COinS = 'pre',															-- use prefix value
+		encode = false,
+		separator = '&nbsp;',
+		},
 	['SSRN'] = {
 		parameters = {'SSRN', 'ssrn'}, 
 		link = '사회 과학 연구 네트워크',
