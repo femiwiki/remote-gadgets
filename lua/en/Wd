@@ -68,7 +68,8 @@ p.flags = {
 p.args = {
 	eid  = "eid",
 	page = "page",
-	date = "date"
+	date = "date",
+	globalSiteId = "globalSiteId"
 }
 
 local aliasesP = {
@@ -1820,7 +1821,7 @@ function State:getReference(statement)
     local additionalRefProperties = {}  -- will hold properties of the reference which are not in statement.snaks, namely backup title from "subject named as" and URL from an external ID
     local wikidataPropertiesOfSource  -- will contain "Wikidata property" properties of the item in stated in, if any
 
-	local version = 4  -- increment this each time the below logic is changed to avoid conflict errors
+	local version = 5  -- increment this each time the below logic is changed to avoid conflict errors
 
 	if statement.snaks then
 		-- don't include "imported from", which is added by a bot
@@ -2007,7 +2008,7 @@ function State:getReference(statement)
 
 		-- (3) if the citation couldn't be displayed using Cite web or Cite Q, but has properties other than the removed ones, throw an error
 		elseif not referenceEmpty then
-			value = "<span style=\"color: crimson\">" .. errorText("malformed-reference") .. "</span>"
+			value = "<span style=\"color:#dd3333\">" .. errorText("malformed-reference") .. "</span>"
 		end
 	
 		if value ~= "" then
@@ -2204,7 +2205,7 @@ function State:iterate(statements, hooks, matchHook)
 	return self:out()
 end
 
-local function getEntityId(arg, eid, page, allowOmitPropPrefix)
+local function getEntityId(arg, eid, page, allowOmitPropPrefix, globalSiteId)
 	local id = nil
 	local prop = nil
 
@@ -2235,7 +2236,7 @@ local function getEntityId(arg, eid, page, allowOmitPropPrefix)
 			page = mw.text.trim(page:sub(2))
 		end
 
-		id = mw.wikibase.getEntityIdForTitle(page) or ""
+		id = mw.wikibase.getEntityIdForTitle(page, globalSiteId) or ""
 	end
 
 	if not id then
@@ -2282,7 +2283,7 @@ local function claimCommand(args, funcName)
 	until not cfg:processFlagOrCommand(lastArg)
 
 	-- get the entity ID from either the positional argument, the eid argument or the page argument
-	cfg.entityID, cfg.propertyID = getEntityId(lastArg, args[p.args.eid], args[p.args.page])
+	cfg.entityID, cfg.propertyID = getEntityId(lastArg, args[p.args.eid], args[p.args.page], false, args[p.args.globalSiteId])
 
 	if cfg.entityID == "" then
 		return ""  -- we cannot continue without a valid entity ID
@@ -2454,7 +2455,7 @@ local function generalCommand(args, funcName)
 	until not cfg:processFlag(lastArg)
 
 	-- get the entity ID from either the positional argument, the eid argument or the page argument
-	cfg.entityID = getEntityId(lastArg, args[p.args.eid], args[p.args.page], true)
+	cfg.entityID = getEntityId(lastArg, args[p.args.eid], args[p.args.page], true, args[p.args.globalSiteId])
 
 	if cfg.entityID == "" or not mw.wikibase.entityExists(cfg.entityID) then
 		return ""  -- we cannot continue without an entity

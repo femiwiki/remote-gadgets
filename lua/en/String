@@ -62,7 +62,7 @@ OR
 
 Parameters
     s: The string to return a subset of
-    i: The fist index of the substring to return, defaults to 1.
+    i: The first index of the substring to return, defaults to 1.
     j: The last index of the string to return, defaults to the last character.
 
 The first character of the string is assigned an index of 1.  If either i or j

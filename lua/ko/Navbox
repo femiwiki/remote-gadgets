@@ -502,9 +502,9 @@ local param_ko = {
 
 for i = 1, 100 do
     param_ko['묶음' .. i] = 'group' .. i
-    param_ko['묶음' .. i .. '모양'] = 'group' .. i .. 'title'
+    param_ko['묶음' .. i .. '모양'] = 'group' .. i .. 'style'
     param_ko['내용' .. i] = 'list' .. i
-    param_ko['내용' .. i .. '모양'] = 'list' .. i .. 'title'
+    param_ko['내용' .. i .. '모양'] = 'list' .. i .. 'style'
 end
 
 local function localname(parameter)

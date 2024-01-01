@@ -746,6 +746,27 @@ local function mr (id)
 end
 
 
+--[[--------------------------< N A I D >----------------------------------------------------------------------
+
+NAID must be eleven or twelve digits starts with non-zero.
+
+]]
+
+local function naid(id)
+	local handler = cfg.id_handler;
+	local matched;
+	matched = id:match ('^[1-9]%d%d%d%d%d%d%d%d%d%d%d?$');
+	if not matched then
+		text = text .. ' ' .. set_message ('bad_naid');						-- set an error message
+		id.coins_list_t['NAID'] = nil;										-- when error, unset so not included in COinS
+	end
+
+	local text = external_link_id({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect, prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
+	
+	return text;
+end
+
+
 --[[--------------------------< O C L C >----------------------------------------------------------------------
 
 Validate and format an oclc id.  https://www.oclc.org/batchload/controlnumber.en.html {{dead link}}
@@ -920,6 +941,42 @@ local function pmid(id)
 end
 
 
+--[[--------------------------< S 2 C I D >--------------------------------------------------------------------
+
+Format an S2CID, do simple error checking
+
+S2CIDs are sequential numbers beginning at 1 and counting up.  This code checks the S2CID to see that it is only
+digits and is less than test_limit; the value in local variable test_limit will need to be updated periodically
+as more S2CIDs are issued.
+
+]]
+
+local function s2cid (id)
+	local access = id.access;
+	local handler = id.handler;
+	local id_num;
+	local text;
+	
+	id_num = id:match ('^[1-9]%d*$');											-- id must be all digits; must not begin with 0; no open access flag
+
+ 	if is_set (id_num) then														-- id_num has a value so test it
+		id_num = tonumber (id_num);												-- convert id_num to a number for range testing
+		if handler.id_limit < id_num then										-- if S2CID is outside test limit boundaries
+			set_message ('bad_s2cid');										-- set an error message
+			options.coins_list_t['S2CID'] = nil;								-- when error, unset so not included in COinS
+		end
+	else																		-- when id format incorrect
+		set_message ('bad_s2cid');											-- set an error message
+		options.coins_list_t['S2CID'] = nil;									-- when error, unset so not included in COinS
+	end
+
+	text = external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
+		prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode, access = access});
+
+	return text;
+end
+
+
 --[[--------------------------< S S R N >----------------------------------------------------------------------
 
 Format an ssrn, do simple error checking
@@ -1070,6 +1127,8 @@ local function build_id_list( id_list, options )
 			table.insert( new_list, {handler.label, lccn( v ) } );
 		elseif k == 'MR' then
 			table.insert( new_list, {handler.label, mr( v ) } );
+		elseif k == 'NAID' then
+			table.insert( new_list, {handler.label, naid( v ) } );
 		elseif k == 'OCLC' then
 			table.insert( new_list, {handler.label, oclc( v ) } );
 		elseif k == 'OL' or k == 'OLA' then
@@ -1078,6 +1137,8 @@ local function build_id_list( id_list, options )
 			table.insert( new_list, {handler.label, pmc( v, options.Embargo ) } );
 		elseif k == 'PMID' then
 			table.insert( new_list, {handler.label, pmid( v ) } );
+		elseif k == 'S2CID' then
+			table.insert( new_list, {handler.label, s2cid( v ) } );
 		elseif k == 'SSRN' then
 			table.insert( new_list, {handler.label, ssrn( v ) } );
 		elseif k == 'USENETID' then

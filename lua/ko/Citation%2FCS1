@@ -2300,8 +2300,8 @@ local Encyclopedia = A['Encyclopedia'];
 		
 		if first_set ({AccessDate, At, Chapter, Format, Page, Pages, Periodical, PublisherName, URL,	-- a crude list of parameters that are not supported by cite arxiv
 			ID_list['ASIN'], ID_list['BIBCODE'], ID_list['DOI'], ID_list['ISBN'], ID_list['ISSN'],
-			ID_list['JFM'], ID_list['JSTOR'], ID_list['LCCN'], ID_list['MR'], ID_list['OCLC'], ID_list['OL'],
-			ID_list['OSTI'], ID_list['PMC'], ID_list['PMID'], ID_list['RFC'], ID_list['SSRN'], ID_list['USENETID'], ID_list['ZBL']},27) then
+			ID_list['JFM'], ID_list['JSTOR'], ID_list['LCCN'], ID_list['MR'], ID_list['NAID'], ID_list['OCLC'], ID_list['OL'],
+			ID_list['OSTI'], ID_list['PMC'], ID_list['PMID'], ID_list['RFC'], ID_list['S2CID'], ID_list['SSRN'], ID_list['USENETID'], ID_list['ZBL']},27) then
 				table.insert( z.message_tail, { set_error( 'arxiv_params_not_supported', {}, true ) } );		-- add error message
 
 				AccessDate= '';													-- set these to empty string; not supported in cite arXiv

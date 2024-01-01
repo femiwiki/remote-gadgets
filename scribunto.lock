@@ -36,7 +36,7 @@
     },
     "@en/Hatnote list": {
       "pageid": 50085079,
-      "revid": 1062173192,
+      "revid": 1184984294,
       "title": "Module:Hatnote list",
       "dependencies": [
         "@en/Arguments",
@@ -64,7 +64,7 @@
     },
     "@en/Navbar": {
       "pageid": 38827227,
-      "revid": 1130341346,
+      "revid": 1179557823,
       "title": "Module:Navbar",
       "dependencies": [
         "@en/Arguments",
@@ -79,7 +79,7 @@
     },
     "@en/String": {
       "pageid": 38569505,
-      "revid": 970815276,
+      "revid": 1181867616,
       "title": "Module:String",
       "dependencies": [
         "@en/String"
@@ -95,7 +95,7 @@
     },
     "@en/Wd": {
       "pageid": 51376229,
-      "revid": 1164720990,
+      "revid": 1191341478,
       "title": "Module:Wd"
     },
     "@en/Wd/i18n": {
@@ -136,7 +136,7 @@
     },
     "@ko/Citation/CS1": {
       "pageid": 950941,
-      "revid": 35215065,
+      "revid": 35835557,
       "title": "\ubaa8\ub4c8:Citation/CS1",
       "dependencies": [
         "@ko/Citation/CS1/COinS",
@@ -169,7 +169,7 @@
     },
     "@ko/Citation/CS1/Configuration": {
       "pageid": 950942,
-      "revid": 32892756,
+      "revid": 35835615,
       "title": "\ubaa8\ub4c8:Citation/CS1/Configuration",
       "dependencies": [
         "@ko/Langname/data"
@@ -192,7 +192,7 @@
     },
     "@ko/Citation/CS1/Identifiers": {
       "pageid": 1481764,
-      "revid": 33523354,
+      "revid": 35835561,
       "title": "\ubaa8\ub4c8:Citation/CS1/Identifiers"
     },
     "@ko/Citation/CS1/Identifiers/sandbox": {
@@ -222,7 +222,7 @@
     },
     "@ko/Citation/CS1/Whitelist": {
       "pageid": 950943,
-      "revid": 32607616,
+      "revid": 35835552,
       "title": "\ubaa8\ub4c8:Citation/CS1/Whitelist"
     },
     "@ko/Citation/CS1/Whitelist/sandbox": {
@@ -319,7 +319,7 @@
     },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 35343244,
+      "revid": 36068888,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {
@@ -333,7 +333,7 @@
     },
     "@ko/Navbox": {
       "pageid": 930488,
-      "revid": 35127656,
+      "revid": 36040579,
       "title": "\ubaa8\ub4c8:Navbox",
       "dependencies": [
         "@ko/Arguments",
