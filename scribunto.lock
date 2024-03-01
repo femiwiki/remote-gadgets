@@ -100,7 +100,7 @@
     },
     "@en/Wd/i18n": {
       "pageid": 54004752,
-      "revid": 1164721158,
+      "revid": 1206234935,
       "title": "Module:Wd/i18n"
     },
     "@en/Yesno": {
@@ -159,7 +159,7 @@
     },
     "@ko/Citation/CS1/COinS": {
       "pageid": 1481766,
-      "revid": 25246126,
+      "revid": 36399130,
       "title": "\ubaa8\ub4c8:Citation/CS1/COinS"
     },
     "@ko/Citation/CS1/COinS/sandbox": {
@@ -314,12 +314,12 @@
     },
     "@ko/If preview/configuration": {
       "pageid": 3213840,
-      "revid": 32596717,
+      "revid": 36476763,
       "title": "\ubaa8\ub4c8:If preview/configuration"
     },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 36068888,
+      "revid": 36401918,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {
@@ -333,7 +333,7 @@
     },
     "@ko/Navbox": {
       "pageid": 930488,
-      "revid": 36040579,
+      "revid": 36403235,
       "title": "\ubaa8\ub4c8:Navbox",
       "dependencies": [
         "@ko/Arguments",
