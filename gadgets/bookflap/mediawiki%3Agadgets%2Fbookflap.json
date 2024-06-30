@@ -10,7 +10,7 @@
   "module": {
     "pages": ["bookflap.js", "bookflap.css"],
     "peers": ["bookflap-vector-styles"],
-    "dependencies": ["jquery.cookie"],
+    "dependencies": ["mediawiki.cookie"],
     "messages": [],
     "type": "general"
   }
