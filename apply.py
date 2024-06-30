@@ -87,6 +87,8 @@ def edit_pages_on_wiki(targets, wiki):
         elif FILE.startswith('lua/'):
             # Lua modules
             title = 'module:'+unquote(basename(FILE))
+        elif 'mediawiki%3Agadgets%2F' in FILE:
+            title = 'mediawiki:gadgets/' + basename(unquote(FILE))
         else:
             title = basename(unquote(FILE))
         page = wiki.pages[title]
