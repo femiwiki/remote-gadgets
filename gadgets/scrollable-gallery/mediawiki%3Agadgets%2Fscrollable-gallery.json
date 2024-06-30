@@ -5,14 +5,13 @@
     "hidden": false,
     "skins": ["femiwiki"],
     "targets": ["desktop", "mobile"],
-    "category": "edit"
+    "category": "view"
   },
   "module": {
-    "scripts": [],
-    "styles": ["hide-small-edit-section.css"],
-    "peers": [],
+    "pages": ["scrollable-gallery.js"],
+    "peers": ["scrollable-gallery-styles"],
     "dependencies": [],
     "messages": [],
-    "type": "styles"
+    "type": "general"
   }
 }

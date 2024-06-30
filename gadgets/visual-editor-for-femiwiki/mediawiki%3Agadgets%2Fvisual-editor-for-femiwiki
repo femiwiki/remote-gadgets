@@ -4,13 +4,12 @@
     "default": true,
     "hidden": false,
     "skins": [],
-    "category": "view"
+    "category": "edit"
   },
   "module": {
-    "scripts": ["mute.js"],
-    "styles": ["mute.css"],
+    "pages": ["visual-editor-for-femiwiki.js"],
     "peers": [],
-    "dependencies": [],
+    "dependencies": ["ext.visualEditor.desktopArticleTarget.init"],
     "messages": [],
     "type": "general"
   }

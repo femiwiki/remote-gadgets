@@ -1,15 +1,13 @@
 {
   "settings": {
-    "rights": [],
+    "rights": ["edit"],
     "default": true,
     "hidden": false,
-    "skins": ["femiwiki"],
-    "targets": ["desktop", "mobile"],
-    "category": "view"
+    "skins": [],
+    "category": "edit"
   },
   "module": {
-    "scripts": ["rc-lazy-load.js"],
-    "styles": [],
+    "pages": ["edittools.js"],
     "peers": [],
     "dependencies": [],
     "messages": [],

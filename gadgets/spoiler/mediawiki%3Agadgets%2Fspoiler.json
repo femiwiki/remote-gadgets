@@ -1,15 +1,15 @@
 {
   "settings": {
-    "rights": ["edit"],
+    "rights": [],
     "default": true,
     "hidden": false,
     "skins": [],
-    "category": "edit"
+    "targets": ["desktop", "mobile"],
+    "category": "view"
   },
   "module": {
-    "scripts": ["edittools.js"],
-    "styles": [],
-    "peers": [],
+    "pages": ["spoiler.js"],
+    "peers": ["spoiler-styles"],
     "dependencies": [],
     "messages": [],
     "type": "general"

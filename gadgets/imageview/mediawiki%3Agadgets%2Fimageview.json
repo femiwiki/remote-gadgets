@@ -8,8 +8,7 @@
     "category": "view"
   },
   "module": {
-    "scripts": ["imageview.js"],
-    "styles": ["imageview.css"],
+    "pages": ["imageview.js", "imageview.css"],
     "peers": [],
     "dependencies": [],
     "messages": [],
