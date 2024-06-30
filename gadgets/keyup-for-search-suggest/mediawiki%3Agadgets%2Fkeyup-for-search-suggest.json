@@ -4,14 +4,13 @@
     "default": true,
     "hidden": true,
     "skins": ["femiwiki"],
-    "category": ""
+    "category": "search"
   },
   "module": {
-    "scripts": [],
-    "styles": ["scrollable-gallery-styles.css"],
+    "pages": ["keyup-for-search-suggest.js"],
     "peers": [],
-    "dependencies": [],
+    "dependencies": ["mediawiki.searchSuggest"],
     "messages": [],
-    "type": "styles"
+    "type": "general"
   }
 }

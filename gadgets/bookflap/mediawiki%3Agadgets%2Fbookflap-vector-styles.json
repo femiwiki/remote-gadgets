@@ -1,18 +1,17 @@
 {
   "settings": {
     "rights": [],
-    "default": true,
+    "default": false,
     "hidden": true,
-    "skins": ["femiwiki"],
+    "skins": ["vector"],
     "targets": ["desktop", "mobile"],
-    "category": "view"
+    "category": ""
   },
   "module": {
-    "scripts": ["image-in-search-bar.js"],
-    "styles": ["image-in-search-bar.css"],
+    "pages": ["bookflap-vector-styles.css"],
     "peers": [],
     "dependencies": [],
     "messages": [],
-    "type": "general"
+    "type": "styles"
   }
 }

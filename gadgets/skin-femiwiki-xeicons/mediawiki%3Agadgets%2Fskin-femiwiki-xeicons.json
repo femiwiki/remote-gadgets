@@ -3,16 +3,15 @@
     "rights": [],
     "default": true,
     "hidden": true,
-    "skins": [],
+    "skins": ["femiwiki"],
     "targets": ["desktop", "mobile"],
     "category": "view"
   },
   "module": {
-    "scripts": ["bookflap.js"],
-    "styles": ["bookflap.css"],
-    "peers": ["bookflap-vector-styles"],
-    "dependencies": ["jquery.cookie"],
+    "pages": ["skin-femiwiki-xeicons.css"],
+    "peers": [],
+    "dependencies": [],
     "messages": [],
-    "type": "general"
+    "type": "styles"
   }
 }

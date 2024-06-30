@@ -1,17 +1,16 @@
 {
   "settings": {
-    "rights": [],
+    "rights": ["editinterface"],
     "default": true,
     "hidden": false,
     "skins": ["femiwiki"],
     "targets": ["desktop", "mobile"],
-    "category": "view"
+    "category": "edit"
   },
   "module": {
-    "scripts": ["scrollable-gallery.js"],
-    "styles": [],
-    "peers": ["scrollable-gallery-styles"],
-    "dependencies": [],
+    "pages": ["sitenotice-edit.js", "sitenotice-edit.css"],
+    "peers": [],
+    "dependencies": ["mediawiki.template.mustache"],
     "messages": [],
     "type": "general"
   }

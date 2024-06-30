@@ -1,17 +1,17 @@
 {
   "settings": {
     "rights": [],
-    "default": false,
-    "hidden": true,
+    "default": true,
+    "hidden": false,
     "skins": [],
+    "targets": ["desktop", "mobile"],
     "category": "view"
   },
   "module": {
-    "scripts": [],
-    "styles": ["spoiler-styles.css"],
+    "pages": ["hide-insulting-names.js"],
     "peers": [],
     "dependencies": [],
     "messages": [],
-    "type": "styles"
+    "type": "general"
   }
 }

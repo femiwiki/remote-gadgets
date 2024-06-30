@@ -2,16 +2,15 @@
   "settings": {
     "rights": [],
     "default": true,
-    "hidden": false,
+    "hidden": true,
     "skins": [],
     "targets": ["desktop", "mobile"],
     "category": "view"
   },
   "module": {
-    "scripts": ["spoiler.js"],
-    "styles": [],
-    "peers": ["spoiler-styles"],
-    "dependencies": [],
+    "pages": ["bookflap.js", "bookflap.css"],
+    "peers": ["bookflap-vector-styles"],
+    "dependencies": ["jquery.cookie"],
     "messages": [],
     "type": "general"
   }

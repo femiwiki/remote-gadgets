@@ -7,8 +7,7 @@
     "category": "plugin-configuration"
   },
   "module": {
-    "scripts": ["code-editor-tweaks.js"],
-    "styles": [],
+    "pages": ["code-editor-tweaks.js"],
     "peers": [],
     "dependencies": [],
     "messages": [],

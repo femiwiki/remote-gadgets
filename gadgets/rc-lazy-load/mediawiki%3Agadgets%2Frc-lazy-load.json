@@ -3,13 +3,12 @@
     "rights": [],
     "default": true,
     "hidden": false,
-    "skins": [],
+    "skins": ["femiwiki"],
     "targets": ["desktop", "mobile"],
     "category": "view"
   },
   "module": {
-    "scripts": ["hide-insulting-names.js"],
-    "styles": [],
+    "pages": ["rc-lazy-load.js"],
     "peers": [],
     "dependencies": [],
     "messages": [],

@@ -1,15 +1,13 @@
 {
   "settings": {
     "rights": [],
-    "default": false,
+    "default": true,
     "hidden": true,
-    "skins": ["vector"],
-    "targets": ["desktop", "mobile"],
+    "skins": ["femiwiki"],
     "category": ""
   },
   "module": {
-    "scripts": [],
-    "styles": ["bookflap-vector-styles.css"],
+    "pages": ["scrollable-gallery-styles.css"],
     "peers": [],
     "dependencies": [],
     "messages": [],
