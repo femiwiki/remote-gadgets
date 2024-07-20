@@ -1,0 +1,16 @@
+{
+  "settings": {
+    "rights": [],
+    "default": true,
+    "hidden": true,
+    "skins": ["femiwiki"],
+    "category": "view"
+  },
+  "module": {
+    "pages": ["sitenotice-styles.css"],
+    "peers": [],
+    "dependencies": [],
+    "messages": [],
+    "type": "styles"
+  }
+}
