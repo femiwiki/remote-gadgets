@@ -1818,30 +1818,15 @@ function State:getReference(statement)
     local numAuthorParameters = 0
     local numAuthorNameStringParameters = 0
     local tempLink
-    local additionalRefProperties = {}  -- will hold properties of the reference which are not in statement.snaks, namely backup title from "subject named as" and URL from an external ID
+    local additionalRefProperties = {}  -- will hold properties of the reference which are not in statement.snaks, namely backup title from "subject named as" and link from an external ID
     local wikidataPropertiesOfSource  -- will contain "Wikidata property" properties of the item in stated in, if any
 
-	local version = 5  -- increment this each time the below logic is changed to avoid conflict errors
+	local version = 8  -- increment this each time the below logic is changed to avoid conflict errors
 
 	if statement.snaks then
-		-- don't include "imported from", which is added by a bot
-		if statement.snaks[aliasesP.importedFrom] then
-			statement.snaks[aliasesP.importedFrom] = nil
-		end
-		
-		-- don't include "Wikimedia import URL"
-		if statement.snaks[aliasesP.wikimediaImportURL] then
-			statement.snaks[aliasesP.wikimediaImportURL] = nil
-			-- don't include "retrieved" if no "referenceURL" is present,
-			-- as "retrieved" probably belongs to "Wikimedia import URL"
-			if statement.snaks[aliasesP.retrieved] and not statement.snaks[aliasesP.referenceURL] then
-				statement.snaks[aliasesP.retrieved] = nil
-			end
-		end
-
-		-- don't include "inferred from", which is added by a bot
-		if statement.snaks[aliasesP.inferredFrom] then
-			statement.snaks[aliasesP.inferredFrom] = nil
+		-- don't use bot-added references referencing Wikimedia projects or containing "inferred from" (such references are not usable on Wikipedia)
+		if statement.snaks[aliasesP.importedFrom] or statement.snaks[aliasesP.wikimediaImportURL] or statement.snaks[aliasesP.inferredFrom] then
+			statement.snaks = {}
 		end
 
 		-- don't include "type of reference"
@@ -1862,7 +1847,7 @@ function State:getReference(statement)
         if statement.snaks[aliasesP.statedIn] and not statement.snaks[aliasesP.referenceURL] then
         	-- "stated in" was given but "reference URL" was not.
         	-- get "Wikidata property" properties from the item in "stated in"
-        	-- if any of the returned properties of the external-id datatype is in statement.snaks, generate a URL from it and use the URL in the reference
+        	-- if any of the returned properties of the external-id datatype is in statement.snaks, generate a link from it and use the link in the reference
         	
         	-- find the "Wikidata property" properties in the item from "stated in"
         	wikidataPropertiesOfSource = mw.text.split(p._properties{p.flags.raw, aliasesP.wikidataProperty, [p.args.eid] = self.conf:getValue(statement.snaks[aliasesP.statedIn][1], true, false)}, ", ", true)
@@ -1870,7 +1855,7 @@ function State:getReference(statement)
         		if statement.snaks[wikidataPropertyOfSource] and statement.snaks[wikidataPropertyOfSource][1].datatype == "external-id" then
         			tempLink = self.conf:getValue(statement.snaks[wikidataPropertyOfSource][1], false, true)  -- not raw, linked
         			if mw.ustring.match(tempLink, "^%[%Z- %Z+%]$") then  -- getValue returned a URL.
-        		    	additionalRefProperties[aliasesP.referenceURL] = mw.ustring.gsub(tempLink, "^%[(%Z-) %Z+%]$", "%1")  -- the URL is in wiki markup, so strip the square brackets and the display text
+        		    	additionalRefProperties[aliasesP.referenceURL] = mw.ustring.gsub(tempLink, "^%[(%Z-) %Z+%]$", "%1")  -- the link is in wiki markup, so strip the square brackets and the display text
         			    statement.snaks[wikidataPropertyOfSource] = nil
         			    break
         			end
@@ -1893,10 +1878,13 @@ function State:getReference(statement)
 			-- multiple authors may be given
 			if i == aliasesP.author or i == aliasesP.authorNameString then
 				params[i] = self:getReferenceDetails(statement.snaks, i, false, self.linked, true)  -- link = true/false, anyLang = true
+			elseif i == aliasesP.statedIn then	
+				-- Get "stated in" raw, as it is wanted (for Cite Q) even if it doesn't have a local language label.
+				params[aliasesP.statedIn] = {self:getReferenceDetail(statement.snaks, aliasesP.statedIn, true)}  -- raw = true
 			else
-				params[i] = {self:getReferenceDetail(statement.snaks, i, false, (self.linked or (i == aliasesP.statedIn)) and (statement.snaks[i][1].datatype ~= 'url'), true)}  -- link = true/false, anyLang = true
+				params[i] = {self:getReferenceDetail(statement.snaks, i, false, self.linked and (statement.snaks[i][1].datatype ~= 'url'), true)}  -- link = true/false, anyLang = true
 			end
-
+			
 			if #params[i] == 0 then
 				params[i] = nil
 			else
@@ -1980,16 +1968,15 @@ function State:getReference(statement)
 		-- get title of template that expands stated-in references into citations
 		citeQ = split(mw.wikibase.getSitelink(aliasesQ.citeQ) or "", ":")[2]  -- split off namespace from front
 
-		-- (1) use the general template for citing web references if there is a match and if at least both "reference URL" and "title" are present
-		if citeWeb and not citeMismatch['web'] and citeParams['web'][i18n['cite']['web'][aliasesP.referenceURL]] and citeParams['web'][i18n['cite']['web'][aliasesP.title]] then
+		-- (1) use the general template for citing web references if there is a match and if at least "reference URL" is present
+		if citeWeb and not citeMismatch['web'] and citeParams['web'][i18n['cite']['web'][aliasesP.referenceURL]] then
+			-- we need a processed "stated in" for this template
+			citeParams['web'][i18n['cite']['web'][aliasesP.statedIn]] = self:getReferenceDetail(statement.snaks, aliasesP.statedIn, false, self.linked, true)
 			useCite = citeWeb
 			useParams = citeParams['web']
 
 		-- (2) use the template that expands stated-in references into citations if there is a match and if at least "stated in" is present
 		elseif citeQ and not citeMismatch['q'] and citeParams['q'][i18n['cite']['q'][aliasesP.statedIn]] then
-			-- we need the raw "stated in" Q-identifier for the this template
-			citeParams['q'][i18n['cite']['q'][aliasesP.statedIn]] = self:getReferenceDetail(statement.snaks, aliasesP.statedIn, true)  -- raw = true
-
 			useCite = citeQ
 			useParams = citeParams['q']
 		end
