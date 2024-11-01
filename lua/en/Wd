@@ -6,8 +6,9 @@ This module was originally on https://en.wikipedia.org/wiki/Module:Wd and forked
 
 require("strict")
 local p = {}
-local arg = ...
+local module_arg = ...
 local i18n
+local i18nPath
 
 local function loadI18n(aliasesP, frame)
 	local title
@@ -17,11 +18,12 @@ local function loadI18n(aliasesP, frame)
 		title = frame:getTitle()
 	else
 		-- current module included by other module, get its title from ...
-		title = arg
+		title = module_arg
 	end
 
 	if not i18n then
-		i18n = require(title .. "/i18n").init(aliasesP)
+		i18nPath = title .. "/i18n"
+		i18n = require(i18nPath).init(aliasesP)
 	end
 end
 
@@ -166,14 +168,14 @@ local function replaceAlias(id)
 	return id
 end
 
-local function errorText(code, param)
+local function errorText(code, ...)
 	local text = i18n["errors"][code]
-	if param then text = mw.ustring.gsub(text, "$1", param) end
+	if arg then text = mw.ustring.format(text, unpack(arg)) end
 	return text
 end
 
-local function throwError(errorMessage, param)
-	error(errorText(errorMessage, param))
+local function throwError(errorMessage, ...)
+	error(errorText(errorMessage, unpack(arg)))
 end
 
 local function replaceDecimalMark(num)
@@ -576,6 +578,15 @@ local function sortOnRank(claims)
 	return sorted
 end
 
+local function isValueInTable(searchedItem, inputTable)
+	for _, item in pairs(inputTable) do
+		if item == searchedItem then
+			return true
+		end
+	end
+	return false
+end
+
 local Config = {}
 
 -- allows for recursive calls
@@ -694,7 +705,7 @@ function Config:getLabel(id, raw, link, short)
 
 		-- get label
 		if not label then
-			label = mw.wikibase.getLabelByLang(id, self.langCode) -- XXX: should use fallback labels?
+			label = mw.wikibase.getLabel(id)
 		end
 	end
 
@@ -1806,224 +1817,270 @@ end
 
 -- level 2 hook
 function State:getReference(statement)
-	local key, citeWeb, citeQ, label
-	local params = {}
-	local citeParams = {['web'] = {}, ['q'] = {}}
-	local citeMismatch = {}
-	local useCite = nil
-	local useParams = nil
-	local value = ""
-	local ref = {}
-	local referenceEmpty = true  -- will be set to false if at least one parameter is left unremoved
-    local numAuthorParameters = 0
-    local numAuthorNameStringParameters = 0
-    local tempLink
-    local additionalRefProperties = {}  -- will hold properties of the reference which are not in statement.snaks, namely backup title from "subject named as" and URL from an external ID
-    local wikidataPropertiesOfSource  -- will contain "Wikidata property" properties of the item in stated in, if any
-
-	local version = 5  -- increment this each time the below logic is changed to avoid conflict errors
-
-	if statement.snaks then
-		-- don't include "imported from", which is added by a bot
-		if statement.snaks[aliasesP.importedFrom] then
-			statement.snaks[aliasesP.importedFrom] = nil
-		end
-		
-		-- don't include "Wikimedia import URL"
-		if statement.snaks[aliasesP.wikimediaImportURL] then
-			statement.snaks[aliasesP.wikimediaImportURL] = nil
-			-- don't include "retrieved" if no "referenceURL" is present,
-			-- as "retrieved" probably belongs to "Wikimedia import URL"
-			if statement.snaks[aliasesP.retrieved] and not statement.snaks[aliasesP.referenceURL] then
-				statement.snaks[aliasesP.retrieved] = nil
-			end
-		end
-
-		-- don't include "inferred from", which is added by a bot
-		if statement.snaks[aliasesP.inferredFrom] then
-			statement.snaks[aliasesP.inferredFrom] = nil
-		end
-
-		-- don't include "type of reference"
-		if statement.snaks[aliasesP.typeOfReference] then
-			statement.snaks[aliasesP.typeOfReference] = nil
-		end
-
-		-- don't include "image" to prevent littering
-		if statement.snaks[aliasesP.image] then
-			statement.snaks[aliasesP.image] = nil
-		end
-
-		-- don't include "language" if it is equal to the local one
-		if self:getReferenceDetail(statement.snaks, aliasesP.language) == self.conf.langName then
-			statement.snaks[aliasesP.language] = nil
-		end
-        
-        if statement.snaks[aliasesP.statedIn] and not statement.snaks[aliasesP.referenceURL] then
-        	-- "stated in" was given but "reference URL" was not.
-        	-- get "Wikidata property" properties from the item in "stated in"
-        	-- if any of the returned properties of the external-id datatype is in statement.snaks, generate a URL from it and use the URL in the reference
-        	
-        	-- find the "Wikidata property" properties in the item from "stated in"
-        	wikidataPropertiesOfSource = mw.text.split(p._properties{p.flags.raw, aliasesP.wikidataProperty, [p.args.eid] = self.conf:getValue(statement.snaks[aliasesP.statedIn][1], true, false)}, ", ", true)
-        	for i, wikidataPropertyOfSource in pairs(wikidataPropertiesOfSource) do
-        		if statement.snaks[wikidataPropertyOfSource] and statement.snaks[wikidataPropertyOfSource][1].datatype == "external-id" then
-        			tempLink = self.conf:getValue(statement.snaks[wikidataPropertyOfSource][1], false, true)  -- not raw, linked
-        			if mw.ustring.match(tempLink, "^%[%Z- %Z+%]$") then  -- getValue returned a URL.
-        		    	additionalRefProperties[aliasesP.referenceURL] = mw.ustring.gsub(tempLink, "^%[(%Z-) %Z+%]$", "%1")  -- the URL is in wiki markup, so strip the square brackets and the display text
-        			    statement.snaks[wikidataPropertyOfSource] = nil
-        			    break
-        			end
-        		end
-        	end
-        end
-        
-        -- don't include "subject named as", but use it as the title when "title" is not present but a URL is
-        if statement.snaks[aliasesP.subjectNamedAs] then
-        	if not statement.snaks[aliasesP.title] and (statement.snaks[aliasesP.referenceURL] or additionalRefProperties[aliasesP.referenceURL]) then
-        		additionalRefProperties[aliasesP.title] = statement.snaks[aliasesP.subjectNamedAs][1].datavalue.value
-        	end
-        	statement.snaks[aliasesP.subjectNamedAs] = nil
-        end
-
-		-- retrieve all the parameters
-		for i in pairs(statement.snaks) do
-			label = ""
-
-			-- multiple authors may be given
-			if i == aliasesP.author or i == aliasesP.authorNameString then
-				params[i] = self:getReferenceDetails(statement.snaks, i, false, self.linked, true)  -- link = true/false, anyLang = true
-			else
-				params[i] = {self:getReferenceDetail(statement.snaks, i, false, (self.linked or (i == aliasesP.statedIn)) and (statement.snaks[i][1].datatype ~= 'url'), true)}  -- link = true/false, anyLang = true
-			end
-
-			if #params[i] == 0 then
-				params[i] = nil
-			else
-				referenceEmpty = false
-				
-				if statement.snaks[i][1].datatype == 'external-id' then
-					key = "external-id"
-					label = self.conf:getLabel(i)
-
-					if label ~= "" then
-						label = label .. " "
-					end
-				else
-					key = i
-				end
-
-				-- add the parameter to each matching type of citation
-				for j in pairs(citeParams) do
-					-- do so if there was no mismatch with a previous parameter
-					if not citeMismatch[j] then
-						-- check if this parameter is not mismatching itself
-						if i18n['cite'][j][key] then
-							-- continue if an option is available in the corresponding cite template
-							if i18n['cite'][j][key] ~= "" then
-                                -- handle non-author properties (and author properties ("author" and "author name string"), if they don't use the same template parameter)
-                                if (i ~= aliasesP.author and i ~= aliasesP.authorNameString) or (i18n['cite'][j][aliasesP.author] ~= i18n['cite'][j][aliasesP.authorNameString]) then
-								    citeParams[j][i18n['cite'][j][key]] = label .. params[i][1]
-                                    -- to avoid problems with non-author multiple parameters (if existent), the following old code is retained
-								    for k=2, #params[i] do
-                                        citeParams[j][i18n['cite'][j][key]..k] = label .. params[i][k]
-							    	end
-                                -- handle "author" and "author name string" specially if they use the same template parameter
-                                elseif i == aliasesP.author or i == aliasesP.authorNameString then
-                                    if params[aliasesP.author] ~= nil then
-                                        numAuthorParameters = #params[aliasesP.author]
-                                    else
-                                        numAuthorParameters = 0
-                                    end
-
-                                    if params[aliasesP.authorNameString] ~= nil then
-                                        numAuthorNameStringParameters = #params[aliasesP.authorNameString]
-                                    else
-                                        numAuthorNameStringParameters = 0
-                                    end
-
-                                    -- execute only if both "author" and "author name string" satisfy this condition: the property is both in params and in statement.snaks or it is neither in params nor in statement.snaks
-                                    -- reason: parameters are added to params each iteration of the loop, not before the loop
-                                    if ((statement.snaks[aliasesP.author] == nil) == (numAuthorParameters == 0)) and ((statement.snaks[aliasesP.authorNameString] == nil) == (numAuthorNameStringParameters == 0)) then
-                                        for k=1, numAuthorParameters + numAuthorNameStringParameters do
-                                            if k <= numAuthorParameters then  -- now handling the authors from the "author" property
-                                                citeParams[j][i18n['cite'][j][aliasesP.author]..k] = label .. params[aliasesP.author][k]
-                                            else  -- now handling the authors from "author name string"
-                                                citeParams[j][i18n['cite'][j][aliasesP.authorNameString]..k] = label .. params[aliasesP.authorNameString][k - numAuthorParameters]
-                                            end
-							        	end
-                                    end
-                                end
-							end
-						else
-							citeMismatch[j] = true
-						end
-					end
-				end
-			end
-		end
-		
-		-- use additional properties
-		for i in pairs(additionalRefProperties) do
-			for j in pairs(citeParams) do
-				if not citeMismatch[j] and i18n["cite"][j][i] then
-					citeParams[j][i18n["cite"][j][i]] = additionalRefProperties[i]
-				else
-					citeMismatch[j] = true
-				end
-			end
-		end
-
-		-- get title of general template for citing web references
-		citeWeb = split(mw.wikibase.getSitelink(aliasesQ.citeWeb) or "", ":")[2]  -- split off namespace from front
-
-		-- get title of template that expands stated-in references into citations
-		citeQ = split(mw.wikibase.getSitelink(aliasesQ.citeQ) or "", ":")[2]  -- split off namespace from front
-
-		-- (1) use the general template for citing web references if there is a match and if at least both "reference URL" and "title" are present
-		if citeWeb and not citeMismatch['web'] and citeParams['web'][i18n['cite']['web'][aliasesP.referenceURL]] and citeParams['web'][i18n['cite']['web'][aliasesP.title]] then
-			useCite = citeWeb
-			useParams = citeParams['web']
-
-		-- (2) use the template that expands stated-in references into citations if there is a match and if at least "stated in" is present
-		elseif citeQ and not citeMismatch['q'] and citeParams['q'][i18n['cite']['q'][aliasesP.statedIn]] then
-			-- we need the raw "stated in" Q-identifier for the this template
-			citeParams['q'][i18n['cite']['q'][aliasesP.statedIn]] = self:getReferenceDetail(statement.snaks, aliasesP.statedIn, true)  -- raw = true
-
-			useCite = citeQ
-			useParams = citeParams['q']
-		end
-
-		if useCite and useParams then
-			-- if this module is being substituted then build a regular template call, otherwise expand the template
-			if mw.isSubsting() then
-				for i, v in pairs(useParams) do
-					value = value .. "|" .. i .. "=" .. v
-				end
-
-				value = "{{" .. useCite .. value .. "}}"
-			else
-				value = mw.getCurrentFrame():expandTemplate{title=useCite, args=useParams}
-			end
-
-		-- (3) if the citation couldn't be displayed using Cite web or Cite Q, but has properties other than the removed ones, throw an error
-		elseif not referenceEmpty then
-			value = "<span style=\"color:#dd3333\">" .. errorText("malformed-reference") .. "</span>"
-		end
+	local citeParamMapping = i18n['cite']['param-mapping']
+	local citeConfig = i18n['cite']['config']
+	local citeTypes = i18n['cite']['output-types']
 	
-		if value ~= "" then
-			value = {value}  -- create one value object
+	-- will hold rendered properties of the reference which are not directly from statement.snaks, 
+	-- Namely, these are a backup title from "subject named as" and a URL generated from an external ID.
+    local additionalProcessedProperties = {}
+    -- for each citation type, there will be an associative array that associates lists of rendered properties
+    -- to citation-template parameters
+    local groupedProcessedProperties = {}
+    -- like above, but only associates one rendered property to each parameter; if the above variable
+    -- contains more strings for a parameter, the strings will be assigned to numbered params (e.g. "author1")
+	local citeParams = {}
 
-			if not self.rawValue then
-				-- this should become a <ref> tag, so save the reference's hash for later
-				value.refHash = "wikidata-" .. statement.hash .. "-v" .. (tonumber(i18n['cite']['version']) + version)
-			end
+	local citeErrors = {}
+	local referenceEmpty = true  -- will be set to false if at least one parameter is left unremoved
 
-			ref = {value}  -- wrap the value object in an array
-		end
+	local version = 11  -- increment this each time the below logic is changed to avoid conflict errors
+
+	if not statement.snaks then
+		return {}
 	end
 
-	return ref
+	-- don't use bot-added references referencing Wikimedia projects or containing "inferred from" (such references are not usable on Wikipedia)
+	if statement.snaks[aliasesP.importedFrom] or statement.snaks[aliasesP.wikimediaImportURL] or statement.snaks[aliasesP.inferredFrom] then
+		return {}
+	end
+	
+	-- don't include "type of reference"
+	if statement.snaks[aliasesP.typeOfReference] then
+		statement.snaks[aliasesP.typeOfReference] = nil
+	end
+
+	-- don't include "image" to prevent littering
+	if statement.snaks[aliasesP.image] then
+		statement.snaks[aliasesP.image] = nil
+	end
+
+	-- don't include "language" if it is equal to the local one
+	if self:getReferenceDetail(statement.snaks, aliasesP.language) == self.conf.langName then
+		statement.snaks[aliasesP.language] = nil
+	end
+    
+    if statement.snaks[aliasesP.statedIn] and not statement.snaks[aliasesP.referenceURL] then
+    	-- "stated in" was given but "reference URL" was not.
+    	-- get "Wikidata property" properties from the item in "stated in"
+    	-- if any of the returned properties of the external-id datatype is in statement.snaks, generate a link from it and use the link in the reference
+    	
+    	-- find the "Wikidata property" properties in the item from "stated in"
+    	local wikidataPropertiesOfSource = mw.text.split(p._properties{p.flags.raw, aliasesP.wikidataProperty, [p.args.eid] = self.conf:getValue(statement.snaks[aliasesP.statedIn][1], true, false)}, ", ", true)
+    	for i, wikidataPropertyOfSource in pairs(wikidataPropertiesOfSource) do
+    		if statement.snaks[wikidataPropertyOfSource] and statement.snaks[wikidataPropertyOfSource][1].datatype == "external-id" then
+    			local tempLink = self:getReferenceDetail(statement.snaks, wikidataPropertyOfSource, false, true)  -- not raw, linked
+    			if mw.ustring.match(tempLink, "^%[%Z- %Z+%]$") then  -- getValue returned a URL in square brackets.
+    				-- the link is in wiki markup, so strip the square brackets and the display text
+    				-- gsub also returns another, discarted value, therefore the result is assigned to tempLink first
+    				tempLink = mw.ustring.gsub(tempLink, "^%[(%Z-) %Z+%]$", "%1")
+    		    	additionalProcessedProperties[aliasesP.referenceURL] = {tempLink}
+    			    statement.snaks[wikidataPropertyOfSource] = nil
+    			    break
+    			end
+    		end
+    	end
+    end
+    
+    -- don't include "subject named as", but use it as the title when "title" is not present but a URL is
+    if statement.snaks[aliasesP.subjectNamedAs] then
+    	if not statement.snaks[aliasesP.title] and (statement.snaks[aliasesP.referenceURL] or additionalProcessedProperties[aliasesP.referenceURL]) then
+    		additionalProcessedProperties[aliasesP.title] = {self:getReferenceDetail(statement.snaks, aliasesP.subjectNamedAs, false, false, true)}  -- not raw, not linked, anyLang
+    	end
+    	statement.snaks[aliasesP.subjectNamedAs] = nil
+    end
+    
+    -- initialize groupedProcessedProperties and citeParams
+    for _, citeType in ipairs(citeTypes) do
+    	groupedProcessedProperties[citeType] = {}
+    	citeParams[citeType] = {}
+    end
+
+	-- fill groupedProcessedProperties
+	for refProperty in pairs(statement.snaks) do
+		-- add the parameter to each matching type of citation
+		for _, citeType in ipairs(citeTypes) do
+			repeat  -- just a simple wrapper to emulate "continue"
+				-- skip if there already have been errors
+				if citeErrors[citeType] then
+					break
+				end
+				
+				-- set mappingKey and prefix
+				local mappingKey
+				local prefix = ""
+				if statement.snaks[refProperty][1].datatype == 'external-id' then
+					mappingKey = "external-id"
+					prefix = self.conf:getLabel(refProperty)
+		
+					if prefix ~= "" then
+						prefix = prefix .. " "
+					end
+				else
+					mappingKey = refProperty
+				end
+				
+				local paramName = citeParamMapping[citeType][mappingKey]
+				-- skip properties with empty parameter name
+				if paramName == "" then
+					break
+				end
+				
+				referenceEmpty = false
+
+				-- handle unknown properties in the reference
+				if not paramName then
+					local error_message = errorText("unknown-property-in-ref", refProperty)
+					assert(error_message)  -- Should not be nil
+					citeErrors[citeType] = error_message
+					break
+				end
+				
+				-- set processedProperty
+				local processedProperty
+				local raw = false  -- if the value is wanted raw
+				if isValueInTable(paramName, citeConfig[citeType]["raw-value-params"] or {}) then
+					raw = true
+				end
+				if isValueInTable(paramName, citeConfig[citeType]["numbered-params"] or {}) then
+					-- Multiple values may be given.
+					processedProperty = self:getReferenceDetails(statement.snaks, refProperty, raw, self.linked, true)  -- anyLang = true
+				else
+					-- If multiple values are given, all but the first suitable one are discarted.
+					processedProperty = {self:getReferenceDetail(statement.snaks, refProperty, raw, self.linked and (statement.snaks[refProperty][1].datatype ~= 'url'), true)}  -- link = true/false, anyLang = true
+				end
+		
+				if #processedProperty == 0 then
+					break	
+				end
+                
+                -- add an entry to groupedProcessedProperties
+                if not groupedProcessedProperties[citeType][paramName] then
+                	groupedProcessedProperties[citeType][paramName] = {}
+                end
+                for _, propertyValue in pairs(processedProperty) do
+                	table.insert(groupedProcessedProperties[citeType][paramName], prefix .. propertyValue)
+                end
+            until true
+		end
+	end
+	
+	-- handle additional properties
+	for refProperty in pairs(additionalProcessedProperties) do
+		for _, citeType in ipairs(citeTypes) do
+			repeat
+				-- skip if there already have been errors
+				if citeErrors[citeType] then
+					break
+				end
+				
+                local paramName = citeParamMapping[citeType][refProperty]
+				-- handle unknown properties in the reference
+				if not paramName then
+					-- Skip this additional property, but do not cause an error.
+					break
+				end
+				if paramName == "" then
+					break
+				end
+				
+				referenceEmpty = false
+                
+                if not groupedProcessedProperties[citeType][paramName] then
+                	groupedProcessedProperties[citeType][paramName] = {}
+                end
+                for _, propertyValue in pairs(additionalProcessedProperties[refProperty]) do
+                	table.insert(groupedProcessedProperties[citeType][paramName], propertyValue)
+                end
+			until true
+		end
+	end
+	
+	-- fill citeParams
+	for _, citeType in ipairs(citeTypes) do
+		for paramName, paramValues in pairs(groupedProcessedProperties[citeType]) do
+			if #paramValues == 1 or not isValueInTable(paramName, citeConfig[citeType]["numbered-params"] or {}) then
+				citeParams[citeType][paramName] = paramValues[1]
+			else
+				-- There is more than one value for this parameter - the values will
+				-- go into separate numbered parameters (e.g. "author1", "author2")
+				for paramNum, paramValue in pairs(paramValues) do
+					citeParams[citeType][paramName .. paramNum] = paramValue
+				end
+			end
+		end
+	end
+	
+	-- handle missing mandatory parameters for the templates
+	for _, citeType in ipairs(citeTypes) do
+		for _, requiredCiteParam in pairs(citeConfig[citeType]["mandatory-params"] or {}) do
+			if not citeParams[citeType][requiredCiteParam] then  -- The required param is not present.
+				if citeErrors[citeType] then  -- Do not override the previous error, if it exists.
+					break
+				end
+				local error_message = errorText("missing-mandatory-param", requiredCiteParam)
+				assert(error_message)  -- Should not be nil
+				citeErrors[citeType] = error_message
+			end
+		end
+	end
+	
+	local citeTypeToUse = nil
+
+    -- choose the output template
+    for _, citeType in ipairs(citeTypes) do
+    	if not citeErrors[citeType] then
+    		citeTypeToUse = citeType 
+    		break
+    	end
+    end
+
+	-- set refContent
+	local refContent = ""
+	if citeTypeToUse then
+		local templateToUse = citeConfig[citeTypeToUse]["template"]
+		local paramsToUse = citeParams[citeTypeToUse]
+		
+		if not templateToUse or templateToUse == "" then 
+			throwError("no-such-reference-template", tostring(templateToUse), i18nPath, citeTypeToUse)
+		end
+		
+		-- if this module is being substituted then build a regular template call, otherwise expand the template
+		if mw.isSubsting() then
+			for i, v in pairs(paramsToUse) do
+				refContent = refContent .. "|" .. i .. "=" .. v
+			end
+
+			refContent = "{{" .. templateToUse .. refContent .. "}}"
+		else
+			xpcall(
+				function () refContent = mw.getCurrentFrame():expandTemplate{title=templateToUse, args=paramsToUse} end,
+				function () throwError("no-such-reference-template", templateToUse, i18nPath, citeTypeToUse) end
+			)
+		end
+
+	-- If the citation couldn't be displayed using any template, but is not empty (barring ignored propeties), throw an error.
+	elseif not referenceEmpty then
+		refContent = errorText("malformed-reference-header")
+	    for _, citeType in ipairs(citeTypes) do
+	    	refContent = refContent .. errorText("template-failure-reason", citeConfig[citeType]["template"], citeErrors[citeType])
+	    end
+		refContent = refContent .. errorText("malformed-reference-footer")
+	end
+
+    -- wrap refContent
+	local ref = {}
+	if refContent ~= "" then
+		ref = {refContent}
+
+		if not self.rawValue then
+			-- this should become a <ref> tag, so save the reference's hash for later
+			ref.refHash = "wikidata-" .. statement.hash .. "-v" .. (tonumber(i18n['version']) + version)
+		end
+		return {ref}
+	else
+		return {}
+	end
 end
 
 -- gets a detail of one particular type for a reference

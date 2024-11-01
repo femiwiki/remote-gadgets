@@ -410,7 +410,7 @@ function str.replace( frame )
 
 	if plain then
 		pattern = str._escapePattern( pattern )
-		replace = mw.ustring.gsub( replace, "%%", "%%%%" ) --Only need to escape replacement sequences.
+		replace = string.gsub( replace, "%%", "%%%%" ) --Only need to escape replacement sequences.
 	end
 
 	local result
@@ -586,7 +586,7 @@ Helper function that escapes all pattern characters so that they will be treated
 as plain text.
 ]]
 function str._escapePattern( pattern_str )
-	return mw.ustring.gsub( pattern_str, "([%(%)%.%%%+%-%*%?%[%^%$%]])", "%%%1" )
+	return ( string.gsub( pattern_str, "[%(%)%.%%%+%-%*%?%[%^%$%]]", "%%%0" ) )
 end
 
 return str

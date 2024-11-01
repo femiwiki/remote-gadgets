@@ -18,7 +18,7 @@ end
 
 local function templatestyles()
 	return frame:extensionTag{
-		name = '틀스타일', args = { src = 'Module:If preview/styles.css' }
+		name = 'templatestyles', args = { src = 'Module:If preview/styles.css' }
 	}
 end
 

@@ -2,39 +2,30 @@
 This module was originally on https://ko.wikipedia.org/wiki/Module:Navbox and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
---
--- This module implements {{Navbox}}
--- 이 모듈은 {{둘러보기 상자}}의 구현에 사용됩니다
---
-
+require('strict')
 local p = {}
-
 local navbar = require('Module:@ko/Navbar')._navbar
+local cfg = mw.loadData('Module:@ko/Navbox/configuration')
 local getArgs -- lazily initialized
-
 local args
-local border
-local listnums
-local ODD_EVEN_MARKER = '\127_ODDEVEN_\127'
-local RESTART_MARKER = '\127_ODDEVEN0_\127'
-local REGEX_MARKER = '\127_ODDEVEN(%d?)_\127'
+local format = string.format
 
-local function striped(wikitext)
+local function striped(wikitext, border)
 	-- Return wikitext with markers replaced for odd/even striping.
 	-- Child (subgroup) navboxes are flagged with a category that is removed
 	-- by parent navboxes. The result is that the category shows all pages
 	-- where a child navbox is not contained in a parent navbox.
-	local orphanCat = '[[분류:외톨이 둘러보기 상자]]'
-	if border == 'subgroup' and args.orphan ~= 'yes' then
+	local orphanCat = cfg.category.orphan
+	if border == cfg.keyword.border_subgroup and args[cfg.arg.orphan] ~= cfg.keyword.orphan_yes then
 		-- No change; striping occurs in outermost navbox.
 		return wikitext .. orphanCat
 	end
-	local first, second = 'odd', 'even'
-	if args.evenodd then
-		if args.evenodd == 'swap' then
+	local first, second = cfg.class.navbox_odd_part, cfg.class.navbox_even_part
+	if args[cfg.arg.evenodd] then
+		if args[cfg.arg.evenodd] == cfg.keyword.evenodd_swap then
 			first, second = second, first
 		else
-			first = args.evenodd
+			first = args[cfg.arg.evenodd]
 			second = first
 		end
 	end
@@ -57,7 +48,7 @@ local function striped(wikitext)
 		end
 	end
 	local regex = orphanCat:gsub('([%[%]])', '%%%1')
-	return (wikitext:gsub(regex, ''):gsub(REGEX_MARKER, changer))  -- () omits gsub count
+	return (wikitext:gsub(regex, ''):gsub(cfg.marker.regex, changer)) -- () omits gsub count
 end
 
 local function processItem(item, nowrapitems)
@@ -66,12 +57,12 @@ local function processItem(item, nowrapitems)
 		-- Add newlines to compensate for trim of x in |parm=x in a template.
 		return '\n' .. item ..'\n'
 	end
-	if nowrapitems == 'yes' then
+	if nowrapitems == cfg.keyword.nowrapitems_yes then
 		local lines = {}
 		for line in (item .. '\n'):gmatch('([^\n]*)\n') do
 			local prefix, content = line:match('^([*:;#]+)%s*(.*)')
-			if prefix and not content:match('^<span class="nowrap">') then
-				line = prefix .. '<span class="nowrap">' .. content .. '</span>'
+			if prefix and not content:match(cfg.pattern.nowrap) then
+				line = format(cfg.nowrap_item, prefix, content)
 			end
 			table.insert(lines, line)
 		end
@@ -83,55 +74,44 @@ local function processItem(item, nowrapitems)
 	return item
 end
 
-local function renderNavBar(titleCell)
+local function has_navbar()
+	return args[cfg.arg.navbar] ~= cfg.keyword.navbar_off
+		and args[cfg.arg.navbar] ~= cfg.keyword.navbar_plain
+		and (
+			args[cfg.arg.name]
+			or mw.getCurrentFrame():getParent():getTitle():gsub(cfg.pattern.sandbox, '')
+				~= cfg.pattern.navbox
+		)
+end
 
-	if args.navbar ~= 'off' and args.navbar ~= 'plain' and not (not args.name and mw.getCurrentFrame():getParent():getTitle():gsub('/연습장$', '') == '틀:둘러보기 상자') then
+local function renderNavBar(titleCell)
+	if has_navbar() then
 		titleCell:wikitext(navbar{
-			args.name,
-			mini = 1,
-			fontstyle = (args.basestyle or '') .. ';' .. (args.titlestyle or '') .. ';background:none transparent;border:none;-moz-box-shadow:none;-webkit-box-shadow:none;box-shadow:none; padding:0;'
+			[cfg.navbar.name] = args[cfg.arg.name],
+			[cfg.navbar.mini] = 1,
+			[cfg.navbar.fontstyle] = (args[cfg.arg.basestyle] or '') .. ';' ..
+				(args[cfg.arg.titlestyle] or '') ..
+				';background:none transparent;border:none;box-shadow:none;padding:0;'
 		})
 	end
 
 end
 
---
---   Title row
---
 local function renderTitleRow(tbl)
-	if not args.title then return end
+	if not args[cfg.arg.title] then return end
 
 	local titleRow = tbl:tag('tr')
 
-	if args.titlegroup then
-		titleRow
-			:tag('th')
-				:attr('scope', 'row')
-				:addClass('navbox-group')
-				:addClass(args.titlegroupclass)
-				:cssText(args.basestyle)
-				:cssText(args.groupstyle)
-				:cssText(args.titlegroupstyle)
-				:wikitext(args.titlegroup)
-	end
-
 	local titleCell = titleRow:tag('th'):attr('scope', 'col')
 
-	if args.titlegroup then
-		titleCell
-			:css('border-left', '2px solid #fdfdfd')
-			:css('width', '100%')
-	end
-
 	local titleColspan = 2
-	if args.imageleft then titleColspan = titleColspan + 1 end
-	if args.image then titleColspan = titleColspan + 1 end
-	if args.titlegroup then titleColspan = titleColspan - 1 end
+	if args[cfg.arg.imageleft] then titleColspan = titleColspan + 1 end
+	if args[cfg.arg.image] then titleColspan = titleColspan + 1 end
 
 	titleCell
-		:cssText(args.basestyle)
-		:cssText(args.titlestyle)
-		:addClass('navbox-title')
+		:cssText(args[cfg.arg.basestyle])
+		:cssText(args[cfg.arg.titlestyle])
+		:addClass(cfg.class.navbox_title)
 		:attr('colspan', titleColspan)
 
 	renderNavBar(titleCell)
@@ -139,188 +119,234 @@ local function renderTitleRow(tbl)
 	titleCell
 		:tag('div')
 			-- id for aria-labelledby attribute
-			:attr('id', mw.uri.anchorEncode(args.title))
-			:addClass(args.titleclass)
+			:attr('id', mw.uri.anchorEncode(args[cfg.arg.title]))
+			:addClass(args[cfg.arg.titleclass])
 			:css('font-size', '114%')
 			:css('margin', '0 4em')
-			:wikitext(processItem(args.title))
+			:wikitext(processItem(args[cfg.arg.title]))
 end
-
---
---   Above/Below rows
---
 
 local function getAboveBelowColspan()
 	local ret = 2
-	if args.imageleft then ret = ret + 1 end
-	if args.image then ret = ret + 1 end
+	if args[cfg.arg.imageleft] then ret = ret + 1 end
+	if args[cfg.arg.image] then ret = ret + 1 end
 	return ret
 end
 
 local function renderAboveRow(tbl)
-	if not args.above then return end
+	if not args[cfg.arg.above] then return end
 
 	tbl:tag('tr')
 		:tag('td')
-			:addClass('navbox-abovebelow')
-			:addClass(args.aboveclass)
-			:cssText(args.basestyle)
-			:cssText(args.abovestyle)
+			:addClass(cfg.class.navbox_abovebelow)
+			:addClass(args[cfg.arg.aboveclass])
+			:cssText(args[cfg.arg.basestyle])
+			:cssText(args[cfg.arg.abovestyle])
 			:attr('colspan', getAboveBelowColspan())
 			:tag('div')
 				-- id for aria-labelledby attribute, if no title
-				:attr('id', args.title and nil or mw.uri.anchorEncode(args.above))
-				:wikitext(processItem(args.above, args.nowrapitems))
+				:attr('id', (not args[cfg.arg.title]) and mw.uri.anchorEncode(args[cfg.arg.above]) or nil)
+				:wikitext(processItem(args[cfg.arg.above], args[cfg.arg.nowrapitems]))
 end
 
 local function renderBelowRow(tbl)
-	if not args.below then return end
+	if not args[cfg.arg.below] then return end
 
 	tbl:tag('tr')
 		:tag('td')
-			:addClass('navbox-abovebelow')
-			:addClass(args.belowclass)
-			:cssText(args.basestyle)
-			:cssText(args.belowstyle)
+			:addClass(cfg.class.navbox_abovebelow)
+			:addClass(args[cfg.arg.belowclass])
+			:cssText(args[cfg.arg.basestyle])
+			:cssText(args[cfg.arg.belowstyle])
 			:attr('colspan', getAboveBelowColspan())
 			:tag('div')
-				:wikitext(processItem(args.below, args.nowrapitems))
+				:wikitext(processItem(args[cfg.arg.below], args[cfg.arg.nowrapitems]))
 end
 
---
---   List rows
---
-local function renderListRow(tbl, index, listnum)
+local function renderListRow(tbl, index, listnum, listnums_size)
 	local row = tbl:tag('tr')
 
-	if index == 1 and args.imageleft then
+	if index == 1 and args[cfg.arg.imageleft] then
 		row
 			:tag('td')
-				:addClass('navbox-image')
-				:addClass(args.imageclass)
+				:addClass(cfg.class.noviewer)
+				:addClass(cfg.class.navbox_image)
+				:addClass(args[cfg.arg.imageclass])
 				:css('width', '1px')               -- Minimize width
-				:css('padding', '0px 2px 0px 0px')
-				:cssText(args.imageleftstyle)
-				:attr('rowspan', #listnums)
+				:css('padding', '0 2px 0 0')
+				:cssText(args[cfg.arg.imageleftstyle])
+				:attr('rowspan', listnums_size)
 				:tag('div')
-					:wikitext(processItem(args.imageleft))
+					:wikitext(processItem(args[cfg.arg.imageleft]))
 	end
 
-	if args['group' .. listnum] then
+	local group_and_num = format(cfg.arg.group_and_num, listnum)
+	local groupstyle_and_num = format(cfg.arg.groupstyle_and_num, listnum)
+	if args[group_and_num] then
 		local groupCell = row:tag('th')
 
 		-- id for aria-labelledby attribute, if lone group with no title or above
-		if listnum == 1 and not (args.title or args.above or args.group2) then
+		if listnum == 1 and not (args[cfg.arg.title] or args[cfg.arg.above] or args[cfg.arg.group2]) then
 			groupCell
-				:attr('id', mw.uri.anchorEncode(args.group1))
+				:attr('id', mw.uri.anchorEncode(args[cfg.arg.group1]))
 		end
 
 		groupCell
 			:attr('scope', 'row')
-			:addClass('navbox-group')
-			:addClass(args.groupclass)
-			:cssText(args.basestyle)
-			:css('width', args.groupwidth or '1%') -- If groupwidth not specified, minimize width
+			:addClass(cfg.class.navbox_group)
+			:addClass(args[cfg.arg.groupclass])
+			:cssText(args[cfg.arg.basestyle])
+			-- If groupwidth not specified, minimize width
+			:css('width', args[cfg.arg.groupwidth] or '1%')
 
 		groupCell
-			:cssText(args.groupstyle)
-			:cssText(args['group' .. listnum .. 'style'])
-			:wikitext(args['group' .. listnum])
+			:cssText(args[cfg.arg.groupstyle])
+			:cssText(args[groupstyle_and_num])
+			:wikitext(args[group_and_num])
 	end
 
 	local listCell = row:tag('td')
 
-	if args['group' .. listnum] then
+	if args[group_and_num] then
 		listCell
-			:css('text-align', 'left')
-			:css('border-left-width', '2px')
-			:css('border-left-style', 'solid')
+			:addClass(cfg.class.navbox_list_with_group)
 	else
 		listCell:attr('colspan', 2)
 	end
 
-	if not args.groupwidth then
+	if not args[cfg.arg.groupwidth] then
 		listCell:css('width', '100%')
 	end
 
 	local rowstyle  -- usually nil so cssText(rowstyle) usually adds nothing
 	if index % 2 == 1 then
-		rowstyle = args.oddstyle
+		rowstyle = args[cfg.arg.oddstyle]
 	else
-		rowstyle = args.evenstyle
+		rowstyle = args[cfg.arg.evenstyle]
 	end
 
-	local listText = args['list' .. listnum]
-	local oddEven = ODD_EVEN_MARKER
+	local list_and_num = format(cfg.arg.list_and_num, listnum)
+	local listText = args[list_and_num]
+	local oddEven = cfg.marker.oddeven
 	if listText:sub(1, 12) == '</div><table' then
 		-- Assume list text is for a subgroup navbox so no automatic striping for this row.
-		oddEven = listText:find('<th[^>]*"navbox%-title"') and RESTART_MARKER or 'odd'
+		oddEven = listText:find(cfg.pattern.navbox_title) and cfg.marker.restart or cfg.class.navbox_odd_part
 	end
-	listCell
-		:css('padding', '0px')
-		:cssText(args.liststyle)
-		:cssText(rowstyle)
-		:cssText(args['list' .. listnum .. 'style'])
-		:addClass('navbox-list')
-		:addClass('navbox-' .. oddEven)
-		:addClass(args.listclass)
-		:addClass(args['list' .. listnum .. 'class'])
-		:tag('div')
-			:css('padding', (index == 1 and args.list1padding) or args.listpadding or '0em 0.25em')
-			:wikitext(processItem(listText, args.nowrapitems))
 
-	if index == 1 and args.image then
+	local liststyle_and_num = format(cfg.arg.liststyle_and_num, listnum)
+	local listclass_and_num = format(cfg.arg.listclass_and_num, listnum)
+	listCell
+		:css('padding', '0')
+		:cssText(args[cfg.arg.liststyle])
+		:cssText(rowstyle)
+		:cssText(args[liststyle_and_num])
+		:addClass(cfg.class.navbox_list)
+		:addClass(cfg.class.navbox_part .. oddEven)
+		:addClass(args[cfg.arg.listclass])
+		:addClass(args[listclass_and_num])
+		:tag('div')
+			:css('padding',
+				(index == 1 and args[cfg.arg.list1padding]) or args[cfg.arg.listpadding] or '0 0.25em'
+			)
+			:wikitext(processItem(listText, args[cfg.arg.nowrapitems]))
+
+	if index == 1 and args[cfg.arg.image] then
 		row
 			:tag('td')
-				:addClass('navbox-image')
-				:addClass(args.imageclass)
+				:addClass(cfg.class.noviewer)
+				:addClass(cfg.class.navbox_image)
+				:addClass(args[cfg.arg.imageclass])
 				:css('width', '1px')               -- Minimize width
-				:css('padding', '0px 0px 0px 2px')
-				:cssText(args.imagestyle)
-				:attr('rowspan', #listnums)
+				:css('padding', '0 0 0 2px')
+				:cssText(args[cfg.arg.imagestyle])
+				:attr('rowspan', listnums_size)
 				:tag('div')
-					:wikitext(processItem(args.image))
+					:wikitext(processItem(args[cfg.arg.image]))
 	end
 end
 
+local function has_list_class(htmlclass)
+	local patterns = {
+		'^' .. htmlclass .. '$',
+		'%s' .. htmlclass .. '$',
+		'^' .. htmlclass .. '%s',
+		'%s' .. htmlclass .. '%s'
+	}
+	
+	for arg, _ in pairs(args) do
+		if type(arg) == 'string' and mw.ustring.find(arg, cfg.pattern.class) then
+			for _, pattern in ipairs(patterns) do
+				if mw.ustring.find(args[arg] or '', pattern) then
+					return true
+				end
+			end
+		end
+	end
+	return false
+end
 
---
---   Tracking categories
---
+-- there are a lot of list classes in the wild, so we add their TemplateStyles
+local function add_list_styles()
+	local frame = mw.getCurrentFrame()
+	local function add_list_templatestyles(htmlclass, templatestyles)
+		if has_list_class(htmlclass) then
+			return frame:extensionTag{
+				name = 'templatestyles', args = { src = templatestyles }
+			}
+		else
+			return ''
+		end
+	end
+	
+	local hlist_styles = add_list_templatestyles('hlist', cfg.hlist_templatestyles)
+	local plainlist_styles = add_list_templatestyles('plainlist', cfg.plainlist_templatestyles)
+	
+	-- a second workaround for [[phab:T303378]]
+	-- when that issue is fixed, we can actually use has_navbar not to emit the
+	-- tag here if we want
+	if has_navbar() and hlist_styles == '' then
+		hlist_styles = frame:extensionTag{
+			name = 'templatestyles', args = { src = cfg.hlist_templatestyles }
+		}
+	end
+	
+	-- hlist -> plainlist is best-effort to preserve old Common.css ordering.
+	-- this ordering is not a guarantee because most navboxes will emit only
+	-- one of these classes [hlist_note]
+	return hlist_styles .. plainlist_styles
+end
 
-local function needsHorizontalLists()
-	if border == 'subgroup' or args.tracking == 'no' then
+local function needsHorizontalLists(border)
+	if border == cfg.keyword.border_subgroup or args[cfg.arg.tracking] == cfg.keyword.tracking_no then
 		return false
 	end
-	local listClasses = {
-		['plainlist'] = true, ['hlist'] = true, ['hlist hnum'] = true,
-		['hlist hwrap'] = true, ['hlist vcard'] = true, ['vcard hlist'] = true,
-		['hlist vevent'] = true,
-	}
-	return not (listClasses[args.listclass] or listClasses[args.bodyclass])
+	return not has_list_class(cfg.pattern.hlist) and not has_list_class(cfg.pattern.plainlist)
 end
 
 local function hasBackgroundColors()
-	for _, key in ipairs({'titlestyle', 'groupstyle', 'basestyle', 'abovestyle', 'belowstyle'}) do
+	for _, key in ipairs({cfg.arg.titlestyle, cfg.arg.groupstyle,
+		cfg.arg.basestyle, cfg.arg.abovestyle, cfg.arg.belowstyle}) do
 		if tostring(args[key]):find('background', 1, true) then
 			return true
 		end
 	end
+	return false
 end
 
 local function hasBorders()
-	for _, key in ipairs({'groupstyle', 'basestyle', 'abovestyle', 'belowstyle'}) do
+	for _, key in ipairs({cfg.arg.groupstyle, cfg.arg.basestyle,
+		cfg.arg.abovestyle, cfg.arg.belowstyle}) do
 		if tostring(args[key]):find('border', 1, true) then
 			return true
 		end
 	end
+	return false
 end
 
 local function isIllegible()
 	local styleratio = require('Module:@ko/Color contrast')._styleratio
-
 	for key, style in pairs(args) do
-		if tostring(key):match("style$") then
+		if tostring(key):match(cfg.pattern.style) then
 			if styleratio{mw.text.unstripNoWiki(style)} < 4.5 then
 				return true
 			end
@@ -329,134 +355,201 @@ local function isIllegible()
 	return false
 end
 
-local function getTrackingCategories()
+local function getTrackingCategories(border)
 	local cats = {}
-	if needsHorizontalLists() then table.insert(cats, '가로 목록을 지원하지 않는 둘러보기 상자') end
-	if hasBackgroundColors() then table.insert(cats, '배경색을 이용하는 둘러보기 상자') end
-	if isIllegible() then table.insert(cats, '잠재적 문제가 있는 둘러보기 상자') end
-	if hasBorders() then table.insert(cats, '테두리를 사용하는 둘러보기 상자') end
+	if needsHorizontalLists(border) then table.insert(cats, cfg.category.horizontal_lists) end
+	if hasBackgroundColors() then table.insert(cats, cfg.category.background_colors) end
+	if isIllegible() then table.insert(cats, cfg.category.illegible) end
+	if hasBorders() then table.insert(cats, cfg.category.borders) end
 	return cats
 end
 
-local function renderTrackingCategories(builder)
+local function renderTrackingCategories(builder, border)
 	local title = mw.title.getCurrentTitle()
 	if title.namespace ~= 10 then return end -- not in template space
 	local subpage = title.subpageText
-	if subpage == '설명문서' or subpage == '연습장' or subpage == '시험장' then return end
+	if subpage == cfg.keyword.subpage_doc or subpage == cfg.keyword.subpage_sandbox
+		or subpage == cfg.keyword.subpage_testcases then return end
 
-	for _, cat in ipairs(getTrackingCategories()) do
+	for _, cat in ipairs(getTrackingCategories(border)) do
 		builder:wikitext('[[분류:' .. cat .. ']]')
 	end
 end
 
---
---   Main navbox tables
---
-local function renderMainTable()
+local function renderMainTable(border, listnums)
 	local tbl = mw.html.create('table')
-		:addClass('nowraplinks')
-		:addClass(args.bodyclass)
+		:addClass(cfg.class.nowraplinks)
+		:addClass(args[cfg.arg.bodyclass])
 
-	if args.title and (args.state ~= 'plain' and args.state ~= 'off') then
-		if args.state == 'collapsed' then args.state = 'mw-collapsed' end
+	local state = args[cfg.arg.state]
+	if args[cfg.arg.title] and state ~= cfg.keyword.state_plain and state ~= cfg.keyword.state_off then
+		if state == cfg.keyword.state_collapsed then
+			state = cfg.class.collapsed
+		end
 		tbl
-			:addClass('mw-collapsible')
-			:addClass(args.state or 'autocollapse')
+			:addClass(cfg.class.collapsible)
+			:addClass(state or cfg.class.autocollapse)
 	end
 
 	tbl:css('border-spacing', 0)
-	if border == 'subgroup' or border == 'none' then
+	if border == cfg.keyword.border_subgroup or border == cfg.keyword.border_none then
 		tbl
-			:addClass('navbox-subgroup')
-			:cssText(args.bodystyle)
-			:cssText(args.style)
+			:addClass(cfg.class.navbox_subgroup)
+			:cssText(args[cfg.arg.bodystyle])
+			:cssText(args[cfg.arg.style])
 	else  -- regular navbox - bodystyle and style will be applied to the wrapper table
 		tbl
-			:addClass('navbox-inner')
+			:addClass(cfg.class.navbox_inner)
 			:css('background', 'transparent')
 			:css('color', 'inherit')
 	end
-	tbl:cssText(args.innerstyle)
+	tbl:cssText(args[cfg.arg.innerstyle])
 
 	renderTitleRow(tbl)
 	renderAboveRow(tbl)
+	local listnums_size = #listnums
 	for i, listnum in ipairs(listnums) do
-		renderListRow(tbl, i, listnum)
+		renderListRow(tbl, i, listnum, listnums_size)
 	end
 	renderBelowRow(tbl)
 
 	return tbl
 end
 
+local function add_navbox_styles(hiding_templatestyles)
+	local frame = mw.getCurrentFrame()
+	-- This is a lambda so that it doesn't need the frame as a parameter
+	local function add_user_styles(templatestyles)
+		if templatestyles and templatestyles ~= '' then
+			return frame:extensionTag{
+				name = 'templatestyles', args = { src = templatestyles }
+			}
+		end
+		return ''
+	end
+
+	-- get templatestyles. load base from config so that Lua only needs to do
+	-- the work once of parser tag expansion
+	local base_templatestyles = cfg.templatestyles
+	local templatestyles = add_user_styles(args[cfg.arg.templatestyles])
+	local child_templatestyles = add_user_styles(args[cfg.arg.child_templatestyles])
+
+	-- The 'navbox-styles' div exists to wrap the styles to work around T200206
+	-- more elegantly. Instead of combinatorial rules, this ends up being linear
+	-- number of CSS rules.
+	return mw.html.create('div')
+		:addClass(cfg.class.navbox_styles)
+		:wikitext(
+			add_list_styles() .. -- see [hlist_note] applied to 'before base_templatestyles'
+			base_templatestyles ..
+			templatestyles ..
+			child_templatestyles ..
+			table.concat(hiding_templatestyles)
+		)
+		:done()
+end
+
+-- work around [[phab:T303378]]
+-- for each arg: find all the templatestyles strip markers, insert them into a
+-- table. then remove all templatestyles markers from the arg
+local function move_hiding_templatestyles(args)
+	local gfind = string.gfind
+	local gsub = string.gsub
+	local templatestyles_markers = {}
+	local strip_marker_pattern = '(\127[^\127]*UNIQ%-%-templatestyles%-%x+%-QINU[^\127]*\127)'
+	for k, arg in pairs(args) do
+		for marker in gfind(arg, strip_marker_pattern) do
+			table.insert(templatestyles_markers, marker)
+		end
+		args[k] = gsub(arg, strip_marker_pattern, '')
+	end
+	return templatestyles_markers
+end
+
 function p._navbox(navboxArgs)
 	args = navboxArgs
-	listnums = {}
+	local hiding_templatestyles = move_hiding_templatestyles(args)
+	local listnums = {}
 
 	for k, _ in pairs(args) do
 		if type(k) == 'string' then
-			local listnum = k:match('^list(%d+)$')
+			local listnum = k:match(cfg.pattern.listnum)
 			if listnum then table.insert(listnums, tonumber(listnum)) end
 		end
 	end
 	table.sort(listnums)
 
-	border = mw.text.trim(args.border or args[1] or '')
+	local border = mw.text.trim(args[cfg.arg.border] or args[1] or '')
 	if border == '자식' then
 		border = 'child'
 	end
+
 	if border == '중첩' then
 		border = 'subgroup'
 	end
-	
-	if border == 'child' then
-		border = 'subgroup'
+
+	if border == cfg.keyword.border_child then
+		border = cfg.keyword.border_subgroup
 	end
 
 	-- render the main body of the navbox
-	local tbl = renderMainTable()
+	local tbl = renderMainTable(border, listnums)
 
-	-- render the appropriate wrapper around the navbox, depending on the border param
 	local res = mw.html.create()
-	if border == 'none' then
+	-- render the appropriate wrapper for the navbox, based on the border param
+
+	if border == cfg.keyword.border_none then
+		res:node(add_navbox_styles(hiding_templatestyles))
 		local nav = res:tag('div')
 			:attr('role', 'navigation')
 			:node(tbl)
 		-- aria-labelledby title, otherwise above, otherwise lone group
-		if args.title or args.above or (args.group1 and not args.group2) then
-			nav:attr('aria-labelledby', mw.uri.anchorEncode(args.title or args.above or args.group1))
+		if args[cfg.arg.title] or args[cfg.arg.above] or (args[cfg.arg.group1]
+			and not args[cfg.arg.group2]) then
+			nav:attr(
+				'aria-labelledby',
+				mw.uri.anchorEncode(
+					args[cfg.arg.title] or args[cfg.arg.above] or args[cfg.arg.group1]
+				)
+			)
 		else
-			nav:attr('aria-label', 'Navbox')
+			nav:attr('aria-label', cfg.aria_label)
 		end
-	elseif border == 'subgroup' then
-		-- We assume that this navbox is being rendered in a list cell of a parent navbox, and is
-		-- therefore inside a div with padding:0em 0.25em. We start with a </div> to avoid the
-		-- padding being applied, and at the end add a <div> to balance out the parent's </div>
+	elseif border == cfg.keyword.border_subgroup then
+		-- We assume that this navbox is being rendered in a list cell of a
+		-- parent navbox, and is therefore inside a div with padding:0em 0.25em.
+		-- We start with a </div> to avoid the padding being applied, and at the
+		-- end add a <div> to balance out the parent's </div>
 		res
 			:wikitext('</div>')
 			:node(tbl)
 			:wikitext('<div>')
 	else
+		res:node(add_navbox_styles(hiding_templatestyles))
 		local nav = res:tag('div')
 			:attr('role', 'navigation')
-			:addClass('navbox')
-			:addClass(args.navboxclass)
-			:cssText(args.bodystyle)
-			:cssText(args.style)
+			:addClass(cfg.class.navbox)
+			:addClass(args[cfg.arg.navboxclass])
+			:cssText(args[cfg.arg.bodystyle])
+			:cssText(args[cfg.arg.style])
 			:css('padding', '3px')
 			:node(tbl)
 		-- aria-labelledby title, otherwise above, otherwise lone group
-		if args.title or args.above or (args.group1 and not args.group2) then
-			nav:attr('aria-labelledby', mw.uri.anchorEncode(args.title or args.above or args.group1))
+		if args[cfg.arg.title] or args[cfg.arg.above]
+			or (args[cfg.arg.group1] and not args[cfg.arg.group2]) then
+			nav:attr(
+				'aria-labelledby',
+				mw.uri.anchorEncode(args[cfg.arg.title] or args[cfg.arg.above] or args[cfg.arg.group1])
+			)
 		else
-			nav:attr('aria-label', 'Navbox')
+			nav:attr('aria-label', cfg.aria_label)
 		end
 	end
 
-	if (args.nocat or 'false'):lower() == 'false' then
-		renderTrackingCategories(res)
+	if (args[cfg.arg.nocat] or cfg.keyword.nocat_false):lower() == cfg.keyword.nocat_false then
+		renderTrackingCategories(res, border)
 	end
-
-	return striped(tostring(res))
+	return striped(tostring(res), border)
 end
 
 local param_ko = {
@@ -500,7 +593,7 @@ local param_ko = {
     ['내부모양'] = 'innerstyle',
 }
 
-for i = 1, 100 do
+for i = 1, 60 do
     param_ko['묶음' .. i] = 'group' .. i
     param_ko['묶음' .. i .. '모양'] = 'group' .. i .. 'style'
     param_ko['내용' .. i] = 'list' .. i
@@ -516,17 +609,18 @@ function p.navbox(frame)
 		getArgs = require('Module:@ko/Arguments').getArgs
 	end
 	local args = {}
-	parent_args = getArgs(frame, {wrappers = {'틀:둘러보기 상자'}})
+	local parent_args = getArgs(frame, {wrappers = {cfg.pattern.navbox}})
 
-	-- Read the arguments in the order they'll be output in, to make references number in the right order.
+	-- Read the arguments in the order they'll be output in, to make references
+	-- number in the right order.
 	local _
-	_ = parent_args.title or parent_args['제목'];
-	_ = parent_args.above or parent_args['윗글'];
+	_ = parent_args[cfg.arg.title] or parent_args['제목']
+	_ = parent_args[cfg.arg.above] or parent_args['윗글']
 	for i = 1, 60 do
-		_ = parent_args["group" .. tostring(i)] or parent_args["묶음" .. tostring(i)];
-		_ = parent_args["list" .. tostring(i)] or parent_args["내용" .. tostring(i)];
+		_ = parent_args[format(cfg.arg.group_and_num, i)] or parent_args["묶음" .. tostring(i)]
+		_ = parent_args[format(cfg.arg.list_and_num, i)] or parent_args["내용" .. tostring(i)]
 	end
-	_ = parent_args.below or parent_args["아랫글"];
+	_ = parent_args[cfg.arg.below] or parent_args["아랫글"]
 
     for k, v in pairs(parent_args) do
         if v ~= '' then

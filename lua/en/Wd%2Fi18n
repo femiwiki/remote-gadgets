@@ -8,14 +8,21 @@ local p = {}
 
 function p.init(aliasesP)
 	p = {
+		["version"] = "7",  -- increment this each time the below parameters are changed to avoid reference conflict errors
 		["errors"] = {
-			["unknown-data-type"]          = "Unknown or unsupported datatype '$1'.",
+			["unknown-data-type"]          = "Unknown or unsupported datatype '%s'.",
 			["missing-required-parameter"] = "No required parameters defined, needing at least one",
-			["extra-required-parameter"]   = "Parameter '$1' must be defined as optional",
+			["extra-required-parameter"]   = "Parameter '%s' must be defined as optional",
 			["no-function-specified"]      = "You must specify a function to call",  -- equal to the standard module error message
 			["main-called-twice"]          = 'The function "main" cannot be called twice',
-			["no-such-function"]           = 'The function "$1" does not exist',  -- equal to the standard module error message
-            ["malformed-reference"]        = "Error: Unable to display the reference properly. See [[Module:wd/doc#References|the documentation]] for details.[[Category:Module:Wd reference errors]]"
+			["no-such-function"]           = 'The function "%s" does not exist',  -- equal to the standard module error message
+            ["no-such-reference-template"] = 'Error: template "%s", which is set in %s as the output template for the citation-output type "%s", does not exist',
+            -- Parts of the error message signalling a malformed reference.
+            ["malformed-reference-header"] = "<span style=\"color:#dd3333\">\nError: Unable to display the reference from Wikidata properly. Technical details:\n",
+            ["malformed-reference-footer"] = "See [[Module:wd/doc#References|the documentation]] for further details.\n</span>\n[[Category:Module:Wd reference errors]]",
+            ["template-failure-reason"]    = "* Reason for the failure of {{tl|%s}}: %s\n",
+            ["missing-mandatory-param"]    = 'The output template call would miss the mandatory parameter <code>%s</code>.',
+            ["unknown-property-in-ref"]    = 'The Wikidata reference contains the property {{property|%s}}, which is not assigned to any parameter of this template.'
 		},
 		["info"] = {
 			["edit-on-wikidata"] = "Edit this on Wikidata"
@@ -58,37 +65,58 @@ function p.init(aliasesP)
 			["none"]    = "none"
 		},
 		["cite"] = {
-			["version"] = "4",  -- increment this each time the below parameters are changed to avoid conflict errors
-			["web"] = {
-				-- <= left side: all allowed reference properties for *web page sources* per https://www.wikidata.org/wiki/Help:Sources
-				-- => right side: corresponding parameter names in (equivalent of) [[:en:Template:Cite web]] (if non-existent, keep empty i.e. "")
-				[aliasesP.statedIn]         = "website",
-				[aliasesP.referenceURL]     = "url",
-				[aliasesP.publicationDate]  = "date",
-				[aliasesP.retrieved]        = "access-date",
-				[aliasesP.title]            = "title",
-				[aliasesP.archiveURL]       = "archive-url",
-				[aliasesP.archiveDate]      = "archive-date",
-				[aliasesP.language]         = "language",
-				[aliasesP.author]           = "author",  -- existence of author1, author2, author3, etc. is assumed
-				[aliasesP.authorNameString] = "author",
-				[aliasesP.publisher]        = "publisher",
-				[aliasesP.quote]            = "quote",
-				[aliasesP.pages]            = "pages",  -- extra option
-				[aliasesP.publishedIn]      = "website"
+			["output-types"] = {"web", "q"},  -- In this order, the output types will be tried
+			["param-mapping"] = {
+				["web"] = {
+					-- <= left side: all allowed reference properties for *web page sources* per https://www.wikidata.org/wiki/Help:Sources
+					-- => right side: corresponding parameter names in (equivalent of) [[:en:Template:Cite web]] (if non-existent, keep empty i.e. "")
+					[aliasesP.statedIn]                = "website",
+					[aliasesP.referenceURL]            = "url",
+					[aliasesP.publicationDate]         = "date",
+					[aliasesP.retrieved]               = "access-date",
+					[aliasesP.title]                   = "title",
+					[aliasesP.archiveURL]              = "archive-url",
+					[aliasesP.archiveDate]             = "archive-date",
+					[aliasesP.language]                = "language",
+					[aliasesP.author]                  = "author",
+					[aliasesP.authorNameString]        = "author",
+					[aliasesP.publisher]               = "publisher",
+					[aliasesP.quote]                   = "quote",
+					[aliasesP.pages]                   = "pages",  -- extra option
+					[aliasesP.publishedIn]             = "website",
+					[aliasesP.sectionVerseOrParagraph] = "at"
+				},
+				["q"] = {
+					-- <= left side: all allowed reference properties for *sources other than web pages* per https://www.wikidata.org/wiki/Help:Sources
+					-- => right side: corresponding parameter names in (equivalent of) [[:en:Template:Cite Q]] (if non-existent, keep empty i.e. "")
+					[aliasesP.statedIn]                = "1",
+					[aliasesP.pages]                   = "pages",
+					[aliasesP.column]                  = "at",
+					[aliasesP.chapter]                 = "chapter",
+					[aliasesP.sectionVerseOrParagraph] = "section",
+					["external-id"]                    = "id",  -- used for any type of database property ID
+					[aliasesP.title]                   = "title",
+					[aliasesP.publicationDate]         = "date",
+					[aliasesP.retrieved]               = "access-date"
+				}
 			},
-			["q"] = {
-				-- <= left side: all allowed reference properties for *sources other than web pages* per https://www.wikidata.org/wiki/Help:Sources
-				-- => right side: corresponding parameter names in (equivalent of) [[:en:Template:Cite Q]] (if non-existent, keep empty i.e. "")
-				[aliasesP.statedIn]                = "1",
-				[aliasesP.pages]                   = "pages",
-				[aliasesP.column]                  = "at",
-				[aliasesP.chapter]                 = "chapter",
-				[aliasesP.sectionVerseOrParagraph] = "section",
-				["external-id"]                    = "id",  -- used for any type of database property ID
-				[aliasesP.title]                   = "title",
-				[aliasesP.publicationDate]         = "date",
-				[aliasesP.retrieved]               = "access-date"
+			["config"] = {
+				-- supported fields:
+				--     - template: name of the template used for output
+				--     - numbered-params: citation params accepting an arbitrary number of values by numbering the params (e.g. author1, author2)
+				--     - raw-value-params: params taking a raw value (which means the property is rendered with getValue with raw=true)
+				--     - mandatory-params: params that are required be in the template call (after potentially appending numbers to params listed in numbered-params)
+				-- Leaving out the "template" field causes the output type to be ignored.
+				["web"] = {
+					["template"] = "Cite web",
+					["numbered-params"] = {"author"},
+					["mandatory-params"] = {"url"}
+				},
+				["q"] = {
+					["template"] = "Cite Q",
+					["raw-value-params"] = {"1"},  -- the first, unnamed parameter of CiteQ takes a QID, not the name of the item cited
+					["mandatory-params"] = {"1"}
+				}
 			}
 		}
 	}
