@@ -17,7 +17,7 @@
 
       if (isLinkToSanction) {
         $(this).html(
-          '사용자:' + substitute + ' 님에 대한 부적절한 사용자명 변경 건의'
+          '사용자:' + substitute + ' 님에 대한 부적절한 사용자명 변경 건의',
         );
       }
     });
