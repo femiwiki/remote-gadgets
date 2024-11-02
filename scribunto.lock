@@ -79,7 +79,7 @@
     },
     "@en/String": {
       "pageid": 38569505,
-      "revid": 1181867616,
+      "revid": 1243840019,
       "title": "Module:String",
       "dependencies": [
         "@en/String"
@@ -87,7 +87,7 @@
     },
     "@en/TableTools": {
       "pageid": 41371028,
-      "revid": 1069058368,
+      "revid": 1240903756,
       "title": "Module:TableTools",
       "dependencies": [
         "@en/Exponential search"
@@ -95,12 +95,12 @@
     },
     "@en/Wd": {
       "pageid": 51376229,
-      "revid": 1191341478,
+      "revid": 1249550606,
       "title": "Module:Wd"
     },
     "@en/Wd/i18n": {
       "pageid": 54004752,
-      "revid": 1164721158,
+      "revid": 1249550506,
       "title": "Module:Wd/i18n"
     },
     "@en/Yesno": {
@@ -159,7 +159,7 @@
     },
     "@ko/Citation/CS1/COinS": {
       "pageid": 1481766,
-      "revid": 25246126,
+      "revid": 36399130,
       "title": "\ubaa8\ub4c8:Citation/CS1/COinS"
     },
     "@ko/Citation/CS1/COinS/sandbox": {
@@ -314,32 +314,44 @@
     },
     "@ko/If preview/configuration": {
       "pageid": 3213840,
-      "revid": 32596717,
+      "revid": 36476763,
       "title": "\ubaa8\ub4c8:If preview/configuration"
     },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 36068888,
+      "revid": 38026594,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {
       "pageid": 930485,
-      "revid": 35127696,
+      "revid": 36480637,
       "title": "\ubaa8\ub4c8:Navbar",
       "dependencies": [
         "@ko/Arguments",
+        "@ko/Navbar/configuration",
         "@ko/TableTools"
       ]
     },
+    "@ko/Navbar/configuration": {
+      "pageid": 3310704,
+      "revid": 36480634,
+      "title": "\ubaa8\ub4c8:Navbar/configuration"
+    },
     "@ko/Navbox": {
       "pageid": 930488,
-      "revid": 36040579,
+      "revid": 36480767,
       "title": "\ubaa8\ub4c8:Navbox",
       "dependencies": [
         "@ko/Arguments",
         "@ko/Color contrast",
-        "@ko/Navbar"
+        "@ko/Navbar",
+        "@ko/Navbox/configuration"
       ]
+    },
+    "@ko/Navbox/configuration": {
+      "pageid": 3767719,
+      "revid": 37950715,
+      "title": "\ubaa8\ub4c8:Navbox/configuration"
     },
     "@ko/Official website": {
       "pageid": 1921209,

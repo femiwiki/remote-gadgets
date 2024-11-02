@@ -1,0 +1,134 @@
+--[[
+This module was originally on https://ko.wikipedia.org/wiki/Module:Navbox/configuration and forked by Legunto
+(https://github.com/femiwiki/legunto).
+]]
+return {
+	aria_label = 'Navbox',
+	nowrap_item = '%s<span class="nowrap">%s</span>',
+	templatestyles = mw.getCurrentFrame():extensionTag{
+		name = 'templatestyles', args = { src = 'Module:Navbox/styles.css' }
+	},
+	hlist_templatestyles = 'Hlist/styles.css',
+	plainlist_templatestyles = 'Plainlist/styles.css',
+	-- do not localize marker table
+	marker = {
+		oddeven = '\127_ODDEVEN_\127',
+		restart = '\127_ODDEVEN0_\127',
+		regex = '\127_ODDEVEN(%d?)_\127'
+	},
+	category = {
+		orphan = '[[분류:외톨이 둘러보기 상자]]',
+		horizontal_lists = '가로 목록을 지원하지 않는 둘러보기 상자',
+		background_colors = '배경색을 이용하는 둘러보기 상자',
+		illegible = '잠재적 문제가 있는 둘러보기 상자',
+		borders = '테두리를 사용하는 둘러보기 상자',
+	},
+	keyword = {
+		border_subgroup = 'subgroup',
+		border_child = 'child',
+		border_none = 'none',
+		evenodd_swap = 'swap',
+		navbar_off = 'off',
+		navbar_plain = 'plain',
+		nocat_false = 'false',
+		nowrapitems_yes = 'yes',
+		orphan_yes = 'yes',
+		state_collapsed = 'collapsed',
+		state_off = 'off',
+		state_plain = 'plain',
+		subgroups = {'subgroup', 'child', ''},
+		subpage_doc = '설명문서',
+		subpage_sandbox = '연습장',
+		subpage_testcases = '시험장',
+		tracking_no = 'no'
+	},
+	class = {
+		autocollapse = 'autocollapse',
+		collapsible = 'mw-collapsible',
+		collapsed = 'mw-collapsed',
+		-- Warning
+		navbox = 'navbox', -- WMF currently hides 'navbox' from mobile,
+		-- so you probably shouldn't change the navbox class.
+		navbox_abovebelow = 'navbox-abovebelow',
+		navbox_group = 'navbox-group',
+		navbox_image = 'navbox-image',
+		navbox_inner = 'navbox-inner',
+		navbox_list = 'navbox-list',
+		navbox_list_with_group = 'navbox-list-with-group',
+		navbox_part = 'navbox-', -- do not l10n
+		navbox_styles = 'navbox-styles',
+		navbox_subgroup = 'navbox-subgroup',
+		navbox_title = 'navbox-title', -- l10n only if you change pattern.navbox_title below
+		navbox_odd_part = 'odd', -- do not l10n
+		navbox_even_part = 'even', -- do not l10n
+		nomobile = 'nomobile',
+		nowraplinks = 'nowraplinks',
+		noviewer = 'noviewer' -- used to remove images from MediaViewer
+	},
+	pattern = {
+		listnum = '^list(%d+)$',
+		class = 'class',
+		sandbox = '/연습장$',
+		navbox = '틀:둘러보기 상자',
+		nowrap = '^<span class="nowrap">',
+		style = 'style$',
+		navbox_title = '<th[^>]*"navbox%-title"',
+		hlist = 'hlist',
+		plainlist = 'plainlist',
+	},
+	arg = {
+		above = 'above',
+		aboveclass = 'aboveclass',
+		abovestyle = 'abovestyle',
+		basestyle = 'basestyle',
+		bodyclass = 'bodyclass',
+		bodystyle = 'bodystyle',
+		border = 'border',
+		below = 'below',
+		belowclass = 'belowclass',
+		belowstyle = 'belowstyle',
+		evenodd = 'evenodd',
+		evenstyle = 'evenstyle',
+		group1 = 'group1',
+		group2 = 'group2',
+		group_and_num = 'group%d',
+		groupstyle_and_num = 'group%dstyle',
+		groupclass = 'groupclass',
+		groupstyle = 'groupstyle',
+		groupwidth = 'groupwidth',
+		innerstyle = 'innerstyle',
+		image = 'image',
+		imageclass = 'imageclass',
+		imageleft = 'imageleft',
+		imageleftstyle = 'imageleftstyle',
+		imagestyle = 'imagestyle',
+		list_and_num = 'list%d',
+		listclass_and_num = 'list%dclass',
+		liststyle_and_num = 'list%dstyle',
+		list1padding = 'list1padding',
+		listclass = 'listclass',
+		listpadding = 'listpadding',
+		liststyle = 'liststyle',
+		name = 'name',
+		navbar = 'navbar',
+		navboxclass = 'navboxclass',
+		nocat = 'nocat',
+		nowrapitems = 'nowrapitems',
+		oddstyle = 'oddstyle',
+		orphan = 'orphan',
+		state = 'state',
+		style = 'style',
+		templatestyles = 'templatestyles',
+		child_templatestyles = 'child templatestyles',
+		title = 'title',
+		titleclass = 'titleclass',
+		titlestyle = 'titlestyle',
+		tracking = 'tracking'
+	},
+	-- names of navbar arguments
+	navbar = {
+		name = 1,
+		fontstyle = 'fontstyle',
+		mini = 'mini'
+	}
+}
