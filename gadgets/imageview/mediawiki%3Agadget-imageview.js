@@ -17,9 +17,9 @@
       $('<img></img>')
         .attr(
           'src',
-          'https://upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif'
+          'https://upload.wikimedia.org/wikipedia/commons/d/de/Ajax-loader.gif',
         )
-        .addClass('loading-spinner')
+        .addClass('loading-spinner'),
     );
 
     $('body').css('overflow', 'hidden');
@@ -29,7 +29,7 @@
         titles: decodeURI(
           $(this)
             .attr('href')
-            .match(/\/([^/]+)$/)[1]
+            .match(/\/([^/]+)$/)[1],
         ),
         prop: 'imageinfo',
         iiprop: 'url',
@@ -42,7 +42,7 @@
         });
 
         overlay.append(
-          $('<img></img>').attr('src', imageSource).addClass('image')
+          $('<img></img>').attr('src', imageSource).addClass('image'),
         );
       });
   });

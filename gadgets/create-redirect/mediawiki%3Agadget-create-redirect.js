@@ -11,8 +11,8 @@
         '#',
         '여기로 넘겨주기',
         'p-createRedirect',
-        '이 문서로 오는 넘겨주기 문서를 만듭니다.'
-      )
+        '이 문서로 오는 넘겨주기 문서를 만듭니다.',
+      ),
     ).on('click', function (e) {
       e.preventDefault();
       target = mw.config.get('wgPageName').replace(/_/g, ' ');
@@ -62,7 +62,7 @@
           title +
           '" 문서에서 "' +
           target +
-          '" 문서로 넘겨주기를 만드시겠습니까?'
+          '" 문서로 넘겨주기를 만드시겠습니까?',
       )
       .done(function (confirmed) {
         if (confirmed) {
@@ -75,7 +75,7 @@
                   '" 문서에서 ' +
                   '"' +
                   target +
-                  '" 문서로 넘겨주기 문서가 생성되었습니다.'
+                  '" 문서로 넘겨주기 문서가 생성되었습니다.',
               );
             })
             .fail(function (e) {
