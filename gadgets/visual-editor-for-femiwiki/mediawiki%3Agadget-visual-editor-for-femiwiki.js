@@ -12,7 +12,7 @@
     var AddReferencesListCommand = function () {
       AddReferencesListCommand.parent.call(
         this,
-        'addReferencesList', // Command name
+        'addReferencesList' // Command name
       );
     };
     OO.inheritClass(AddReferencesListCommand, ve.ui.Command);
@@ -46,7 +46,7 @@
                 isResponsive: mw.config.get('wgCiteResponsiveReferences'),
               },
             })
-            .concat({ type: '/mwReferencesList' }),
+            .concat({ type: '/mwReferencesList' })
         )
         .collapseToEnd()
         .select();
@@ -61,8 +61,8 @@
         'addReferencesList', // Sequence name
         'addReferencesList', // Command name
         '=r',
-        2,
-      ),
+        2
+      )
     );
 
     ve.ui.commandHelpRegistry.register('insert', 'addReferencesList', {
@@ -86,7 +86,7 @@
       // Parent constructor
       AddNotesSectionCommand.parent.call(
         this,
-        'addNotesSection', // Command name
+        'addNotesSection' // Command name
       );
     };
     OO.inheritClass(AddNotesSectionCommand, ve.ui.Command);
@@ -130,7 +130,7 @@
                 },
               },
             })
-            .concat({ type: '/mwTransclusionBlock' }),
+            .concat({ type: '/mwTransclusionBlock' })
         )
         .collapseToEnd()
         .select();
@@ -145,8 +145,8 @@
         'addNotesSection', // Sequence name
         'addNotesSection', // Command name
         '=n',
-        2,
-      ),
+        2
+      )
     );
 
     ve.ui.commandHelpRegistry.register('insert', 'addNotesSection', {
@@ -203,8 +203,8 @@
         'dash',
         'bulletWrapOnce',
         [{ type: 'paragraph' }, '-', ' '],
-        2,
-      ),
+        2
+      )
     );
 
     ve.ui.commandHelpRegistry.register('formatting', 'listBullet', {

@@ -13,7 +13,7 @@
       '  여러 브라우저로 페미위키를 이용하시는 분들은 각 브라우저별로' +
       '  키워드를 등록해주시기 바랍니다.' +
       '</p>' +
-      '</div>',
+      '</div>'
   );
 
   function _initUI() {
@@ -25,8 +25,8 @@
         '#',
         '뮤트',
         'p-mute',
-        '금지어를 설정합니다.',
-      ),
+        '금지어를 설정합니다.'
+      )
     ).on('click', function (e) {
       e.preventDefault();
       $editorEl.show();
@@ -58,7 +58,7 @@
     $('#mw-content-text').prepend(
       '<div class="notice warning">' +
         '가림 단어가 포함된 문서입니다. 이 문서의 제목 또는 본문에 한 개 이상의 가림 단어가 있습니다.' +
-        '</div>',
+        '</div>'
     );
   }
 

@@ -120,9 +120,7 @@ sup.reference:target {
 
 #pt-notifications-alert .mw-echo-notifications-badge:focus,
 #pt-notifications-notice .mw-echo-notifications-badge:focus {
-  box-shadow:
-    #181a1b 0 0 0 1px,
-    #2952a3 0 0 0 3px;
+  box-shadow: #181a1b 0 0 0 1px, #2952a3 0 0 0 3px;
 }
 
 #pt-notifications-alert .mw-echo-notifications-badge:focus::after,
@@ -428,9 +426,7 @@ sup.reference:target {
 .oo-ui-buttonElement-framed.oo-ui-widget-enabled.oo-ui-buttonElement-active
   > .oo-ui-buttonElement-button:focus {
   border-color: #272069;
-  box-shadow:
-    #221c5d 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #221c5d 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
 }
 
 .oo-ui-buttonElement-framed.oo-ui-widget-enabled.oo-ui-flaggedElement-progressive
@@ -534,9 +530,7 @@ sup.reference:target {
 .oo-ui-buttonElement-framed.oo-ui-widget-enabled.oo-ui-flaggedElement-primary.oo-ui-flaggedElement-progressive
   > .oo-ui-buttonElement-button:focus {
   border-color: #272069;
-  box-shadow:
-    #221c5d 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #221c5d 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
   outline-color: transparent;
 }
 
@@ -572,9 +566,7 @@ sup.reference:target {
 .oo-ui-buttonElement-framed.oo-ui-widget-enabled.oo-ui-flaggedElement-primary.oo-ui-flaggedElement-destructive
   > .oo-ui-buttonElement-button:focus {
   border-color: #951919;
-  box-shadow:
-    #a61c1c 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #a61c1c 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
   outline-color: transparent;
 }
 
@@ -820,9 +812,7 @@ ul.mw-gallery-packed-overlay li.gallerybox div.thumb {
   + span {
   background-color: #221c5d;
   border-color: #272069;
-  box-shadow:
-    #221c5d 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #221c5d 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
 }
 
 .oo-ui-checkboxInputWidget.oo-ui-widget-enabled
@@ -4676,9 +4666,7 @@ body.skin-vector #ca-talk.hasOpenTopic > span > a::after {
   .oo-ui-buttonOptionWidget.oo-ui-optionWidget-selected
   .oo-ui-buttonElement-button {
   border-color: #272069;
-  box-shadow:
-    #221c5d 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #221c5d 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
   outline-color: transparent;
 }
 
@@ -5182,9 +5170,7 @@ body.skin-vector #ca-talk.hasOpenTopic > span > a::after {
 .oo-ui-tool.oo-ui-widget-enabled.oo-ui-flaggedElement-primary.oo-ui-flaggedElement-progressive
   > .oo-ui-tool-link:focus {
   outline-color: #272069;
-  box-shadow:
-    #221c5d 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #221c5d 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
 }
 
 .oo-ui-tool.oo-ui-widget-enabled.oo-ui-flaggedElement-primary.oo-ui-flaggedElement-progressive.oo-ui-widget-disabled
@@ -5222,9 +5208,7 @@ body.skin-vector #ca-talk.hasOpenTopic > span > a::after {
 .oo-ui-tool.oo-ui-widget-enabled.oo-ui-flaggedElement-primary.oo-ui-flaggedElement-destructive
   > .oo-ui-tool-link:focus {
   outline-color: #951919;
-  box-shadow:
-    #a61c1c 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #a61c1c 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
 }
 
 .oo-ui-tool.oo-ui-widget-enabled.oo-ui-flaggedElement-primary.oo-ui-flaggedElement-destructive.oo-ui-widget-disabled
@@ -5442,9 +5426,7 @@ body.skin-vector #ca-talk.hasOpenTopic > span > a::after {
 .oo-ui-popupToolGroup.oo-ui-flaggedElement-primary.oo-ui-flaggedElement-progressive
   > .oo-ui-popupToolGroup-handle:focus {
   outline-color: #272069;
-  box-shadow:
-    #221c5d 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #221c5d 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
 }
 
 .oo-ui-popupToolGroup.oo-ui-flaggedElement-primary.oo-ui-flaggedElement-progressive.oo-ui-widget-disabled
@@ -5482,9 +5464,7 @@ body.skin-vector #ca-talk.hasOpenTopic > span > a::after {
 .oo-ui-popupToolGroup.oo-ui-flaggedElement-primary.oo-ui-flaggedElement-destructive
   > .oo-ui-popupToolGroup-handle:focus {
   outline-color: #951919;
-  box-shadow:
-    #a61c1c 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #a61c1c 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
 }
 
 .oo-ui-popupToolGroup.oo-ui-flaggedElement-primary.oo-ui-flaggedElement-destructive.oo-ui-widget-disabled
@@ -5817,9 +5797,7 @@ body.skin-vector #ca-talk.hasOpenTopic > span > a::after {
   background-color: #1b1e1f;
   color: #d3cfc9;
   border-color: #3e4346;
-  box-shadow:
-    rgba(0, 0, 0, 0.2) 0 1px 0,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: rgba(0, 0, 0, 0.2) 0 1px 0, #181a1b 0 0 0 2px inset;
   text-shadow: #181a1b 0 1px 0;
 }
 
@@ -5998,9 +5976,7 @@ body.skin-vector #ca-talk.hasOpenTopic > span > a::after {
   background-color: #181a1b;
   color: #d3cfca;
   border-color: #24478f;
-  box-shadow:
-    #2952a3 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #2952a3 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
 }
 
 .mw-ui-button:focus::-moz-focus-inner {
@@ -6119,9 +6095,7 @@ body.skin-vector #ca-talk.hasOpenTopic > span > a::after {
 }
 
 .mw-ui-button.mw-ui-destructive:focus {
-  box-shadow:
-    #a61c1c 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #a61c1c 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
 }
 
 .mw-ui-button.mw-ui-destructive.is-on,
@@ -6187,9 +6161,7 @@ a.mw-ui-button:hover {
 }
 
 .mw-ui-button.mw-ui-progressive:focus {
-  box-shadow:
-    #221c5d 0 0 0 1px inset,
-    #181a1b 0 0 0 2px inset;
+  box-shadow: #221c5d 0 0 0 1px inset, #181a1b 0 0 0 2px inset;
 }
 
 .mw-ui-button.mw-ui-progressive.is-on,
@@ -6276,8 +6248,7 @@ a.mw-ui-button:hover {
 }
 
 .mwe-popups {
-  box-shadow:
-    rgba(0, 0, 0, 0.3) 0 30px 90px -20px,
+  box-shadow: rgba(0, 0, 0, 0.3) 0 30px 90px -20px,
     rgba(0, 0, 0, 0.05) 0 0 1px 1px;
 }
 
@@ -10416,9 +10387,7 @@ del[data-diff-action='remove']:hover {
 }
 
 .mw-widget-dateInputWidget-calendar:focus {
-  box-shadow:
-    #2c284e 0 0 0 1px inset,
-    rgba(0, 0, 0, 0.25) 0 2px 2px 0;
+  box-shadow: #2c284e 0 0 0 1px inset, rgba(0, 0, 0, 0.25) 0 2px 2px 0;
 }
 
 .mw-widget-mediaResultWidget.oo-ui-optionWidget-highlighted,
@@ -10911,8 +10880,7 @@ span.ime-disable-shortcut {
 }
 
 .mw-gallery-traditional.scroll-left.scroll-right {
-  box-shadow:
-    rgba(0, 0, 0, 0.4) -17px 0 16px -16px inset,
+  box-shadow: rgba(0, 0, 0, 0.4) -17px 0 16px -16px inset,
     rgba(0, 0, 0, 0.4) 17px 0 16px -16px inset;
 }
 

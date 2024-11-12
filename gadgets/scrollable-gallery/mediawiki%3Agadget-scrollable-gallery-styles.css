@@ -17,8 +17,7 @@
   box-shadow: 17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
 }
 .mw-gallery-traditional.scroll-left.scroll-right {
-  box-shadow:
-    -17px 0 16px -16px rgba(0, 0, 0, 0.4) inset,
+  box-shadow: -17px 0 16px -16px rgba(0, 0, 0, 0.4) inset,
     17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
 }
 
