@@ -9,7 +9,7 @@
     // 바뀐글 링크를 limit가 0인 링크로 바꿉니다.
     $('#site-navigation .changes a').attr(
       'href',
-      $('#site-navigation .changes a').attr('href') + '?limit=0',
+      $('#site-navigation .changes a').attr('href') + '?limit=0'
     );
 
     if (
@@ -46,12 +46,12 @@
 
         // limit를 50으로 변경하는 버튼
         var btn = $(
-          '.mw-rcfilters-ui-changesLimitPopupWidget .oo-ui-buttonSelectWidget a',
+          '.mw-rcfilters-ui-changesLimitPopupWidget .oo-ui-buttonSelectWidget a'
         ).eq(limitButtonIndex);
 
         // 버튼을 누르는 동작을 흉내냅니다. 즉 limit를 50으로 다시 설정합니다.
         btn.trigger(
-          jQuery.Event('mousedown', { which: OO.ui.MouseButtons.LEFT }),
+          jQuery.Event('mousedown', { which: OO.ui.MouseButtons.LEFT })
         );
         btn[0].dispatchEvent(new MouseEvent('mouseup'));
       });

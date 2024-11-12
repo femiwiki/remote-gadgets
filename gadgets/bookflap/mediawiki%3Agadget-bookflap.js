@@ -32,13 +32,13 @@
 
   $raws.each(function () {
     var $title = $(this).find(
-      '.book-flap-title a, .book-flap-title .mw-selflink',
+      '.book-flap-title a, .book-flap-title .mw-selflink'
     );
     var $slideBookFlap = $('<div></div>')
       .addClass('book-flap-slide')
       .html($(this).find('book-flap-raw book-flap-title'))
       .append(
-        $(this).find('.book-flap-body').clone().addClass('mw-parser-output'),
+        $(this).find('.book-flap-body').clone().addClass('mw-parser-output')
       )
       .appendTo($overlay);
 
@@ -85,7 +85,7 @@
       .addClass('book-flap-side')
       .html($(this).find('book-flap-raw book-flap-title'))
       .append(
-        $(this).find('.book-flap-body').clone().addClass('mw-parser-output'),
+        $(this).find('.book-flap-body').clone().addClass('mw-parser-output')
       )
       .appendTo($(this).hasClass('book-flap-left') ? $leftside : $rightside)
       .hide()
