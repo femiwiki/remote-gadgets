@@ -95,7 +95,7 @@
     },
     "@en/Wd": {
       "pageid": 51376229,
-      "revid": 1249550606,
+      "revid": 1258646059,
       "title": "Module:Wd"
     },
     "@en/Wd/i18n": {
@@ -110,12 +110,12 @@
     },
     "@ko/Arguments": {
       "pageid": 1080666,
-      "revid": 16832182,
+      "revid": 38121521,
       "title": "\ubaa8\ub4c8:Arguments"
     },
     "@ko/Catalog lookup link": {
       "pageid": 2580206,
-      "revid": 33641757,
+      "revid": 38121522,
       "title": "\ubaa8\ub4c8:Catalog lookup link",
       "dependencies": [
         "@ko/Arguments"
@@ -319,7 +319,7 @@
     },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 38026594,
+      "revid": 38379262,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {
@@ -355,7 +355,7 @@
     },
     "@ko/Official website": {
       "pageid": 1921209,
-      "revid": 34634801,
+      "revid": 38190763,
       "title": "\ubaa8\ub4c8:Official website",
       "dependencies": [
         "@ko/Arguments",
