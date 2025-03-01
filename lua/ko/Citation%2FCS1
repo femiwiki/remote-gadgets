@@ -2846,7 +2846,7 @@ note is displayed. There are no error messages for this condition.
 		else																	-- 로컬
 			ArchiveDate = ISOdate(ArchiveDate, lang, '1-999');					-- 로컬
 		end
-		if "live" == UrlStatus then
+		if "live" == UrlStatus or "라이브" == UrlStatus then
 			local arch_text = cfg.messages['archived'];
 			if sepc ~= "." then arch_text = arch_text:lower() end
 			Archived = sepc .. " " .. substitute ( cfg.messages['archived-live'],
