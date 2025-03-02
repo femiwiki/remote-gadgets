@@ -1,6 +1,6 @@
 {
   "settings": {
-    "rights": ["gadgets-edit"],
+    "rights": ["editinterface"],
     "default": true,
     "hidden": false,
     "skins": [],
