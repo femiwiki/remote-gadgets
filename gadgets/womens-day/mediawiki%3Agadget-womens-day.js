@@ -13,20 +13,20 @@
 
   document.body.classList.add('womens-day');
 
-  if ("onscrollend" in window) {
-    const element = document.createElement("div");
-    element.classList.add("womens-day-touch-scroll");
+  if ('onscrollend' in window) {
+    const element = document.createElement('div');
+    element.classList.add('womens-day-touch-scroll');
     element.hidden = true;
     document.body.append(element);
 
-    window.addEventListener("pointercancel", ev => {
-      if (ev.pointerType === "touch") {
+    window.addEventListener('pointercancel', (ev) => {
+      if (ev.pointerType === 'touch') {
         element.style.left = `${ev.x}px`;
         element.style.top = `${ev.y}px`;
         element.hidden = false;
       }
     });
-    window.addEventListener("scrollend", ev => {
+    window.addEventListener('scrollend', (ev) => {
       element.hidden = true;
     });
   }
