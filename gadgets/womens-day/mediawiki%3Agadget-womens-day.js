@@ -6,7 +6,8 @@
 (() => {
   const today = new Date();
 
-  if (today.getMonth() != 2 || today.getDate() != 8) {
+  // 3월 1일부터 8일까지 표시
+  if (today.getMonth() != 2 || today.getDate() > 8) {
     return;
   }
 
