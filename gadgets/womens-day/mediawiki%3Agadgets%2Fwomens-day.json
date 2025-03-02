@@ -3,7 +3,8 @@
     "rights": ["editinterface"],
     "default": true,
     "hidden": false,
-    "skins": [],
+    "skins": ["femiwiki"],
+    "targets": ["desktop", "mobile"],
     "category": "view"
   },
   "module": {
