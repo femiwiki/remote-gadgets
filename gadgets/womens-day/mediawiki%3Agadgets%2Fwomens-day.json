@@ -7,7 +7,7 @@
     "category": "view"
   },
   "module": {
-    "pages": ["wemens-day.css", "wemens-day.js"],
+    "pages": ["womens-day.css", "womens-day.js"],
     "peers": [],
     "dependencies": [""],
     "messages": [],
