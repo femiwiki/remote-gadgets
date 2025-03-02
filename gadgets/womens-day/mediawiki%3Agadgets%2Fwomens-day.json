@@ -10,7 +10,7 @@
   "module": {
     "pages": ["womens-day.css", "womens-day.js"],
     "peers": [],
-    "dependencies": [""],
+    "dependencies": [],
     "messages": [],
     "type": "general"
   }
