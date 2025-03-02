@@ -1,0 +1,16 @@
+{
+  "settings": {
+    "rights": ["gadgets-edit"],
+    "default": true,
+    "hidden": false,
+    "skins": [],
+    "category": "view"
+  },
+  "module": {
+    "pages": ["wemens-day.css", "wemens-day.js"],
+    "peers": [],
+    "dependencies": [""],
+    "messages": [],
+    "type": "general"
+  }
+}
