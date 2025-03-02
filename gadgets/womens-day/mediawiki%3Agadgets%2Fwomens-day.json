@@ -1,6 +1,6 @@
 {
   "settings": {
-    "rights": ["editinterface"],
+    "rights": ["editprotected"],
     "default": true,
     "hidden": false,
     "skins": ["femiwiki"],
