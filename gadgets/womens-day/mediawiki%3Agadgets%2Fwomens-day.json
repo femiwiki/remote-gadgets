@@ -2,7 +2,7 @@
   "settings": {
     "rights": [],
     "default": true,
-    "hidden": false,
+    "hidden": true,
     "skins": ["femiwiki"],
     "targets": ["desktop", "mobile"],
     "category": "view"
