@@ -1,0 +1,23 @@
+.mw-dismissable-notice-close {
+  filter: invert(1);
+  background-color: white;
+  padding: 0.2em;
+  position: fixed;
+  right: 1em;
+  z-index: 101;
+  top: 4em;
+}
+
+#localNotice figure {
+  position: fixed;
+  top: 7em;
+  right: 1em;
+  z-index: 100;
+}
+
+#localNotice figcaption {
+  font-family: 'Gugi', sans-serif;
+  background-color: black;
+  color: white;
+  text-align: center;
+}
