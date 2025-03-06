@@ -1,17 +1,17 @@
 .mw-dismissable-notice-close {
   filter: invert(1);
   background-color: white;
-  padding: 0.2em;
+  padding: 0.2em 0.1em 0.3em;
   position: fixed;
-  right: 1em;
+  top: 1.7em;
+  right: 5.2em;
   z-index: 101;
-  top: 4em;
 }
 
 #localNotice figure {
   position: fixed;
-  top: 7em;
-  right: 1em;
+  top: 4em;
+  right: 5em;
   z-index: 100;
 }
 
