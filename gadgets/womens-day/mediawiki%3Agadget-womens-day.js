@@ -1,7 +1,4 @@
 // <nowiki>
-/**
- * [[틀:스포일러]] 를 보조합니다
- */
 'use strict';
 (() => {
   const today = new Date();
