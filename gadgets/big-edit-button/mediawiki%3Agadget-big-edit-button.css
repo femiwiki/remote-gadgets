@@ -1,10 +1,24 @@
 /* 초설의 안 */
-#ca-ve-edit {
+#p-header #lastmod-and-views {
+  overflow: visible;
+  padding-bottom: 2em;
+}
+
+#p-header #lastmod-and-views #p-views {
+  vertical-align: baseline;
+}
+
+#p-header #lastmod-and-views #p-views ul li {
+  display: inline-block;
+  float: none;
+}
+
+#p-header #lastmod-and-views #p-views #ca-ve-edit {
   background-color: #c3bffd;
   font-size: 1rem;
   padding: 0.5em 1em;
   border: 1px solid #a0a0ff;
-  border-radius: 5px;
+  border-radius: 0.3em;
   cursor: pointer;
   display: inline-block;
   text-align: center;
@@ -12,12 +26,18 @@
     background-color 0.3s,
     transform 0.2s;
 }
-#ca-ve-edit:hover {
+
+#p-header #lastmod-and-views #p-views #ca-ve-edit:hover {
+  border-color: #6b6bff;
   background-color: #a0a0ff;
   transform: scale(1.05);
 }
 
-#ca-ve-edit a {
+#p-header #lastmod-and-views #p-views #ca-ve-edit a {
+  color: #ffffff;
+}
+
+#p-header #lastmod-and-views #p-views #ca-ve-edit a:hover {
   color: #ffffff;
 }
 
