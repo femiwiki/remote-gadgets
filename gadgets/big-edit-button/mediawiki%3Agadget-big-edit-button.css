@@ -4,12 +4,9 @@
   padding-bottom: 2em;
 }
 
-#p-header #lastmod-and-views #p-views {
-  vertical-align: baseline;
-}
-
 #p-header #lastmod-and-views #p-views ul li {
   display: inline-block;
+  vertical-align: baseline;
   float: none;
 }
 
@@ -35,11 +32,24 @@
 
 #p-header #lastmod-and-views #p-views #ca-ve-edit a {
   color: #ffffff;
+  vertical-align: middle;
 }
 
 #p-header #lastmod-and-views #p-views #ca-ve-edit a:hover {
   color: #ffffff;
   border: none;
+}
+
+#p-header #lastmod-and-views #p-views #ca-ve-edit a:before {
+  content: '';
+  display: inline-block;
+  background-image: url(https://upload.wikimedia.org/wikipedia/commons/8/8a/OOjs_UI_icon_edit-ltr.svg);
+  filter: invert(1);
+  padding-right: 0.3em;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+  height: 1em;
+  width: 1em;
 }
 
 /* 낙엽의 안 */
