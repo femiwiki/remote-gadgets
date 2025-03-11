@@ -8,7 +8,7 @@
   height: 3rem;
   width: 3rem;
   z-index: 100;
-  animation: help-panel-slidein 1000ms;
+  animation: help-panel-slidein 800ms;
   background-color: #bad75b;
 }
 
