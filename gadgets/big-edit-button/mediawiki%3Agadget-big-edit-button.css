@@ -1,34 +1,58 @@
-#ca-ve-edit,
-#ca-view + #ca-edit {
-  position: fixed;
-  bottom: 2rem;
-  right: 5rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
-  height: 3rem;
-  width: 3rem;
-  z-index: 100;
-  animation: help-panel-slidein 800ms;
-  background-color: #bad75b;
-}
-
-#ca-ve-edit a,
-#ca-view + #ca-edit a {
-  width: 3rem;
-  height: 3rem;
-  display: block;
-  border-radius: 50%;
+/* 초설의 안 */
+#ca-ve-edit {
+  background-color: #c3bffd;
+  font-size: 1rem;
+  padding: 0.5em 1em;
+  border: 1px solid #a0a0ff;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-block;
   text-align: center;
-  line-height: 3rem;
-  color: white;
-  background-image: url(https://upload.wikimedia.org/wikipedia/commons/8/8a/OOjs_UI_icon_edit-ltr.svg);
-  background-repeat: no-repeat;
-  background-size: 1.5rem;
-  background-position: 0.725rem;
-  filter: invert(1);
+  transition:
+    background-color 0.3s,
+    transform 0.2s;
+}
+#ca-ve-edit:hover {
+  background-color: #a0a0ff;
+  transform: scale(1.05);
 }
 
-#ca-ve-edit span,
-#ca-view + #ca-edit a {
-  font-size: 0;
+#ca-ve-edit a {
+  color: #ffffff;
 }
+
+/* 낙엽의 안 */
+/* #ca-ve-edit, */
+/* #ca-view + #ca-edit { */
+/* position: fixed; */
+/* bottom: 2rem; */
+/* right: 5rem; */
+/* box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); */
+/* border-radius: 50%; */
+/* height: 3rem; */
+/* width: 3rem; */
+/* z-index: 100; */
+/* animation: help-panel-slidein 800ms; */
+/* background-color: #bad75b; */
+/* } */
+
+/* #ca-ve-edit a, */
+/* #ca-view + #ca-edit a { */
+/* width: 3rem; */
+/* height: 3rem; */
+/* display: block; */
+/* border-radius: 50%; */
+/* text-align: center; */
+/* line-height: 3rem; */
+/* color: white; */
+/* background-image: url(https://upload.wikimedia.org/wikipedia/commons/8/8a/OOjs_UI_icon_edit-ltr.svg); */
+/* background-repeat: no-repeat; */
+/* background-size: 1.5rem; */
+/* background-position: 0.725rem; */
+/* filter: invert(1); */
+/* } */
+
+/* #ca-ve-edit span, */
+/* #ca-view + #ca-edit a { */
+/* font-size: 0; */
+/* } */
