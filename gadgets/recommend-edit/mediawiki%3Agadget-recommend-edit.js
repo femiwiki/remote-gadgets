@@ -1,8 +1,14 @@
 // <nowiki>
 'use strict';
 (() => {
-  // 편집 불가한 경우에만 표시
-  if (document.body.classList.contains('mw-editable')) {
+  if (
+    // 편집 불가한 경우에만 표시
+    document.body.classList.contains('mw-editable') ||
+    // 주제 이름공간에서만 표시(특수 문서 등은 제외)
+    !document.body.classList.contains('ns-subject') ||
+    // 보기에서만 표시 (역사 등은 제외)
+    !document.body.classList.contains('action-view')
+  ) {
     return;
   }
 
