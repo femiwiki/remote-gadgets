@@ -12,7 +12,7 @@
   element.title = mw.msg('tooltip-ca-edit');
   element.addEventListener('click', (e) => {
     OO.ui
-      .confirm('가입하면 내용을 직접 고칠 수 있습니다.', {
+      .confirm('내용을 직접 고칠 수 있습니다.', {
         actions: [
           {
             action: 'accept',
@@ -22,7 +22,7 @@
           {
             action: 'reject',
             label: OO.ui.deferMsg('ooui-dialog-message-reject'),
-            flags: 'safe',
+            flags: 'safe', 'progressive',
           },
         ],
       })
