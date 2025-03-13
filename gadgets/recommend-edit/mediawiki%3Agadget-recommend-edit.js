@@ -22,7 +22,7 @@
           {
             action: 'reject',
             label: OO.ui.deferMsg('ooui-dialog-message-reject'),
-            flags: 'safe', 'progressive',
+            flags: ['safe', 'progressive'],
           },
         ],
       })
