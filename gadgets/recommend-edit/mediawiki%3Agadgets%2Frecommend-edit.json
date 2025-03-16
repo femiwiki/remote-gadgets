@@ -1,0 +1,23 @@
+{
+  "settings": {
+    "rights": [],
+    "default": true,
+    "hidden": true,
+    "skins": ["femiwiki"],
+    "category": "view"
+  },
+  "module": {
+    "pages": ["recommend-edit.js", "recommend-edit.css"],
+    "peers": [],
+    "dependencies": [
+      "oojs-ui-windows",
+      "ext.growthExperiments.HelpPanelCta.styles"
+    ],
+    "messages": [
+      "skin-view-edit",
+      "userlogin-joinproject",
+      "ooui-dialog-message-reject"
+    ],
+    "type": "general"
+  }
+}
