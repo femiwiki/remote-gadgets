@@ -1,6 +1,9 @@
 //<nowiki>
 (function (mw, $) {
   'use strict';
+  if (typeof mw.libs.ve.addPlugin == 'undefined') {
+    return;
+  }
 
   /**
    * =r을 입력하면 출처 문단이 만들어지게 합니다.
