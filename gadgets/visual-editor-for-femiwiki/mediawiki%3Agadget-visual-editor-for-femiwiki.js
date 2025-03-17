@@ -218,23 +218,5 @@
   mw.loader.using(['ext.visualEditor.core']).done(function () {
     addDashSequence(); // for Stuructured Discussion
   });
-
-  /**
-   * 아이폰과 안드로이드에서 [[미디어위키:Visualeditor-browserwarning]] 경고가
-   * 뜨지 않게 합니다.
-   * https://github.com/femiwiki/mediawiki/issues/262
-   */
-  mw.libs.ve.addPlugin(function () {
-    try {
-      ve.init.mw.DesktopArticleTarget.static.compatibility.supportedList[
-        'iphone'
-      ] = null;
-      ve.init.mw.DesktopArticleTarget.static.compatibility.supportedList[
-        'android'
-      ] = null;
-    } catch (e) {
-      console.log('Error', e.stack);
-    }
-  });
 })(mediaWiki, jQuery);
 // </nowiki>
