@@ -139,6 +139,7 @@ end
 --
 -- Produces standard hatnote text. Implements the {{hatnote}} template.
 --------------------------------------------------------------------------------
+p[''] = function (frame) return p.hatnote(frame:newChild{ title = "Template:Hatnote" }) end
 
 function p.hatnote(frame)
 	local args = getArgs(frame)

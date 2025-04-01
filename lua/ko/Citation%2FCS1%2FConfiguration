@@ -343,7 +343,7 @@ local aliases = {
 	['TransTitle'] = {'trans-title', 'trans_title', '번역제목'},
 	['URL'] = {'url', 'URL'},
 	['UrlAccess'] = {'url-access'},
-	['UrlStatus'] = {'url-status', 'dead-url', 'deadurl'},						-- TODO: remove 'dead-url', 'deadurl'
+	['UrlStatus'] = {'url-status', 'dead-url', 'deadurl', 'url상태'},						-- TODO: remove 'dead-url', 'deadurl'
 	['Vauthors'] = 'vauthors',
 	['Veditors'] = 'veditors',
 	['Via'] = {'via', '경유'},
@@ -564,10 +564,10 @@ local keywords = {
 	['contribution'] = {'afterword', 'foreword', 'introduction', 'preface'},	-- generic contribution titles that are rendered unquoted in the 'chapter' position
 	['date-format'] = {'dmy', 'dmy-all', 'mdy', 'mdy-all', 'ymd', 'ymd-all'},
 --	['date-format'] = {'dmy', 'dmy-all', 'mdy', 'mdy-all', 'ymd', 'ymd-all', 'yMd', 'yMd-all'},	-- not supported at en.wiki
-	['url-access'] = {'subscription', 'limited', 'registration'},				-- access level of a URL (subscription required, limited access, registration required); free to read by default
-	['url-status'] = {'dead', 'unfit', 'usurped', 'bot: unknown'},		-- replacement for |dead-url=
-	['live'] = {'live'},	
-	['id-access'] = {'free'},													-- access level of an identifier (free to read); not free-to-read  by default
+	['url-access'] = {'subscription', 'limited', 'registration', '구독', '제한', '등록'},				-- access level of a URL (subscription required, limited access, registration required); free to read by default
+	['url-status'] = {'dead', 'unfit', 'usurped', 'bot: unknown', '깨짐', '죽음', '부적절'},		-- replacement for |dead-url=
+	['live'] = {'live', '라이브'},	
+	['id-access'] = {'free', '자유'},													-- access level of an identifier (free to read); not free-to-read  by default
 }
 
 
@@ -790,18 +790,20 @@ local maint_cats = {
 	['embargo'] = 'CS1 관리 - PMC 엠바고 만료',
 --	['english'] = 'CS1 관리 - 한국어 인용 (ko)',								-- 실제로 안 쓰이고 있어서 숨김
 	['etal'] = 'CS1 관리 - et al.의 직접적인 사용',                             -- DEPRECATED
+	['eudml'] = 'CS1 관리 - EuDML',                                             -- 2025년 1월 27일 추가. en.wiki에는 없음
 	['extra_punct'] = 'CS1 관리 - 추가 구두점',
 	['extra_text'] = 'CS1 관리 - 추가 문구',
 	['extra_text_names'] = 'CS1 관리 - 추가 문구: $1',							-- $1 is <name>s list; gets value from special_case_translation table
 	['ignore_isbn_err'] = 'CS1 관리 - ISBN 오류 무시',							-- $1 is authors or editors
 	['missing_pipe'] = 'CS1 관리 - 수직선 없음',                        -- DEPRECATED
 	['mult_names'] = 'CS1 관리 - 여러 이름',							-- $1 is authors or editors -- 수정 필요
+	['numdam'] = 'CS1 관리 - Numdam',                                           -- 2025년 1월 27일 추가. en.wiki에는 없음
 	['others'] = 'CS1 관리 - 기타',
 	['pmc_format'] = 'CS1 관리 - PMC 형식',
 	['unfit'] = 'CS1 관리 - 부적합한 url',
 	['unknown_lang'] = 'CS1 관리 - 인식할 수 없는 언어',
 	['untitled'] = 'CS1 관리 - 이름 없는 작품',
-	['zbl'] = 'CS1 관리 - ZBL',
+	['zbl'] = 'CS1 관리 - Zbl',
 	}
 
 --[[--------------------------< P R O P E R T I E S _ C A T E G O R I E S >------------------------------------
@@ -926,6 +928,12 @@ local error_conditions = {
 		anchor = 'bad_doi',
 		category = '인용 오류 - DOI',
 		hidden = false },
+	bad_eudml = {																-- 2025년 1월 27일 추가. en.wiki에는 없음.
+		message = '<code class="cs1-code">&#124;eudml=</code> 값 확인 필요',
+		anchor = 'bad_eudml',
+		category = '인용 오류 - EuDML',
+		hidden = false
+		},
 	bad_hdl = {
 		message = '<code style="'..code_style..'">&#124;hdl=</code> 값 확인 필요',
 		anchor = 'bad_hdl',
@@ -980,6 +988,12 @@ local error_conditions = {
 		category = '인용 오류 - NAID',
 		hidden = false
 		},
+	bad_numdam = {																-- 2025년 1월 27일 추가. en.wiki에는 없음.
+		message = '<code class="cs1-code">&#124;numdam=</code> 값 확인 필요',
+		anchor = 'bad_numdam',
+		category = '인용 오류 - Numdam',
+		hidden = false
+		},
 	bad_ol = {
 		message = '<code style="'..code_style..'">&#124;ol=</code> 값 확인 필요',
 		anchor = 'bad_ol',
@@ -1024,7 +1038,7 @@ local error_conditions = {
 	bad_zbl = {
 		message = '<code class="cs1-code">&#124;zbl=</code> 값 확인 필요',
 		anchor = 'bad_zbl',
-		category = '인용 오류 - ZBL',
+		category = '인용 오류 - Zbl',
 		hidden = false
 		},
 	bare_url_missing_title = {
@@ -1288,6 +1302,16 @@ local id_handlers = {
 		encode = false,
 		separator = '&nbsp;',
 	},
+	['EUDML'] = {																-- 2025sus 1월 27일 추가. 문제 시 되돌려 주세요.
+		parameters = {'eudml', 'EUDML'}, 
+		link = '유럽 디지털 수학 도서관',
+		label = 'EuDML',
+		mode = 'manual',
+		prefix = '//eudml.org/doc/',
+		COinS = 'pre',															-- use prefix value
+		encode = true,
+		separator = '&nbsp;',
+	},
 	['HDL'] = {
 		parameters = { 'hdl', 'HDL' },
 		link = '핸들 시스템',
@@ -1374,6 +1398,16 @@ local id_handlers = {
 		prefix = 'https://ci.nii.ac.jp/naid/',
 		COinS = 'info:naid',
 		encode = false,
+		separator = '&nbsp;',
+	},
+	['NUMDAM'] = {																-- 2025sus 1월 27일 추가
+		parameters = {'numdam', 'NUMDAM'}, 
+		link = '뉨담',
+		label = 'Numdam',
+		mode = 'manual',
+		prefix = '//www.numdam.org/item/?id=',
+		COinS = 'pre',															-- use prefix value
+		encode = true,
 		separator = '&nbsp;',
 	},
 	['OCLC'] = {
@@ -1469,10 +1503,10 @@ local id_handlers = {
 		separator = '&nbsp;',
 	},
 	['ZBL'] = {
-		parameters = {'ZBL', 'zbl'}, 
+		parameters = {'zbl', 'ZBL'}, 
 		link = '첸트랄블라트 마트',
 		label = 'Zbl',
-		mode = 'external',
+		mode = 'manual',
 		prefix = '//zbmath.org/?format=complete&q=an:',
 		COinS = 'pre',															-- use prefix value
 		encode = true,

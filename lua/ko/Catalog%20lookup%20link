@@ -32,10 +32,10 @@ new parameters that support access icons:
 require('strict');
 local getArgs = require ('Module:@ko/Arguments').getArgs;
 local lock_icons = {															--icon classes are defined in Module:Citation/CS1/styles.css
-	['free'] = {'cs1-lock-free', 'Freely accessible'},
-	['registration'] = {'cs1-lock-registration', 'Free registration required'},
-	['limited'] = {'cs1-lock-limited', 'Free access subject to limited trial, subscription normally required'},
-	['subscription'] = {'cs1-lock-subscription', 'Paid subscription required'},
+	['free'] = {'id-lock-free', '자유롭게 접근 가능'},
+	['registration'] = {'id-lock-registration', '무료 계정 등록 필요'},
+	['limited'] = {'id-lock-limited', '구독 필요 (일정 한도 내 자유 접근)'},
+	['subscription'] = {'id-lock-subscription', '유료 구독 필요'},
 	}
 
 
@@ -198,14 +198,19 @@ local function main (frame)
 			table.insert (result, item);										-- add the item to the result list
 		end
 	
+		out_text = frame:callParserFunction('#tag', {'templatestyles', '', src=table.concat({
+			'Module:Citation/CS1',
+			mw.ustring.match(frame:getTitle(), '/연습장$') or '',
+			'/styles.css',
+		})});
 		if is_set (args['list-leadout']) then
-			out_text = table.concat ({label, mw.text.listToText (result, list_separator, list_leadout)});
+			out_text = table.concat ({out_text, label, mw.text.listToText (result, list_separator, list_leadout)});
 		else
-			out_text = table.concat ({label, table.concat (result, list_separator)});
+			out_text = table.concat ({out_text, label, table.concat (result, list_separator)});
 		end
 
 	end	--is_set (args[1])
-	
+
 	return out_text
 end
 

@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Arguments and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Arguments and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 -- This module provides easy processing of arguments passed to Scribunto from
@@ -115,7 +115,7 @@ function arguments.getArgs(frame, options)
 			if not parent then
 				fargs = frame.args
 			else
-				local title = parent:getTitle():gsub('/sandbox$', '')
+				local title = parent:getTitle():gsub('/연습장$', '')
 				local found = false
 				if matchesTitle(options.wrappers, title) then
 					found = true
