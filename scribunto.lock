@@ -27,7 +27,7 @@
     },
     "@en/Hatnote": {
       "pageid": 42498502,
-      "revid": 1108677080,
+      "revid": 1281142802,
       "title": "Module:Hatnote",
       "dependencies": [
         "@en/Arguments",
@@ -95,7 +95,7 @@
     },
     "@en/Wd": {
       "pageid": 51376229,
-      "revid": 1249550606,
+      "revid": 1258646059,
       "title": "Module:Wd"
     },
     "@en/Wd/i18n": {
@@ -110,12 +110,12 @@
     },
     "@ko/Arguments": {
       "pageid": 1080666,
-      "revid": 16832182,
+      "revid": 38121521,
       "title": "\ubaa8\ub4c8:Arguments"
     },
     "@ko/Catalog lookup link": {
       "pageid": 2580206,
-      "revid": 33641757,
+      "revid": 38456313,
       "title": "\ubaa8\ub4c8:Catalog lookup link",
       "dependencies": [
         "@ko/Arguments"
@@ -136,7 +136,7 @@
     },
     "@ko/Citation/CS1": {
       "pageid": 950941,
-      "revid": 35835557,
+      "revid": 38721811,
       "title": "\ubaa8\ub4c8:Citation/CS1",
       "dependencies": [
         "@ko/Citation/CS1/COinS",
@@ -169,7 +169,7 @@
     },
     "@ko/Citation/CS1/Configuration": {
       "pageid": 950942,
-      "revid": 35835615,
+      "revid": 38721810,
       "title": "\ubaa8\ub4c8:Citation/CS1/Configuration",
       "dependencies": [
         "@ko/Langname/data"
@@ -192,7 +192,7 @@
     },
     "@ko/Citation/CS1/Identifiers": {
       "pageid": 1481764,
-      "revid": 35835561,
+      "revid": 38826332,
       "title": "\ubaa8\ub4c8:Citation/CS1/Identifiers"
     },
     "@ko/Citation/CS1/Identifiers/sandbox": {
@@ -222,7 +222,7 @@
     },
     "@ko/Citation/CS1/Whitelist": {
       "pageid": 950943,
-      "revid": 35835552,
+      "revid": 38721809,
       "title": "\ubaa8\ub4c8:Citation/CS1/Whitelist"
     },
     "@ko/Citation/CS1/Whitelist/sandbox": {
@@ -232,7 +232,7 @@
     },
     "@ko/Color contrast": {
       "pageid": 1364284,
-      "revid": 21192393,
+      "revid": 38500924,
       "title": "\ubaa8\ub4c8:Color contrast",
       "dependencies": [
         "@ko/Color contrast/colors"
@@ -319,7 +319,7 @@
     },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 38026594,
+      "revid": 38870943,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {
@@ -355,7 +355,7 @@
     },
     "@ko/Official website": {
       "pageid": 1921209,
-      "revid": 34634801,
+      "revid": 38190763,
       "title": "\ubaa8\ub4c8:Official website",
       "dependencies": [
         "@ko/Arguments",
@@ -364,7 +364,7 @@
     },
     "@ko/Sidebar": {
       "pageid": 945357,
-      "revid": 34822011,
+      "revid": 38592385,
       "title": "\ubaa8\ub4c8:Sidebar",
       "dependencies": [
         "@ko/Arguments",

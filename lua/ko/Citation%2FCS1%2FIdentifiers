@@ -186,7 +186,8 @@ local function normalize_lccn (lccn)
 	end
 	
 	return lccn;
-	end
+end
+
 
 --============================<< I D E N T I F I E R   F U N C T I O N S >>====================================
 
@@ -426,6 +427,25 @@ local function doi(id, inactive, access)
 	end
 
 	return text .. cat 
+end
+
+
+--[[--------------------------< E u D M L >-----------------------------------------------------------------------
+
+2025년 1월 27일 추가. en.wiki에는 없음. 다섯 자리 이상의 숫자열로 구성됨.
+
+]]
+
+local function eudml(id)
+	local handler = cfg.id_handlers['EUDML'];
+	local err_cat = '';
+	
+	if not id:match('^%d%d%d%d%d+$') then
+		err_cat = ' ' .. set_error( 'bad_eudml' );
+	end
+	
+	return external_link_id({link = handler.link, label = handler.label, q = handler.q,
+			prefix=handler.prefix,id=id,separator=handler.separator, encode=handler.encode}) .. err_cat;
 end
 
 
@@ -739,6 +759,27 @@ local function mr (id)
 		id = string.rep ('0', 7-id_len ) .. id_num;								-- zero-fill leading digits
 	else
 		err_cat = ' ' .. set_error( 'bad_mr' );									-- set an error message
+	end
+	
+	return external_link_id({link = handler.link, label = handler.label, q = handler.q,
+			prefix=handler.prefix,id=id,separator=handler.separator, encode=handler.encode}) .. err_cat;
+end
+
+
+--[[--------------------------< N U M D A M >-----------------------------------------------------------------------
+
+2025년 1월 27일 추가. en.wiki에는 없음. Numdam 식별자는 하나의 대문자 자모 문자열과 빈 문자열일 수 있는 다섯 개의 숫자 및 하이픈 문자열로 구성되며, 밑줄로 분리됨.
+
+]]
+
+local function numdam(id)
+	local handler = cfg.id_handlers['NUMDAM'];
+	local err_cat = '';
+	
+	if id:match('^%u+_[%d-]*_[^_]*_[%d-]*_[%d-]*_[%d-]*_0$') then
+		add_maint_cat ('numdam');
+	else
+		err_cat = ' ' .. set_error( 'bad_numdam' );
 	end
 	
 	return external_link_id({link = handler.link, label = handler.label, q = handler.q,
@@ -1100,6 +1141,8 @@ local function build_id_list( id_list, options )
 			table.insert( new_list, {handler.label, doi( v, options.DoiBroken, handler.access ) } );
 		elseif k == 'EISSN' then
 			table.insert( new_list, {handler.label, issn( v, true ) } );		-- true distinguishes eissn from issn
+		elseif k == 'EUDML' then
+			table.insert( new_list, {handler.label, eudml(v ) } );
 		elseif k == 'HDL' then
 			table.insert( new_list, {handler.label, hdl( v, handler.access ) } );
 		elseif k == 'ISBN' then
@@ -1129,6 +1172,8 @@ local function build_id_list( id_list, options )
 			table.insert( new_list, {handler.label, mr( v ) } );
 		elseif k == 'NAID' then
 			table.insert( new_list, {handler.label, naid( v ) } );
+		elseif k == 'NUMDAM' then
+			table.insert( new_list, {handler.label, numdam( v ) } );
 		elseif k == 'OCLC' then
 			table.insert( new_list, {handler.label, oclc( v ) } );
 		elseif k == 'OL' or k == 'OLA' then
