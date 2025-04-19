@@ -1,9 +1,7 @@
 // <nowiki>
 'use strict';
 (async () => {
-  await mw.loader.getScript(
-    'https://cdn.jsdelivr.net/npm/@widgetbot/crate@3',
-  );
+  await mw.loader.getScript('https://cdn.jsdelivr.net/npm/@widgetbot/crate@3');
   new Crate({
     server: '314953743185477644',
 
