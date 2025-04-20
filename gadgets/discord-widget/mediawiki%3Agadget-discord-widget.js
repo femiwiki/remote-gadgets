@@ -3,7 +3,9 @@
 (async () => {
   await mw.loader.getScript('https://cdn.jsdelivr.net/npm/@widgetbot/crate@3');
 
-  const rem = parseFloat(getComputedStyle(document.documentElement,null).fontSize)
+  const rem = parseFloat(
+    getComputedStyle(document.documentElement, null).fontSize
+  );
 
   new Crate({
     server: '314953743185477644',
@@ -15,9 +17,9 @@
     defer: true,
 
     // femiwiki color
-    color: "#aca6e4",
+    color: '#aca6e4',
 
-    location: [-rem * 6, -rem * 1]
+    location: [-rem * 6, -rem * 1],
   });
 })();
 // </nowiki>
