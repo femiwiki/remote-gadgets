@@ -2172,11 +2172,9 @@ function State:getBadge(value)
 end
 
 function State:callHook(param, hooks, statement, result)
-	local valuesArray, refHash
-
 	-- call a parameter's hook if it has been defined and if it has not been called before
 	if not result[param] and hooks[param] then
-		valuesArray = self[hooks[param]](self, statement, param, result, hooks)  -- array with value objects
+		local valuesArray = self[hooks[param]](self, statement, param, result, hooks)  -- array with value objects
 
 		-- add to the result
 		if #valuesArray > 0 then
