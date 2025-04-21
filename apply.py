@@ -66,7 +66,12 @@ def get_modified_files(wiki):
 
     logging.info(f'git command: {GIT_COMMAND}')
 
-    result = subprocess.run(GIT_COMMAND, check=True, universal_newlines=True)
+    result = subprocess.run(
+        GIT_COMMAND,
+        capture_output=True,
+        check=True,
+        universal_newlines=True
+    )
 
     return result.stdout.split('\n')
 
