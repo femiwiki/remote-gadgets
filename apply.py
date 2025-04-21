@@ -64,7 +64,7 @@ def get_modified_files(wiki):
         f'"{latest_commit}"',
     ]
 
-    logging.info('git command:' + GIT_COMMAND)
+    logging.info(f'git command: {GIT_COMMAND}')
 
     result = subprocess.run(GIT_COMMAND, check=True, universal_newlines=True)
 
