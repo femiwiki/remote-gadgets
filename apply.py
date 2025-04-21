@@ -2,13 +2,14 @@
 
 from math import log
 from ntpath import basename
-from os import environ, popen, path
+from os import environ, path
 from pathlib import Path
 from urllib.parse import unquote
 from sys import argv, stdout, exit
 from time import sleep
 from re import search
 import logging
+import subprocess
 import mwclient
 
 logging.basicConfig(stream=stdout, level=logging.DEBUG)
@@ -58,7 +59,9 @@ def get_modified_files(wiki):
 
     logging.info('git command:' + GIT_COMMAND)
 
-    return popen(GIT_COMMAND).read().split('\n')
+    result = subprocess.run(GIT_COMMAND, check=True, universal_newlines=True)
+
+    return result.stdout.split('\n')
 
 
 def validate_files(arr):
@@ -134,14 +137,14 @@ def main():
     PASSWORD = environ['FEMIWIKI_BOT_PASSWORD']
     FEMIWIKI.login(f'{USERNAME}@{TOKEN_ID}', PASSWORD)
 
-    MODIFIED = validate_files(get_modified_files(FEMIWIKI))
-
-    if MODIFIED:
-        edit_pages_on_wiki(MODIFIED, FEMIWIKI)
-    else:
+    try:
+        MODIFIED = validate_files(get_modified_files(FEMIWIKI))
+    except subprocess.SubprocessError:
         logging.info('Failed to load the last applied commit')
         logging.info('Trying to apply all files...')
-        edit_pages_on_wiki(get_all_files(), FEMIWIKI)
+        MODIFIED = get_all_files()
+
+    edit_pages_on_wiki(MODIFIED, FEMIWIKI)
 
 
 if __name__ == '__main__':
