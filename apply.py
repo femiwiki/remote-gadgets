@@ -59,7 +59,7 @@ def get_modified_files(wiki):
         'diff-tree',
         '--no-commit-id',
         '--name-only',
-        '-r'
+        '-r',
         f'"{previous_commit}"',
         f'"{latest_commit}"',
     ]
