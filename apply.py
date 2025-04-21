@@ -60,8 +60,8 @@ def get_modified_files(wiki):
         '--no-commit-id',
         '--name-only',
         '-r'
-        '"{previous_commit}"',
-        '"{latest_commit}"',
+        f'"{previous_commit}"',
+        f'"{latest_commit}"',
     ]
 
     logging.info('git command:' + GIT_COMMAND)
