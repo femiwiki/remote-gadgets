@@ -44,7 +44,9 @@ jobs:
       run: pytest
 
     - name: Apply
-      if: github.ref == 'refs/heads/main' && success()
+      # XXX
+      # if: github.ref == 'refs/heads/main' && success()
+      if: success()
       env:
         FEMIWIKI_BOT_PASSWORD: ${{ secrets.FEMIWIKI_BOT_PASSWORD }}
       run: |
