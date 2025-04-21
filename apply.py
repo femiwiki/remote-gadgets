@@ -54,8 +54,15 @@ def get_modified_files(wiki):
 
     previous_commit = previous_commit.group(1)
 
-    GIT_COMMAND = 'git diff-tree --no-commit-id --name-only -r ' + \
-        f'"{previous_commit}" "{latest_commit}"'
+    GIT_COMMAND = [
+        'git',
+        'diff-tree',
+        '--no-commit-id',
+        '--name-only',
+        '-r'
+        '"{previous_commit}"',
+        '"{latest_commit}"',
+    ]
 
     logging.info('git command:' + GIT_COMMAND)
 
