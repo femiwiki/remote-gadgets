@@ -34,25 +34,28 @@ def sanitize_args(arr):
 
 def get_modified_files(wiki):
     '''return empty array if previous applied commit does not exist'''
-    latest_commit = environ['GITHUB_SHA']
+    # latest_commit = environ['GITHUB_SHA']
+    latest_commit = 'ef98aca1b9a9651c28c5408aeec20e23ad4db98c'
 
-    result = wiki.api(
-        'query',
-        list='usercontribs',
-        uclimit=1,
-        ucprop='comment',
-        ucuser=USERNAME,
-    )
+    # result = wiki.api(
+    #     'query',
+    #     list='usercontribs',
+    #     uclimit=1,
+    #     ucprop='comment',
+    #     ucuser=USERNAME,
+    # )
 
-    contribs = result['query']['usercontribs']
-    if not contribs:
-        return None
+    # contribs = result['query']['usercontribs']
+    # if not contribs:
+    #     return None
 
-    previous_commit = search(r'/commit/(.+)$', contribs[0]['comment'])
-    if not previous_commit:
-        return None
+    # previous_commit = search(r'/commit/(.+)$', contribs[0]['comment'])
+    # if not previous_commit:
+    #     return None
 
-    previous_commit = previous_commit.group(1)
+    # previous_commit = previous_commit.group(1)
+
+    previous_commit = "8b221a27"
 
     GIT_COMMAND = [
         'git',
@@ -60,8 +63,8 @@ def get_modified_files(wiki):
         '--no-commit-id',
         '--name-only',
         '-r',
-        f'{previous_commit}',
-        f'{latest_commit}',
+        previous_commit,
+        latest_commit,
     ]
 
     logging.info(f'git command: {GIT_COMMAND}')
@@ -144,13 +147,13 @@ def get_all_files():
 def main():
     sanitize_args(argv)
 
-    FEMIWIKI = mwclient.Site('femiwiki.com', path='/')
+    # FEMIWIKI = mwclient.Site('femiwiki.com', path='/')
 
-    PASSWORD = environ['FEMIWIKI_BOT_PASSWORD']
-    FEMIWIKI.login(f'{USERNAME}@{TOKEN_ID}', PASSWORD)
+    # PASSWORD = environ['FEMIWIKI_BOT_PASSWORD']
+    # FEMIWIKI.login(f'{USERNAME}@{TOKEN_ID}', PASSWORD)
 
     try:
-        MODIFIED = validate_files(get_modified_files(FEMIWIKI))
+        MODIFIED = validate_files(get_modified_files(None))
     except subprocess.SubprocessError:
         logging.info('Failed to load the last applied commit')
         logging.info('Trying to apply all files...')
