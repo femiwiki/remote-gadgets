@@ -594,7 +594,7 @@ local function has_invisible_chars (param, v)
 		if position then
 			if 'nowiki' == capture or 'math' == capture then 					-- nowiki, math stripmarker (not an error condition)
 				stripmarker = true;												-- set a flag
-			elseif true == stripmarker and 'delete' == char then				-- because stripmakers begin and end with the delete char, assume that we've found one end of a stripmarker
+			elseif true == stripmarker and '지움' == char then				-- because stripmakers begin and end with the delete char, assume that we've found one end of a stripmarker
 				position = nil;													-- unset
 			else
 				local err_msg;
