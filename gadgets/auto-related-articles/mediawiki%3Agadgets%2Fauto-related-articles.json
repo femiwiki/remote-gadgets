@@ -9,7 +9,7 @@
     "namespaces": [0]
   },
   "module": {
-    "pages": ["linked-articles.js"],
+    "pages": ["auto-linked-articles.js"],
     "peers": [],
     "dependencies": [],
     "messages": [],
