@@ -11,7 +11,7 @@
   "module": {
     "pages": ["auto-related-articles.js"],
     "peers": [],
-    "dependencies": [],
+    "dependencies": ["mediawiki.api"],
     "messages": [],
     "type": "general"
   }
