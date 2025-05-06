@@ -1,0 +1,18 @@
+{
+  "settings": {
+    "rights": [],
+    "default": true,
+    "hidden": false,
+    "skins": [],
+    "category": "view",
+    "actions": "view",
+    "namespaces": [0]
+  },
+  "module": {
+    "pages": ["linked-articles.js"],
+    "peers": [],
+    "dependencies": [],
+    "messages": [],
+    "type": "general"
+  }
+}
