@@ -5,7 +5,7 @@
     "hidden": false,
     "skins": [],
     "category": "view",
-    "actions": "view",
+    "actions": ["view"],
     "namespaces": [0]
   },
   "module": {
