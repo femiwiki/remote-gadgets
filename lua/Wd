@@ -3,6 +3,7 @@ local wbGetEntityIdForTitle = mw.wikibase.getEntityIdForTitle
 
 --- https://phabricator.wikimedia.org/T330562
 local function convertTo1IndexedArray(array)
+  if type(array) ~= "table" then return array end
 	local newArray = {}
 
 	local zeroIndexed = array[0] ~= nil
