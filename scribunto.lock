@@ -136,7 +136,7 @@
     },
     "@ko/Citation/CS1": {
       "pageid": 950941,
-      "revid": 38721811,
+      "revid": 39402745,
       "title": "\ubaa8\ub4c8:Citation/CS1",
       "dependencies": [
         "@ko/Citation/CS1/COinS",
@@ -169,7 +169,7 @@
     },
     "@ko/Citation/CS1/Configuration": {
       "pageid": 950942,
-      "revid": 38721810,
+      "revid": 39404010,
       "title": "\ubaa8\ub4c8:Citation/CS1/Configuration",
       "dependencies": [
         "@ko/Langname/data"
@@ -319,7 +319,7 @@
     },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 38870943,
+      "revid": 39178813,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {

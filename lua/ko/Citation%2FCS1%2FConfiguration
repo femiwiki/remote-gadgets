@@ -215,6 +215,9 @@ local presentation =
 	['sep_name'] = ', ',														-- cs1|2 style last/first separator is <comma><space>
 	['sep_nl_vanc'] = ',',														-- Vancouver style name-list separator between authors is a comma
 	['sep_name_vanc'] = ' ',													-- Vancouver style last/first separator is a space
+	['sep_list'] = ', ',														-- used for |language= when list has 3+ items except for last sep which uses sep_list_end
+	['sep_list_pair'] = ', ',												-- used for |language= when list has 2 items
+	['sep_list_end'] = ', ',												-- used as last list sep for |language= when list has 3+ items
 
 	['trans-italic-title'] = "&#91;''$1''&#93;",								-- ['' '']
 	['trans-quoted-title'] = "&#91;$1&#93;",									-- [ ]
