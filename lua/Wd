@@ -66,6 +66,11 @@ mw.wikibase.getLabelByLang = function( id, languageCode )
   return nil
 end
 
+mw.wikibase.getLabel = function( id )
+  return mw.wikibase.getLabelByLang( id, 'ko' ) or
+    mw.wikibase.getLabelByLang( id ) or nil
+end
+
 -- mw.wikibase.getSitelink = function( itemId, globalSiteId )
 --   return 'todo'
 -- end
