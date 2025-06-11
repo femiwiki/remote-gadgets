@@ -56,7 +56,7 @@ mw.wikibase.getLabelByLang = function( id, languageCode )
   if labels.en ~= nil then
     return labels.en.value
   end
-  return ''
+  return nil
 end
 
 -- mw.wikibase.getSitelink = function( itemId, globalSiteId )
