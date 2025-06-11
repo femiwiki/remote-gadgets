@@ -48,7 +48,7 @@ mw.wikibase.getEntity = function( id )
 end
 
 mw.wikibase.getLabelByLang = function( id, languageCode )
-  local entity = mw.wikibase.getEntity(id)
+  local entity = mw.ext.UnlinkedWikibase.getEntity(id)
   local labels = entity.labels
   if labels[languageCode] ~= nil then
     return labels[languageCode].value
