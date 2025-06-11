@@ -48,15 +48,27 @@ mw.wikibase.getEntity = function( id )
 end
 
 mw.wikibase.getLabelByLang = function( id, languageCode )
-  local entity = mw.wikibase.getEntity(id)
+  local entity = mw.ext.UnlinkedWikibase.getEntity( id )
   local labels = entity.labels
+  if labels == nil then
+    return nil
+  end
+  if languageCode == nil and #labels ~= 0 then
+    local _, label = next( labels )[1]
+    return label
+  end
   if labels[languageCode] ~= nil then
     return labels[languageCode].value
   end
   if labels.en ~= nil then
     return labels.en.value
   end
-  return ''
+  return nil
+end
+
+mw.wikibase.getLabel = function( id )
+  return mw.wikibase.getLabelByLang( id, 'ko' ) or
+    mw.wikibase.getLabelByLang( id ) or nil
 end
 
 -- mw.wikibase.getSitelink = function( itemId, globalSiteId )
