@@ -1,5 +1,5 @@
 mwclient==0.11.0
-oauthlib==3.2.2
+oauthlib==3.3.1
 requests==2.32.4
 requests-oauthlib==2.0.0
 six==1.17.0
