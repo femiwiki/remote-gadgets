@@ -8,5 +8,5 @@ dependencies = [
 [dependency-groups]
 dev = [
   "flake8==7.2.0",
-  "pytest==8.3.5",
+  "pytest==8.4.2",
 ]
