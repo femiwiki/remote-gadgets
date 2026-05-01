@@ -106,7 +106,8 @@ local aliasesP = {
 	column                  = "P3903",
 	subjectNamedAs          = "P1810",
 	wikidataProperty        = "P1687",
-	publishedIn             = "P1433"
+	publishedIn             = "P1433",
+	lastUpdate              = "P5017"
 }
 
 local aliasesQ = {
@@ -1822,11 +1823,11 @@ function State:getReference(statement)
 	local citeTypes = i18n['cite']['output-types']
 	
 	-- will hold rendered properties of the reference which are not directly from statement.snaks, 
-	-- Namely, these are a backup title from "subject named as" and a URL generated from an external ID.
+	-- Namely, is URL generated from an external ID.
     local additionalProcessedProperties = {}
     -- for each citation type, there will be an associative array that associates lists of rendered properties
     -- to citation-template parameters
-    local groupedProcessedProperties = {}
+    local candidateParams = {}
     -- like above, but only associates one rendered property to each parameter; if the above variable
     -- contains more strings for a parameter, the strings will be assigned to numbered params (e.g. "author1")
 	local citeParams = {}
@@ -1834,7 +1835,7 @@ function State:getReference(statement)
 	local citeErrors = {}
 	local referenceEmpty = true  -- will be set to false if at least one parameter is left unremoved
 
-	local version = 11  -- increment this each time the below logic is changed to avoid conflict errors
+	local version = 12  -- increment this each time the below logic is changed to avoid conflict errors
 
 	if not statement.snaks then
 		return {}
@@ -1882,30 +1883,23 @@ function State:getReference(statement)
     	end
     end
     
-    -- don't include "subject named as", but use it as the title when "title" is not present but a URL is
-    if statement.snaks[aliasesP.subjectNamedAs] then
-    	if not statement.snaks[aliasesP.title] and (statement.snaks[aliasesP.referenceURL] or additionalProcessedProperties[aliasesP.referenceURL]) then
-    		additionalProcessedProperties[aliasesP.title] = {self:getReferenceDetail(statement.snaks, aliasesP.subjectNamedAs, false, false, true)}  -- not raw, not linked, anyLang
-    	end
-    	statement.snaks[aliasesP.subjectNamedAs] = nil
-    end
-    
-    -- initialize groupedProcessedProperties and citeParams
+    -- initialize candidateParams and citeParams
     for _, citeType in ipairs(citeTypes) do
-    	groupedProcessedProperties[citeType] = {}
+    	candidateParams[citeType] = {}
     	citeParams[citeType] = {}
     end
 
-	-- fill groupedProcessedProperties
-	for refProperty in pairs(statement.snaks) do
-		-- add the parameter to each matching type of citation
-		for _, citeType in ipairs(citeTypes) do
+	-- fill candidateParams
+	for _, citeType in ipairs(citeTypes) do
+		 -- This will contain value--priority pairs for each param name.
+		local candidateValuesAndPriorities = {}
+
+		-- fill candidateValuesAndPriorities
+		for refProperty in pairs(statement.snaks) do
+			if citeErrors[citeType] then
+				break
+			end
 			repeat  -- just a simple wrapper to emulate "continue"
-				-- skip if there already have been errors
-				if citeErrors[citeType] then
-					break
-				end
-				
 				-- set mappingKey and prefix
 				local mappingKey
 				local prefix = ""
@@ -1923,13 +1917,12 @@ function State:getReference(statement)
 				local paramName = citeParamMapping[citeType][mappingKey]
 				-- skip properties with empty parameter name
 				if paramName == "" then
-					break
+					break  -- skip this property for this value of citeType
 				end
 				
-				referenceEmpty = false
-
 				-- handle unknown properties in the reference
 				if not paramName then
+					referenceEmpty = false
 					local error_message = errorText("unknown-property-in-ref", refProperty)
 					assert(error_message)  -- Should not be nil
 					citeErrors[citeType] = error_message
@@ -1953,15 +1946,54 @@ function State:getReference(statement)
 				if #processedProperty == 0 then
 					break	
 				end
+				
+				referenceEmpty = false
                 
-                -- add an entry to groupedProcessedProperties
-                if not groupedProcessedProperties[citeType][paramName] then
-                	groupedProcessedProperties[citeType][paramName] = {}
+                -- add an empty entry to candidateValuesAndPriorities, if there isn't one already
+                if not candidateValuesAndPriorities[paramName] then
+                	candidateValuesAndPriorities[paramName] = {}
                 end
+                
+                -- find the priority of refProperty
+                local thisPropertyPriority = -1
+                local thisParamPrioritization = citeConfig[citeType]["prioritization"][paramName]
+                if thisParamPrioritization then
+	                for i_priority, i_property in ipairs(thisParamPrioritization) do 
+	                	if i_property == refProperty then
+	                		thisPropertyPriority = i_priority
+	                	end
+	                end
+	            end
+                
                 for _, propertyValue in pairs(processedProperty) do
-                	table.insert(groupedProcessedProperties[citeType][paramName], prefix .. propertyValue)
+                	table.insert(
+                		candidateValuesAndPriorities[paramName],
+                		{prefix .. propertyValue, thisPropertyPriority}
+                	)
                 end
             until true
+		end
+		
+		-- fill candidateParams[citeType]
+		if not citeErrors[citeType] then
+			local compareValuePriorities = function(pair1, pair2)
+				if pair1[2] == -1 and pair2[2] ~= -1 then 
+					return false
+				end
+				if pair1[2] ~= -1 and pair2[2] == -1 then 
+					return true
+				end
+				return pair1[2] < pair2[2]
+			end
+			
+			-- fill candidateParams[citeType][paramName] for each used param
+			for paramName, _ in pairs(candidateValuesAndPriorities) do
+				table.sort(candidateValuesAndPriorities[paramName], compareValuePriorities)
+				candidateParams[citeType][paramName] = {}
+				for _, valuePriorityPair in ipairs(candidateValuesAndPriorities[paramName]) do
+					table.insert(candidateParams[citeType][paramName], valuePriorityPair[1])
+				end
+			end
 		end
 	end
 	
@@ -1986,11 +2018,11 @@ function State:getReference(statement)
 				
 				referenceEmpty = false
                 
-                if not groupedProcessedProperties[citeType][paramName] then
-                	groupedProcessedProperties[citeType][paramName] = {}
+                if not candidateParams[citeType][paramName] then
+                	candidateParams[citeType][paramName] = {}
                 end
                 for _, propertyValue in pairs(additionalProcessedProperties[refProperty]) do
-                	table.insert(groupedProcessedProperties[citeType][paramName], propertyValue)
+                	table.insert(candidateParams[citeType][paramName], propertyValue)
                 end
 			until true
 		end
@@ -1998,7 +2030,7 @@ function State:getReference(statement)
 	
 	-- fill citeParams
 	for _, citeType in ipairs(citeTypes) do
-		for paramName, paramValues in pairs(groupedProcessedProperties[citeType]) do
+		for paramName, paramValues in pairs(candidateParams[citeType]) do
 			if #paramValues == 1 or not isValueInTable(paramName, citeConfig[citeType]["numbered-params"] or {}) then
 				citeParams[citeType][paramName] = paramValues[1]
 			else

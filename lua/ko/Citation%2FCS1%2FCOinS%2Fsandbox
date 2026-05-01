@@ -68,9 +68,11 @@ local function get_coins_pages (pages)
 		pattern = escape_lua_magic_chars (pattern);								-- pattern is not a literal string; escape Lua's magic pattern characters
 		pages = pages:gsub(pattern, "");										-- remove as many instances of pattern as possible
 	end
+	
 	pages = pages:gsub("[%[%]]", "");											-- remove the brackets
 	pages = pages:gsub("–", "-" );												-- replace endashes with hyphens
 	pages = pages:gsub("&%w+;", "-" );											-- and replace HTML entities (&ndash; etc.) with hyphens; do we need to replace numerical entities like &#32; and the like?
+	pages = pages:gsub ('%b<>', '');											-- remove html-like tags; spans are added to <Pages> by utilities.hyphen_to_dash() which should not appear in COinS metadata
 	return pages;
 end
 
@@ -140,7 +142,7 @@ local function coins_cleanup (value)
 		replaced, value = coins_replace_math_stripmarker (value);				-- replace math stripmarker with text representation of the equation
 	end
 
-	value = value:gsub (cfg.stripmarkers['math'], "수식 렌더링 오류");			-- one or more couldn't be replaced; insert vague error message
+	value = value:gsub (cfg.stripmarkers['math'], "수식 렌더링 오류");			-- one or more couldn't be replaced; insert vague error message		-- 로컬
 	
 	value = mw.text.unstripNoWiki (value);										-- replace nowiki stripmarkers with their content
 	value = value:gsub ('<span class="nowrap" style="padding%-left:0%.1em;">&#39;(s?)</span>', "'%1");	-- replace {{'}} or {{'s}} with simple apostrophe or apostrophe-s
@@ -183,11 +185,12 @@ local function COinS(data, class)
 		end
 	});
 	
-	if in_array (class, {'arxiv', 'biorxiv', 'citeseerx', 'ssrn', 'journal', 'news', 'magazine'}) or (in_array (class, {'conference', 'interview', 'map', 'press release', 'web'}) and is_set(data.Periodical)) or 
+	if in_array (class, {'arxiv', 'biorxiv', 'citeseerx', 'medrxiv', 'ssrn', 'journal', 'news', 'magazine'}) or
+		(in_array (class, {'conference', 'interview', 'map', 'press release', 'web'}) and is_set(data.Periodical)) or
 		('citation' == class and is_set(data.Periodical) and not is_set (data.Encyclopedia)) then
 			OCinSoutput.rft_val_fmt = "info:ofi/fmt:kev:mtx:journal";			-- journal metadata identifier
-			if in_array (class, {'arxiv', 'biorxiv', 'citeseerx', 'ssrn'}) then	-- set genre according to the type of citation template we are rendering
-				OCinSoutput["rft.genre"] = "preprint";							-- cite arxiv, cite biorxiv, cite citeseerx, cite ssrn
+			if in_array (class, {'arxiv', 'biorxiv', 'citeseerx', 'medrxiv', 'ssrn'}) then	-- set genre according to the type of citation template we are rendering
+				OCinSoutput["rft.genre"] = "preprint";							-- cite arxiv, cite biorxiv, cite citeseerx, cite medrxiv, cite ssrn
 			elseif 'conference' == class then
 				OCinSoutput["rft.genre"] = "conference";						-- cite conference (when Periodical set)
 			elseif 'web' == class then
@@ -204,6 +207,7 @@ local function COinS(data, class)
 			OCinSoutput["rft.chron"] = data.Chron;								-- free-form date components
 			OCinSoutput["rft.volume"] = data.Volume;							-- does not apply to books
 			OCinSoutput["rft.issue"] = data.Issue;
+			OCinSoutput['rft.artnum'] = data.ArticleNumber;						-- {{cite journal}} only
 			OCinSoutput["rft.pages"] = data.Pages;								-- also used in book metadata
 
 	elseif 'thesis' ~= class then												-- all others except cite thesis are treated as 'book' metadata; genre distinguishes

@@ -2,19 +2,62 @@
 This module was originally on https://ko.wikipedia.org/wiki/Module:Citation/CS1/Configuration/sandbox and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
+local lang_obj = mw.language.getContentLanguage();								-- make a language object for the local language; used here for languages and dates 
+
+
+--[[--------------------------< S E T T I N G S >--------------------------------------------------------------
+
+boolean settings used to control various things.  these setting located here to make them easy to find
+
+]]
+																				-- these settings local to this module only
+local local_digits_from_mediawiki = false;										-- for i18n; when true, module fills date_names['local_digits'] from MediaWiki; manual fill required else; always false at en.wiki
+local local_date_names_from_mediawiki = false;									-- for i18n; when true, module fills date_names['local']['long'] and date_names['local']['short'] from MediaWiki;
+																				-- manual translation required else; ; always false at en.wiki
+
+																				-- these settings exported to other modules
+local use_identifier_redirects = true;											-- when true use redirect name for identifier label links; always true at en.wiki
+local local_lang_cat_enable = false;											-- when true categorizes pages where |language=<local wiki's language>; always false at en.wiki
+local date_name_auto_xlate_enable = false;										-- when true translates English month-names to the local-wiki's language month names; always false at en.wiki
+local date_digit_auto_xlate_enable = false;										-- when true translates Western date digit to the local-wiki's language digits (date_names['local_digits']); always false at en.wiki
+local enable_sort_keys = false;													-- when true module adds namespace sort keys to error and maintenance category links -- 로컬. 정렬키 기능 사용 안 함.
+
+local suppress_archive_today_urls = true;										-- when true module suppresses all parameters with an archive.today url and any deprendent parameters
+
 --[[--------------------------< U N C A T E G O R I Z E D _ N A M E S P A C E S >------------------------------
 
-List of namespaces that should not be included in citation error categories.
+List of namespaces identifiers for namespaces that will not be included in citation error categories.
 Same as setting notracking = true by default.
 
-Note: Namespace names should use underscores instead of spaces.
+For wikis that have a current version of Module:cs1 documentation support, this #invoke will return an unordered
+list of namespace names and their associated identifiers:
+	{{#invoke:cs1 documentation support|uncategorized_namespace_lister|all=<anything>}}
 
 ]]
 
-local uncategorized_namespaces = { '사용자', '토론', '사용자토론', '위키백과토론', '파일토론', '틀토론',
-	'도움말토론', '분류토론', '포털토론', '초안토론', '모듈토론', '미디어위키토론' };
-local uncategorized_subpages = {'/[Ss]andbox', '/[Tt]estcases', '/[^/]*[Ll]og', '/[Aa]rchive', '/연습장', '/시험장', '/보존'};		-- list of Lua patterns found in page names of pages we should not categorize
+local uncategorized_namespaces_t = {[2]=true};										-- init with user namespace id
+for k, _ in pairs (mw.site.talkNamespaces) do									-- add all talk namespace ids
+	uncategorized_namespaces_t[k] = true;
+end
 
+local uncategorized_subpages = {'/[Ss]andbox', '/[Tt]estcases', '/[^/]*[Ll]og', '/[Aa]rchive', '/연습장', '/시험장', '/기록', '/보존'};		-- list of Lua patterns found in page names of pages we should not categorize
+
+--[[
+at en.wiki Greek characters are used as sort keys for certain items in a category so that those items are
+placed at the end of a category page.  See Wikipedia:Categorization#Sort_keys.  That works well for en.wiki
+because English is written using the Latn script.  This may not work well for other languages.  At en.wiki it
+is desireable to place content from certain namespaces at the end of a category listing so the module adds sort
+keys to error and maintenance category links when rendering a cs1|2 template on a page in that namespace.
+
+i18n: if this does not work well for your language, set <enable_sort_keys> to false. -- 로컬. 정렬키 기능 사용 안 함.
+]]
+
+local name_space_sort_keys = {													-- sort keys to be used with these namespaces:
+--	[4] = 'ω',																	-- wikipedia; omega
+--	[10] = 'τ',																	-- template; tau
+--	[118] = 'Δ', 																-- draft; delta
+--	['other'] = 'ο',															-- all other non-talk namespaces except main (article); omicron
+	}
 
 --[[--------------------------< M E S S A G E S >--------------------------------------------------------------
 
@@ -28,23 +71,26 @@ module.
 
 local messages = {
 	['agency'] = '$1 $2',														-- $1 is sepc, $2 is agency
-	['archived-dead'] = '$2에 $1에서 보존된 문서',								-- 로컬: 'Archived from $1 on $2'
-	['archived-live'] = '$2에 원본에서 보존된 $1',								-- 로컬: '$1 from the original on $2'
-	['archived-missing'] = '$2에 원본$1에서 보존된 문서',						-- 로컬: 'Archived from the original$1 on $2'
-	['archived-unfit'] = ' 에 원본에서 보존된 문서',							-- 로컬: 'Archived from the original on '
+	['archived-dead'] = '$2에 $1에서 보존된 문서',
+	['archived-live'] = '$2에 $1',
+	['archived-unfit'] = '$1에 원본에서 보존된 문서',
 	['archived'] = '보존된 문서',
 	['by'] = 'By',																-- contributions to authored works: introduction, foreword, afterword
-	['cartography'] = '$1 제작',												-- 로컬: 'Cartography by $1'
-	['editor'] = '편집.',
-	['editors'] = '편집.',
+	['cartography'] = '$1 제작',
+	['collaboration'] = '$1 ($2)',												-- $1 is author with et al, $2 is collaboration
+	['editor'] = '편집',
+	['editors'] = '편집',
 	['edition'] = '($1판)',
-	['episode'] = '제 $1회',
+	['episode'] = '제$1 회',
 	['et al'] = '외.',
 	['in'] = '',																-- edited works
-	['inactive'] = '년 이후로 접속 불가',
-	['inset'] = '$1 삽도',
-	['interview'] = '$1의 인터뷰',										
-	['lay summary'] = '요약문',
+	['inactive'] = ' ($1년 이후로 접속 불가)',											-- $1 is date which the doi was found to be broken in 
+	['inset'] = '$1 삽화',
+	['interview'] = '$1의 인터뷰',
+	invisible_1 = '$1 $2',														-- $1 stripmarker name; $2 is text from <invisible_chars[1]>
+	invisible_2 = '$1 문자',												-- $1 character name from <invisible_chars[1]>
+	['invisible_1'] = '$1 $2',														-- $1 stripmarker name; $2 is text from <invisible_chars[1]>
+	['invisible_2'] = '$1 문자',												-- $1 character name from <invisible_chars[1]>
 	['mismatch'] = '<code class="cs1-code">&#124;$1=</code> / <code class="cs1-code">&#124;$2=</code> 불일치',	-- $1 is year param name; $2 is date param name
 	['newsgroup'] = '[[뉴스그룹]]:&nbsp;$1',
 	['notitle'] = '제목 없음',													-- for |title=(()) and (in the future) |title=none
@@ -61,12 +107,20 @@ local messages = {
 	['type'] = ' ($1)',															-- for titletype
 	['written'] = '$1에서 작성',
 
+	wikidata = '위키데이터',														-- these used for interwikilinked author/editor/... names
+	wikipedia = '위키백과',
+	wikisource = '위키문헌',
+
 	['vol'] = '$1 $2권',												-- $1 is sepc; bold journal style volume is in presentation{}
-	['vol-no'] = '$1 $2권, $3호',									-- sepc, volume, issue (alternatively insert $1 after $2, but then we'd also have to change capitalization)
+	['vol-no'] = '$1 $2권, $3호',								-- sepc, volume, issue (alternatively insert $1 after $2, but then we'd also have to change capitalization)
 	['issue'] = '$1 $2호',												-- $1 is sepc
+
+	['art'] = '$1 $2번 문서',												-- $1 is sepc; for {{cite conference}} only
+	['vol-art'] = '$1 $2권, $3번 논문',								-- sepc, volume, article-number; for {{cite conference}} only
 
 	['j-vol'] = '$1 $2',														-- sepc, volume; bold journal volume is in presentation{}
 	['j-issue'] = ' ($1)',
+	['j-article-num'] = ' $1',													-- TODO: any punctuation here? static text?
 
 	['nopp'] = '$1 $2';															-- page(s) without prefix; $1 is sepc
 
@@ -74,15 +128,15 @@ local messages = {
 	['pp-prefix'] = "$1 $2쪽",											-- $1 is sepc
 	['j-page(s)'] = ': $1',														-- same for page and pages
 
-	['sheet'] = '$1 Sheet&nbsp;$2',												-- $1 is sepc
-	['sheets'] = '$1 Sheets&nbsp;$2',											-- $1 is sepc
-	['j-sheet'] = ': Sheet&nbsp;$1',
-	['j-sheets'] = ': Sheets&nbsp;$1',
+	['sheet'] = '$1 도엽번호&nbsp;$2',												-- $1 is sepc
+	['sheets'] = '$1 도엽번호&nbsp;$2',											-- $1 is sepc
+	['j-sheet'] = ': 도엽번호&nbsp;$1',
+	['j-sheets'] = ': 도엽번호&nbsp;$1',
 	
 	['language'] = '($1)',
 	['via'] = " &ndash; $1 경유",
-	['event'] = '에 발생',
-	['minutes'] = '분',
+	['event'] = '시작 지점: ',
+	['minutes'] = '시작 $1분부터',												-- $1 is the number of minutes
 	
 	-- Determines the location of the help page
 	['help page link'] = '위키백과:인용 오류 도움말',
@@ -90,17 +144,18 @@ local messages = {
 	
 	-- categories
 	['cat wikilink'] = '[[분류:$1]]',										-- $1 is the category name
+	['cat wikilink sk'] = '[[분류:$1|$2]]',									-- $1 is the category name; $2 is namespace sort key
 	[':cat wikilink'] = '[[:분류:$1|링크]]',								-- category name as maintenance message wikilink; $1 is the category name
 
 	-- Internal errors (should only occur if configuration is bad)
-	['undefined_error'] = 'Called with an undefined error condition',
-	['unknown_ID_key'] = 'Unrecognized ID key: ',								-- an ID key in id_handlers not found in ~/Identifiers func_map{}
-	['unknown_ID_access'] = 'Unrecognized ID access keyword: ',					-- an ID access keyword in id_handlers not found in keywords_lists['id-access']{}
-	['unknown_argument_map'] = 'Argument map not defined for this variable',
-	['bare_url_no_origin'] = 'Bare URL found but origin indicator is nil or empty',
+	['undefined_error'] = '지정되지 않은 오류 조건을 호출하였습니다',
+	['unknown_ID_key'] = '인식할 수 없는 ID 키: ',								-- an ID key in id_handlers not found in ~/Identifiers func_map{}
+	['unknown_ID_access'] = '인식할 수 없는 ID 접근 키워드: ',					-- an ID access keyword in id_handlers not found in keywords_lists['id-access']{}
+	['unknown_argument_map'] = '이 변수에 대한 인자 맵이 정의되어 있지 않습니다',
+	['bare_url_no_origin'] = '설명 없는 URL이 사용되었으나, 원본 지시자의 값이 없거나 비었습니다',
 	
-	['warning_msg_e'] = '<span style="color:#d33">한 개 이상의 <code style="color: inherit; background: inherit; border: none; padding: inherit;">&#123;{$1}}</code> 틀에 오류가 있습니다.</span> 이 메시지를 숨길 수 있습니다 ([[위키백과:인용_오류_도움말#오류_메시지_제어하기|도움말]]).';	-- $1 is template link
-	['warning_msg_m'] = '<span style="color:#3a3">한 개 이상의 <code style="color: inherit; background: inherit; border: none; padding: inherit;">&#123;{$1}}</code> 틀에 관리 항목이 있습니다.</span> 이 메시지를 숨길 수 있습니다 ([[위키백과:인용_오류_도움말#오류_메시지_제어하기|도움말]]).';	-- $1 is template link
+	['warning_msg_e'] = '<span style="color:#d33"><code style="color: inherit; background: inherit; border: none; padding: inherit;">&#123;{$1}}</code>: [[#$2|참고 문헌]]에 오류가 존재합니다.</span> 문구는 숨길 수 있습니다([[위키백과:인용 오류 도움말#오류 문구 제어하기|도움말]]).';	-- $1 is template link; $2 is anchor ID
+	['warning_msg_m'] = '<span style="color:#085"><code style="color: inherit; background: inherit; border: none; padding: inherit;">&#123;{$1}}</code>: [[#$2|참고 문헌]]에 관리 문구가 존재합니다.</span> 문구는 숨길 수 있습니다([[위키백과:인용 오류 도움말#오류 문구 제어하기|도움말]]).';	-- $1 is template link; $2 is anchor ID
 	}
 
 
@@ -110,18 +165,39 @@ this table maps the value assigned to |CitationClass= in the cs1|2 templates to 
 the value assigned to |CitationClass= is different from the canonical template name.  |CitationClass= values are
 used as class attributes in the <cite> tag that encloses the citation so these names may not contain spaces while
 the canonical template name may.  These names are used in warning_msg_e and warning_msg_m to create links to the
-template's documentation when an article is displayed in preivew mode.
-
-Most cs1|2 template |CitationClass= values at en.wiki match their canonical template names so are not listed here.
-
+template's documentation when an article is displayed in preview mode.
 ]]
 
-	local citation_class_map_t = {												-- TODO: if kept, these and all other config.CitationClass 'names' require some sort of i18n
-		['audio-visual'] = '영상',											-- TODO: move to ~/Configuration
-		['AV-media-notes'] = '영상 설명',
-		['encyclopaedia'] = '백과사전',
-		['mailinglist'] = '메일링',
-		['pressrelease'] = '보도자료'
+	local citation_class_map_t = {												-- TODO: in Module:Cite/config write a function to use this table 
+		arxiv = 'arXiv 인용',													-- as the source for known_templates_t and citation_classes_t
+		['audio-visual'] = '영상 인용',
+		['AV-media-notes'] = '영상 설명 인용',
+		biorxiv = 'bioRxiv 인용',
+		book = '서적 인용',
+		citation = '인용',
+		citeseerx = 'CiteSeerX 인용',
+		conference = '콘퍼런스 인용',
+		document = '문서 인용',
+		encyclopaedia = '백과사전 인용',
+		episode = '에피소드 인용',
+		interview = '인터뷰 인용',
+		journal = '저널 인용',
+		magazine = '잡지 인용',
+		mailinglist = '메일링 인용',
+		map = '지도 인용',
+		medrxiv = 'medRxiv 인용',
+		news = '뉴스 인용',
+		newsgroup = '뉴스그룹 인용',
+		podcast = '팟캐스트 인용',
+		pressrelease = '보도자료 인용',
+		report = '보고서 인용',
+		serial = '연속물 인용',
+		sign = '표지판 인용',
+		speech = '연설 인용',
+		ssrn = 'SSRN 인용',
+		techreport = '기술보고서 인용',
+		thesis = '학위논문 인용',
+		web = '웹 인용',
 		}
 
 
@@ -133,12 +209,14 @@ This table provides Lua patterns for the phrase "et al" and variants in name tex
 ]=]
 
 local et_al_patterns = {
-	"[;,]? *[\"']*%f[%a][Ee][Tt]%.? *[Aa][Ll][%.\"']*$",						-- variations on the 'et al' theme
-	"[;,]? *[\"']*%f[%a][Ee][Tt]%.? *[Aa][Ll][Ii][AaIi][Ee]?[%.\"']*$",				-- variations on the 'et alia', 'et alii' and 'et aliae' themes (false positive 'et aliie' unlikely to match)
+	"[;,]? *[\"']*%f[%a][Ee][Tt]%.? *[Aa][Ll][%.;,\"']*$",						-- variations on the 'et al' theme
+	"[;,]? *[\"']*%f[%a][Ee][Tt]%.? *[Aa][Ll][Ii][AaIi][Ee]?[%.;,\"']*$",		-- variations on the 'et alia', 'et alii' and 'et aliae' themes (false positive 'et aliie' unlikely to match)
 	"[;,]? *%f[%a]and [Oo]thers",												-- an alternative to et al.
 	"%[%[ *[Ee][Tt]%.? *[Aa][Ll]%.? *%]%]",										-- a wikilinked form
-	"%(%( *[Ee][Tt]%.? *[Aa][Ll]%.? *%)%)",									-- a double-bracketed form (to counter partial removal of ((...)) syntax)
-	"[%(%[] *[Ee][Tt]%.? *[Aa][Ll]%.? *[%)%]]",									-- a bracketed form		-- 로컬: '외'를 추가해야 하는지?
+	"%(%( *[Ee][Tt]%.? *[Aa][Ll]%.? *%)%)",										-- a double-bracketed form (to counter partial removal of ((...)) syntax)
+	"[%(%[] *[Ee][Tt]%.? *[Aa][Ll]%.? *[%)%]]",									-- a bracketed form
+	"[;,]? 외[%.;,\"']*$",
+	"[;,]? 등[%.;,\"']*$",
 	}
 
 
@@ -164,20 +242,22 @@ local presentation =
 	['cite-id'] = '<cite id="$1" class="$2">$3</cite>';							-- for use when when |ref= is set or when citation has a namelist
 
 	['format'] = ' <span class="cs1-format">($1)</span>',						-- for |format=, |chapter-format=, etc.
+	['interwiki'] = ' <span class="cs1-format">[$1판]</span>',					-- for interwiki-language-linked author, editor, etc
+	['interproj'] = ' <span class="cs1-format">[$1]</span>',					-- for interwiki-project-linked author, editor, etc (:d: and :s: supported; :w: ignored)
 
 	-- various access levels, for |access=, |doi-access=, |arxiv=, ...
 	-- narrow no-break space &#8239; may work better than nowrap CSS. Or not? Browser support?
 
 	['ext-link-access-signal'] = '<span class="$1" title="$2">$3</span>',		-- external link with appropriate lock icon
-		['free'] = {class='cs1-lock-free', title='무료로 확인 가능'},			-- classes defined in Module:Citation/CS1/styles.css
-		['registration'] = {class='cs1-lock-registration', title='무료 등록 필요'},
-		['limited'] = {class='cs1-lock-limited', title='제한적으로 이용 가능 (일반적으로 구독 필요)'},
-		['subscription'] = {class='cs1-lock-subscription', title='유료 구독 필요'},
+		['free'] = {class='id-lock-free', title='무료로 이용 가능'},			-- classes defined in Module:Citation/CS1/styles.css
+		['registration'] = {class='id-lock-registration', title='무료 등록 필요함'},
+		['limited'] = {class='id-lock-limited', title='제한된 기간 동안 무료로 이용 가능, 일반적으로 구독 필요함'},
+		['subscription'] = {class='id-lock-subscription', title='유료 구독 필요함'},
 
 	['interwiki-icon'] = '<span class="$1" title="$2">$3</span>',
 		['class-wikisource'] = 'cs1-ws-icon',
 
-	['italic-title'] = "''$1''",
+	['italic-title'] = "&#12298;$1&#12299;",									-- 로컬. 이탤릭체 대신 《 》 사용.
 
 	['kern-left'] = '<span class="cs1-kern-left"></span>$1',					-- spacing to use when title contains leading single or double quote mark
 	['kern-right'] = '$1<span class="cs1-kern-right"></span>',					-- spacing to use when title contains trailing single or double quote mark
@@ -198,17 +278,17 @@ local presentation =
 	['sep_cs1'] = '.',															-- CS1 element separator
 	['sep_cs2'] = ',',															-- CS2 separator
 	['sep_nl'] = ';',															-- CS1|2 style name-list separator between names is a semicolon
-	['sep_nl_and'] = ' and ',													-- used as last nl sep when |name-list-style=and and list has 2 items
-	['sep_nl_end'] = '; and ',													-- used as last nl sep when |name-list-style=and and list has 3+ names
+	['sep_nl_and'] = ', ',													-- used as last nl sep when |name-list-style=and and list has 2 items
+	['sep_nl_end'] = '; ',													-- used as last nl sep when |name-list-style=and and list has 3+ names
 	['sep_name'] = ', ',														-- CS1|2 style last/first separator is <comma><space>
 	['sep_nl_vanc'] = ',',														-- Vancouver style name-list separator between authors is a comma
 	['sep_name_vanc'] = ' ',													-- Vancouver style last/first separator is a space
 
 	['sep_list'] = ', ',														-- used for |language= when list has 3+ items except for last sep which uses sep_list_end
-	['sep_list_pair'] = ' and ',												-- used for |language= when list has 2 items
-	['sep_list_end'] = ', and ',												-- used as last list sep for |language= when list has 3+ items
+	['sep_list_pair'] = ', ',												-- used for |language= when list has 2 items
+	['sep_list_end'] = ', ',												-- used as last list sep for |language= when list has 3+ items
 	
-	['trans-italic-title'] = "&#91;''$1''&#93;",
+	['trans-italic-title'] = "&#91;$1&#93;",									-- 로컬. 가독성 문제로 《 》 사용하지 않음.
 	['trans-quoted-title'] = "&#91;$1&#93;",									-- for |trans-title= and |trans-quote=
 	['vol-bold'] = '$1 <b>$2</b>',												-- sepc, volume; for bold journal cites; for other cites ['vol'] in messages{}
 	}
@@ -224,111 +304,112 @@ defined in the Whitelist before they will be recognized as valid parameter names
 ]]
 
 local aliases = {
-	['AccessDate'] = {'access-date', 'accessdate', '확인날짜'},								-- Used by InternetArchiveBot
+	['AccessDate'] = {'access-date', 'accessdate', '확인날짜', '확인일자'},								-- Used by InternetArchiveBot
 	['Agency'] = {'agency', '통신사'},
-	['ArchiveDate'] = {'archive-date', 'archivedate', '보존날짜'},							-- Used by InternetArchiveBot
-	['ArchiveFormat'] = 'archive-format',
+	['ArchiveDate'] = {'archive-date', 'archivedate', '보존날짜', '보존일자'},							-- Used by InternetArchiveBot
+	['ArchiveFormat'] = {'archive-format', '보존형식'},
 	['ArchiveURL'] = {'archive-url', 'archiveurl', '보존url'},								-- Used by InternetArchiveBot
+	['ArticleNumber'] = {'article-number', '논문번호'},
 	['ASINTLD'] = 'asin-tld',
 	['At'] = {'at', '쪽기타'},																-- Used by InternetArchiveBot
-	['Authors'] = {'authors', 'people', 'credits', '인물', '제작진'},
-	['BookTitle'] = {'book-title', 'booktitle'},
+	['Authors'] = {'people', 'credits', '인물', '제작진'},
+	['BookTitle'] = {'book-title', 'booktitle', '서적제목'},
 	['Cartography'] = {'cartography', '지도제작'},
-	['Chapter'] = {'chapter', 'contribution', 'entry', 'article', 'section', '장', '항목'},
+	['Chapter'] = {'chapter', 'contribution', 'entry', 'article', 'section', '장', '항목', '기여', '구역'},
 	['ChapterFormat'] = {'chapter-format', 'contribution-format', 'entry-format',
-		'article-format', 'section-format'};
-	['ChapterURL'] = {'chapter-url', 'contribution-url', 'entry-url', 'article-url', 'section-url', 'chapterurl', '장url'},	-- Used by InternetArchiveBot
+		'article-format', 'section-format', '장형식', '항목형식', '기여형식'};
+	['ChapterURL'] = {'chapter-url', 'contribution-url', 'entry-url', 'article-url', 'section-url', '장url', '항목url', '기여url'},	-- Used by InternetArchiveBot
 	['ChapterUrlAccess'] = {'chapter-url-access', 'contribution-url-access',
-		'entry-url-access', 'article-url-access', 'section-url-access', '장url확인'},		-- Used by InternetArchiveBot
-	['Class'] = {'class', '분류'},														-- cite arxiv and arxiv identifier
-	['Collaboration'] = 'collaboration',
-	['Conference'] = {'conference', 'event', '콘퍼런스', '컨퍼런스'},
-	['ConferenceFormat'] = 'conference-format',
+		'entry-url-access', 'article-url-access', 'section-url-access', '장url접근', '항목url접근', '기여url접근'},		-- Used by InternetArchiveBot
+	['Class'] = {'class', '클래스'},														-- cite arxiv and arxiv identifier
+	['Collaboration'] = {'collaboration', '협업'},
+	['Conference'] = {'conference', 'event', '콘퍼런스', '컨퍼런스', '행사'},
+	['ConferenceFormat'] = {'conference-format', '콘퍼런스형식', '컨퍼런스형식'},
 	['ConferenceURL'] = {'conference-url', '콘퍼런스url', '컨퍼런스url'},										-- Used by InternetArchiveBot
-	['Date'] = {'date', 'air-date', 'airdate', '날짜', '방송날짜', '방영날짜'},									-- air-date and airdate for cite episode and cite serial only
+	['Date'] = {'date', 'air-date', 'airdate', '날짜', '일자', '방송날짜', '방송일자', '방영날짜', '방영일자'},									-- air-date and airdate for cite episode and cite serial only
 	['Degree'] = {'degree', '학위'},
 	['DF'] = 'df',
 	['DisplayAuthors'] = {'display-authors', 'display-subjects', '저자표시'},
-	['DisplayContributors'] = 'display-contributors',
+	['DisplayContributors'] = {'display-contributors', '기여자표시'},
 	['DisplayEditors'] = {'display-editors', '편집자표시'},
 	['DisplayInterviewers'] = {'display-interviewers', '인터뷰어표시'},
-	['DisplayTranslators'] = {'display-translators', '번역자표시'},
+	['DisplayTranslators'] = {'display-translators', '번역가표시'},
 	['Docket'] = 'docket',
-	['DoiBroken'] = {'doi-broken-date', 'doi_깨진날짜'},						-- 로컬: 'doi_깨진날짜' 변경?
+	['DoiBroken'] = {'doi-broken-date', 'doi깨진날짜'},
 	['Edition'] = {'edition', '판'},
 	['Embargo'] = {'pmc-embargo-date', 'pmc엠바고날짜'},
-	['Encyclopedia'] = {'encyclopedia', 'encyclopaedia', 'dictionary', '백과사전'},			-- cite encyclopedia only
+	['Encyclopedia'] = {'encyclopedia', 'encyclopaedia', 'dictionary', '백과사전', '사전'},			-- cite encyclopedia only
 	['Episode'] = {'episode', '에피소드'},													-- cite serial only TODO: make available to cite episode?
-	['Format'] = {'format', '형식', '포맷'},
+	['Format'] = {'format', '형식'},
 	['ID'] = {'id', 'ID'},
-	['Inset'] = {'inset', '삽도'},
-	['Issue'] = {'issue', 'number', '호', '회', '화'},							-- 로컬: '회', '화' 제거?
+	['Inset'] = {'inset', '삽화'},
+	['Issue'] = {'issue', 'number', '호', '회', '화'},
 	['Language'] = {'language', 'lang', '언어'},
-	['LayDate'] = 'lay-date',
-	['LayFormat'] = 'lay-format',
-	['LaySource'] = 'lay-source',
-	['LayURL'] = 'lay-url',
 	['MailingList'] = {'mailing-list', 'mailinglist', '메일링리스트'},							-- cite mailing list only
 	['Map'] = {'map', '지도'},															-- cite map only
-	['MapFormat'] = 'map-format',												-- cite map only
+	['MapFormat'] = {'map-format', '지도형식'},												-- cite map only
 	['MapURL'] = {'map-url', 'mapurl', '지도url'},											-- cite map only -- Used by InternetArchiveBot
-	['MapUrlAccess'] = {'map-url-access', '지도url확인'},										-- cite map only -- Used by InternetArchiveBot
+	['MapUrlAccess'] = {'map-url-access', '지도url접근'},										-- cite map only -- Used by InternetArchiveBot
 	['Minutes'] = {'minutes', '분'},
-	['Mode'] = 'mode',
-	['NameListStyle'] = {'name-list-style', '이름목록형식'},
+	['Mode'] = {'mode', '모드'},
+	['NameListStyle'] = {'name-list-style', '이름목록양식'},
 	['Network'] = {'network', '네트워크'},
 	['Newsgroup'] = {'newsgroup', '뉴스그룹'},												-- cite newsgroup only
 	['NoPP'] = {'no-pp', 'nopp', '쪽숨김'},
-	['NoTracking'] = {'no-tracking', 'template-doc-demo', '분류없음'},			-- 로컬: 수정 필요? nocat은 removed 되었음
-	['Number'] = 'number',														-- this case only for cite techreport
-	['OrigDate'] = {'orig-date', 'orig-year', 'origyear', '원본연도', '초판연도'},	-- 로컬: '초판연도' 삭제?
+	['NoTracking'] = {'no-tracking', 'template-doc-demo', '분류없음'},
+	['Number'] = {'number', '번호'},														-- this case only for cite techreport
+	['OrigDate'] = {'orig-date', 'orig-year', 'origyear', '원본날짜', '원본연도'},
 	['Others'] = {'others', '기타'},
 	['Page'] = {'page', 'p', '쪽', '페이지', '면'},													-- Used by InternetArchiveBot
 	['Pages'] = {'pages', 'pp'},												-- Used by InternetArchiveBot
-	['Periodical'] = {'journal', 'magazine', 'newspaper', 'periodical', 'website', 'work', '저널', '뉴스', '신문', '잡지', '작품', '웹사이트'},
+	['Periodical'] = {'journal', 'magazine', 'newspaper', 'periodical', 'website', 'work',
+		'저널', '잡지', '뉴스', '신문', '작품', '웹사이트'},
 	['Place'] = {'place', 'location', '장소', '위치'},
 	['PostScript'] = {'postscript', '추신'},
-	['PublicationDate'] = {'publication-date', 'publicationdate', '출판날짜'},
-	['PublicationPlace'] = {'publication-place', 'publicationplace', '출판장소', '출판위치'},
+	['PublicationDate'] = {'publication-date', 'publicationdate', '출판날짜', '출판일자'},
+	['PublicationPlace'] = {'publication-place', 'publicationplace', '출판위치', '출판장소'},
 	['PublisherName'] = {'publisher', 'institution', '출판사', '기관'},
 	['Quote'] = {'quote', 'quotation', '인용', '인용문'},
-	['QuotePage'] = {'quote-page', '인용쪽'},
+	['QuotePage'] = {'quote-page', '인용쪽', '인용문쪽'},
 	['QuotePages'] = 'quote-pages',
 	['Ref'] = 'ref',
 	['Scale'] = {'scale', '축척'},
 	['ScriptChapter'] = {'script-chapter', 'script-contribution', 'script-entry',
-		'script-article', 'script-section'},
+		'script-article', 'script-section', '문자장', '문자항목', '문자기여'},
+	['ScriptEncyclopedia'] = {'script-encyclopedia', 'script-encyclopaedia', '문자백과사전'},	-- cite encyclopedia only
 	['ScriptMap'] = 'script-map',
 	['ScriptPeriodical'] = {'script-journal', 'script-magazine', 'script-newspaper',
-		'script-periodical', 'script-website', 'script-work'},
-	['ScriptQuote'] = 'script-quote',
-	['ScriptTitle'] = 'script-title',											-- Used by InternetArchiveBot
+		'script-periodical', 'script-website', 'script-work', '문자저널', '문자잡지', '문자뉴스', '문자신문', '문자작품', '문자웹사이트'},
+	['ScriptQuote'] = {'script-quote', '문자인용', '문자인용문'},
+	['ScriptTitle'] = {'script-title', '문자제목'},											-- Used by InternetArchiveBot
 	['Season'] = {'season', '시즌'},
 	['Sections'] = 'sections',													-- cite map only
 	['Series'] = {'series', 'version', '시리즈', '총서'},
 	['SeriesLink'] = {'series-link', 'serieslink', '시리즈링크'},
 	['SeriesNumber'] = {'series-number', 'series-no', '시리즈번호'},
-	['Sheet'] = 'sheet',														-- cite map only
+	['Sheet'] = {'sheet', '도엽'},														-- cite map only
 	['Sheets'] = 'sheets',														-- cite map only
 	['Station'] = {'station', '방송국'},
-	['Time'] = {'time', '시간'},												-- 로컬: 이전에는 Time2를 '시간'으로 설정하여 분을 없앴음
+	['Time'] = {'time', '시간'},
 	['TimeCaption'] = {'time-caption', '시간설명'},
 	['Title'] = {'title', '제목'},														-- Used by InternetArchiveBot
 	['TitleLink'] = {'title-link', 'episode-link', 'episodelink', '제목링크', '에피소드링크'},				-- Used by InternetArchiveBot
-	['TitleNote'] = 'department',												-- 로컬: 번역 필요
+	['TitleNote'] = {'title-note', 'department', '난', '란'},
 	['TitleType'] = {'type', 'medium', '종류', '매체'},
 	['TransChapter'] = {'trans-article', 'trans-chapter', 'trans-contribution',
-		'trans-entry', 'trans-section', '번역장'},
-	['Transcript'] = {'transcript', '대본'},
-	['TranscriptFormat'] = 'transcript-format',	
-	['TranscriptURL'] = {'transcript-url', 'transcripturl', '대본url'},					-- Used by InternetArchiveBot
-	['TransMap'] = 'trans-map',													-- cite map only
+		'trans-entry', 'trans-section', '번역장', '번역항목', '번역기여'},
+	['Transcript'] = {'transcript', '전사본'},
+	['TranscriptFormat'] = {'transcript-format', '전사본형식'},	
+	['TranscriptURL'] = {'transcript-url', '전사본url'},										-- Used by InternetArchiveBot
+	['TransEncyclopedia'] = {'trans-encyclopedia', 'trans-encyclopaedia', '번역백과사전'},		-- cite encyclopedia only
+	['TransMap'] = {'trans-map', '번역지도'},													-- cite map only
 	['TransPeriodical'] = {'trans-journal', 'trans-magazine', 'trans-newspaper',
-		'trans-periodical', 'trans-website', 'trans-work', '번역저널', '번역뉴스', '번역신문', '번역잡지', '번역작품', '번역웹사이트'},
-	['TransQuote'] = {'trans-quote', '번역인용'},
+		'trans-periodical', 'trans-website', 'trans-work',
+		'번역저널', '번역잡지', '번역뉴스', '번역신문', '번역웹사이트', '번역작품'},
+	['TransQuote'] = {'trans-quote', '번역인용', '번역인용문'},
 	['TransTitle'] = {'trans-title', '번역제목'},												-- Used by InternetArchiveBot
 	['URL'] = {'url', 'URL'},													-- Used by InternetArchiveBot
-	['UrlAccess'] = {'url-access', 'url확인'},												-- Used by InternetArchiveBot
+	['UrlAccess'] = {'url-access', 'url접근'},												-- Used by InternetArchiveBot
 	['UrlStatus'] = {'url-status', 'url상태'},												-- Used by InternetArchiveBot
 	['Vauthors'] = 'vauthors',
 	['Veditors'] = 'veditors',
@@ -336,74 +417,110 @@ local aliases = {
 	['Volume'] = {'volume', '권'},
 	['Year'] = {'year', '연도', '연', '년', '년도'},
 
-	['AuthorList-First'] = {"first#", "author-first#", "author#-first", "given#",
-		"author-given#", "author#-given",
-		"이름#"
-	},
-	['AuthorList-Last'] = {"last#", "author-last#", "author#-last", "surname#",
-		"author-surname#", "author#-surname", "author#", "subject#", 'host#',
-		"성#", "저자#", "대상#"
-	},
+	['AuthorList-First'] = {"first#", "author-first#", "author#-first", "author-given#", "author#-given",
+		"subject-first#", "subject#-first", "subject-given#", "subject#-given",
+		"given#",
+		"이름#", "대상-이름#", "대상#-이름", "대상이름#", "대상#이름"},
+	['AuthorList-Last'] = {"last#", "author-last#", "author#-last", "author-surname#", "author#-surname",
+		"subject-last#", "subject#-last", "subject-surname#", "subject#-surname",
+		"author#", 'host#', "subject#", "surname#",
+		"성#", "저자#", "대상#", "대상-성#", "대상#-성", "대상성#", "대상#성"},
 	['AuthorList-Link'] = {"author-link#", "author#-link", "subject-link#",
 		"subject#-link", "authorlink#", "author#link",
 		"저자링크#", "저자#링크", "대상링크#", "대상#링크", 
-		"저자-링크#", "저자#-링크", "대상-링크#", "대상#-링크"
-	},
+		"저자-링크#", "저자#-링크","대상-링크#", "대상#-링크"},
 	['AuthorList-Mask'] = {"author-mask#", "author#-mask", "subject-mask#", "subject#-mask",
-		"저자#-숨김", "저자-숨김#", "저자#숨김", "저자숨김#",
-		"대상#-숨김", "대상-숨김#", "대상#숨김", "대상숨김#"
-	},
+		"저자#-숨김", "저자-숨김#", "저자#숨김", "저자숨김#", "대상#-숨김", "대상-숨김#", "대상#숨김", "대상숨김#"},
 
-	['ContributorList-First'] = {'contributor-first#', 'contributor#-first',
-		'contributor-given#', 'contributor#-given'},
-	['ContributorList-Last'] = {'contributor-last#', 'contributor#-last',
-		'contributor-surname#', 'contributor#-surname', 'contributor#'},
-	['ContributorList-Link'] = {'contributor-link#', 'contributor#-link'},
-	['ContributorList-Mask'] = {'contributor-mask#', 'contributor#-mask'},
+	['ContributorList-First'] = {'contributor-first#','contributor#-first',
+		'기여자-이름#', '기여자#-이름', '기여자이름#', '기여자#이름'},
+	['ContributorList-Last'] = {'contributor#', 'contributor-last#', 'contributor#-last',
+		'기여자#', '기여자-성#', '기여자#-성', '기여자성#', '기여자#성'},
+	['ContributorList-Link'] = {'contributor-link#', 'contributor#-link',
+		'기여자#-링크', '기여자-링크#', '기여자링크#', '기여자#링크'},
+	['ContributorList-Mask'] = {'contributor-mask#', 'contributor#-mask',
+		'기여자#-숨김', '기여자-숨김#', '기여자#숨김', '기여자숨김#'},
 
 	['EditorList-First'] = {"editor-first#", "editor#-first", "editor-given#", "editor#-given",
-		"편집자-이름#", "편집자#-이름", "편집자이름#", "편집자#이름"
-	},
+		"편집자-이름#", "편집자#-이름", "편집자이름#", "편집자#이름"},
 	['EditorList-Last'] = {"editor-last#", "editor#-last", "editor-surname#",
 		"editor#-surname", "editor#",
-		"편집자#", "편집자-성#", "편집자#-성", "편집자성#", "편집자#성"
-	},
+		"편집자#", "편집자-성#", "편집자#-성", "편집자성#", "편집자#성"},
 	['EditorList-Link'] = {"editor-link#", "editor#-link",
-		"편집자#-링크", "편집자-링크#", "편집자링크#", "편집자#링크"
-	},
+		"편집자#-링크", "편집자-링크#", "편집자링크#", "편집자#링크"},
 	['EditorList-Mask'] = {"editor-mask#", "editor#-mask",
-		"편집자#-숨김", "편집자-숨김#", "편집자#숨김", "편집자숨김#"
-	},
+		 "편집자#-숨김", "편집자-숨김#", "편집자#숨김", "편집자숨김#"},
 	
-	['InterviewerList-First'] = {'interviewer-first#', 'interviewer#-first',
-		'interviewer-given#', 'interviewer#-given',
-		"인터뷰어-이름#", "인터뷰어#-이름", "인터뷰어이름#", "인터뷰어#이름"
-	},
-	['InterviewerList-Last'] = {'interviewer-last#', 'interviewer#-last',
-		'interviewer-surname#', 'interviewer#-surname', 'interviewer#',
-		"인터뷰어#", "인터뷰어-성#", "인터뷰어#-성", "인터뷰어성#", "인터뷰어#성"
-	},
-	['InterviewerList-Link'] = {'interviewer-link#', 'interviewer#-link', 
-		"인터뷰어#-링크", "인터뷰어-링크#", "인터뷰어링크#", "인터뷰어#링크"},
+	['InterviewerList-First'] = {'interviewer-first#','interviewer#-first',
+		'인터뷰어-이름#', '인터뷰어#-이름', '인터뷰어이름#', '인터뷰어#이름'},
+	['InterviewerList-Last'] = {'interviewer#', 'interviewer-last#', 'interviewer#-last',
+		'인터뷰어#', '인터뷰어-성#', '인터뷰어#-성', '인터뷰어성#', '인터뷰어#성'},
+	['InterviewerList-Link'] = {'interviewer-link#', 'interviewer#-link',
+		'인터뷰어#-링크', '인터뷰어-링크#', '인터뷰어링크#', '인터뷰어#링크'},
 	['InterviewerList-Mask'] = {'interviewer-mask#', 'interviewer#-mask',
-		"인터뷰어#-숨김", "인터뷰어-숨김#", "인터뷰어#숨김", "인터뷰어숨김#"
-	},
+		'인터뷰어#-숨김', '인터뷰어-숨김#', '인터뷰어#숨김', '인터뷰어숨김#'},
 
 	['TranslatorList-First'] = {'translator-first#', 'translator#-first',
 		'translator-given#', 'translator#-given',
-		'번역자-이름#', '번역자#-이름', '번역자이름#', '번역자#이름'
-	},
+		'번역자-이름#', '번역자#-이름', '번역자이름#', '번역자#이름'},
 	['TranslatorList-Last'] = {'translator-last#', 'translator#-last',
 		'translator-surname#', 'translator#-surname', 'translator#',
-		'번역자#', '번역자-성#', '번역자#-성', '번역자성#', '번역자#성'
-	},
+		'번역자#', '번역자-성#', '번역자#-성', '번역자성#', '번역자#성'},
 	['TranslatorList-Link'] = {'translator-link#', 'translator#-link',
-		'번역자#-링크', '번역자-링크#', '번역자링크#', '번역자#링크'
-	},
+		'번역자#-링크', '번역자-링크#', '번역자링크#', '번역자#링크'},
 	['TranslatorList-Mask'] = {'translator-mask#', 'translator#-mask',
-		"번역자#-숨김", "번역자-숨김#", "번역자#숨김", "번역자숨김#"
-	},
+		"번역자#-숨김", "번역자-숨김#", "번역자#숨김", "번역자숨김#"},
 	}
+
+
+--[[--------------------------< D E P E N D E N C I E S _ T >--------------------------------------------------
+
+a table of url-holding parameters upon which other parameters are dependent.
+
+this table is used by has_archive_today_url() to suppress parameters that are dependant upon a url-holding parameter
+that has as a value an archive.today (or alternate tld) url.
+
+archive.today is deprecated at en.wiki; see Wikipedia:Requests_for_comment/Archive.is_RFC_5
+
+]]
+
+local url_dependency_map_t = {													-- table of url-holding parameters and the meta-parameters that are dependent on them
+	['url'] = {'AccessDate', 'ArchiveURL', 'Format', 'UrlAccess'},
+	['archive-url'] = {'ArchiveDate', 'ArchiveFormat', 'UrlStatus'},
+	['archiveurl'] = {'ArchiveDate', 'ArchiveFormat', 'UrlStatus'},
+	['article-url'] = {'ChapterFormat', 'ChapterUrlAccess'},
+	['chapter-url'] = {'ChapterFormat', 'ChapterUrlAccess'},
+	['conference-url'] = {'ConferenceFormat'},
+	['contribution-url'] = {'ChapterFormat', 'ChapterUrlAccess'},
+	['entry-url'] = {'ChapterFormat', 'ChapterUrlAccess'},
+	['map-url'] = {'MapFormat', 'MapUrlAccess'},
+	['section-url'] = {'ChapterFormat', 'ChapterUrlAccess'},
+	['transcript-url'] = {'TranscriptFormat'},
+	['기여url'] = {'ChapterFormat', 'ChapterUrlAccess'},
+	['보존url'] = {'ArchiveDate', 'ArchiveFormat', 'UrlStatus'},
+	['장url'] = {'ChapterFormat', 'ChapterUrlAccess'},
+	['전사본url'] = {'TranscriptFormat'},
+	['지도url'] = {'MapFormat', 'MapUrlAccess'},
+	['컨퍼런스url'] = {'ConferenceFormat'},
+	['콘퍼런스url'] = {'ConferenceFormat'},
+	['항목url'] = {'ChapterFormat', 'ChapterUrlAccess'},
+	};
+
+local dependencies_t = {};														-- the table of url-holding parameters and their dependent parameters
+
+for url_param, meta_parameters_t in pairs (url_dependency_map_t) do				-- sequence of meta-parameters (indexes) into <aliases> table
+	local dependant_params_t = {};												-- collection of parameters that are dependent on this <url_param>
+	for _, meta_parameter in ipairs (meta_parameters_t) do						-- for each <aliases> meta-parameter (index)
+		if 'string' == type (aliases[meta_parameter]) then						-- for single parameter names (no aliases), <aliases[meta_parameter]> will be a string
+			table.insert (dependant_params_t, aliases[meta_parameter]);			-- add to this <url_param>'s dependency sequence
+		else
+			for _, alias in ipairs (aliases[meta_parameter]) do					-- for each alias in aliases[meta_parameter] (aliases['AccessDate'] for example)
+				table.insert (dependant_params_t, alias);						-- add to this <url_param>'s dependency sequence
+			end
+		end
+	end
+	dependencies_t[url_param] = dependant_params_t;								-- add the <url_param> and its dependent parameters
+end
 
 
 --[[--------------------------< P U N C T _ S K I P >---------------------------
@@ -415,12 +532,12 @@ builds a table of parameter names that the extraneous terminal punctuation check
 local punct_meta_params = {														-- table of aliases[] keys (meta parameters); each key has a table of parameter names for a value
 	'BookTitle', 'Chapter', 'ScriptChapter', 'ScriptTitle', 'Title', 'TransChapter', 'Transcript', 'TransMap',	'TransTitle',	-- title-holding parameters
 	'AuthorList-Mask', 'ContributorList-Mask', 'EditorList-Mask', 'InterviewerList-Mask', 'TranslatorList-Mask',	-- name-list mask may have name separators
-	'PostScript', 'Quote', 'ScriptQuote', 'TransQuote', 'Ref',											-- miscellaneous
-	'ArchiveURL', 'ChapterURL', 'ConferenceURL', 'LayURL', 'MapURL', 'TranscriptURL', 'URL',			-- URL-holding parameters
+	'PostScript', 'Quote', 'ScriptQuote', 'TransQuote', 'Ref',						-- miscellaneous
+	'ArchiveURL', 'ChapterURL', 'ConferenceURL', 'MapURL', 'TranscriptURL', 'URL',	-- URL-holding parameters
 	}
 
 local url_meta_params = {														-- table of aliases[] keys (meta parameters); each key has a table of parameter names for a value
-	'ArchiveURL', 'ChapterURL', 'ConferenceURL', 'ID', 'LayURL', 'MapURL', 'TranscriptURL', 'URL',		-- parameters allowed to hold urls
+	'ArchiveURL', 'ChapterURL', 'ConferenceURL', 'ID', 'MapURL', 'TranscriptURL', 'URL',		-- parameters allowed to hold urls
 	'Page', 'Pages', 'At', 'QuotePage', 'QuotePages',							-- insource locators allowed to hold urls
 	}
 
@@ -447,6 +564,48 @@ local punct_skip = {};
 local url_skip = {};
 
 
+--[[--------------------------< U R L _ A C C E S S _ M A P >--------------------------------------------------
+
+this table used by the wikipedia library url test, has_twl_url(), which automatically sets a url-access parameter
+to 'subscription' when it discovers a wikipedia library url in any of the url-holding paramters used as keys in
+this table.
+
+translators:  if your wiki uses parameter names for these url-holding parameters and their matching -access parameters,
+add your wiki's parameters to this list.  Leave the English parameters in place.
+
+TODO: is there a better way to do this?
+
+]]
+
+local url_access_map_t = {
+	['chapter-url'] = 'chapter-url-access',
+	['contribution-url'] = 'contribution-url-access',
+	['entry-url'] = 'entry-url-access',
+	['article-url'] = 'article-url-access',
+	['section-url'] = 'section-url-access',
+	['map-url'] = 'map-url-access',
+	['mapurl'] = 'map-url-access',
+	['url'] = 'url-access',
+	['URL'] = 'url-access',
+	['url'] = 'url접근',
+	['URL'] = 'url접근',
+	['기여url'] = '항목url접근',
+	['장url'] = '장url접근',
+	['지도url'] = '지도url접근',
+	['항목url'] = '항목url접근',
+	}
+
+
+--[[--------------------------< S I N G L E - L E T T E R   S E C O N D - L E V E L   D O M A I N S >----------
+
+this is a list of tlds that are known to have single-letter second-level domain names.  This list does not include
+ccTLDs which are accepted in is_domain_name().
+
+]]
+
+local single_letter_2nd_lvl_domains_t = {'cash', 'company', 'foundation', 'media', 'org', 'today'};
+
+
 --[[-----------< S P E C I A L   C A S E   T R A N S L A T I O N S >------------
 
 This table is primarily here to support internationalization.  Translations in
@@ -455,13 +614,17 @@ is extracted from the English alias key.  There may be other cases where
 this translation table may be useful.
 
 ]]
-local is_Latn = 'A-Za-z\195\128-\195\150\195\152-\195\182\195\184-\198\191\199\132-\201\143';
+local is_Latn = 'A-Za-z\195\128-\195\150\195\152-\195\182\195\184-\198\191\199\132-\201\143\225\184\128-\225\187\191';
 local special_case_translation = {
-	['AuthorList'] = '저자 목록',											-- used to assemble maintenance category names
-	['ContributorList'] = 'contributors list',									-- translation of these names plus translation of the base mainenance category names in maint_cats{} table below
-	['EditorList'] = '편집자 목록',											-- must match the names of the actual categories
-	['InterviewerList'] = '인터뷰어 목록',									-- this group or translations used by name_has_ed_markup() and name_has_mult_names()
-	['TranslatorList'] = '번역자 목록',
+	author = '저자',
+	editor = '편집자',
+	name_list_params = '$1 이름 목록 변수',								-- $1 is 'author' or 'editor'; used with err_redundant_parameters
+
+	['AuthorList'] = '여러 저자',											-- used to assemble maintenance category names
+	['ContributorList'] = '여러 기여자',									-- translation of these names plus translation of the base maintenance category names in maint_cats{} table below
+	['EditorList'] = '여러 편집자',											-- must match the names of the actual categories
+	['InterviewerList'] = '여러 인터뷰어',									-- this group or translations used by name_has_ed_markup() and name_has_mult_names()
+	['TranslatorList'] = '여러 번역가',
 	
 																				-- Lua patterns to match pseudo-titles used by InternetArchiveBot and others as placeholder for unknown |title= value
 	['archived_copy'] = {														-- used with CS1 maint: Archive[d] copy as title
@@ -471,64 +634,140 @@ local special_case_translation = {
 
 																				-- Lua patterns to match generic titles; usually created by bots or reference filling tools
 																				-- translators: replace ['local'] = nil with lowercase translation only when bots or tools create generic titles in your language
-	['generic_titles'] = {
 		-- generic titles and patterns in this table should be lowercase only
 		-- leave ['local'] nil except when there is a matching generic title in your language
 		-- boolean 'true' for plain-text searches; 'false' for pattern searches
-		{['en'] = {'^wayback%s+machine$', false},				['local'] = nil},
-		{['en'] = {'are you a robot', true},					['local'] = nil},
-		{['en'] = {'hugedomains.com', true},					['local'] = nil},
-		{['en'] = {'^[%(%[{<]?no +title[>}%]%)]?$', false},		['local'] = nil},
-		{['en'] = {'page not found', true},						['local'] = nil},
-		{['en'] = {'subscribe to read', true},					['local'] = nil},
-		{['en'] = {'^[%(%[{<]?unknown[>}%]%)]?$', false},		['local'] = nil},
-		{['en'] = {'website is for sale', true},				['local'] = nil},
-		{['en'] = {'^404', false},								['local'] = nil},
-		{['en'] = {'internet archive wayback machine', true},	['local'] = nil},
-		{['en'] = {'log into facebook', true},					['local'] = nil},
-		{['en'] = {'login • instagram', true},					['local'] = nil},
-		{['en'] = {'redirecting...', true},						['local'] = nil},
-		{['en'] = {'usurped title', true},						['local'] = nil},	-- added by a GreenC bot
-		{['en'] = {'webcite query result', true},				['local'] = nil},
-		{['en'] = {'wikiwix\'s cache', true},					['local'] = nil},
+
+	['generic_titles'] = {
+		['accept'] = {
+			},
+		['reject'] = {
+			{['en'] = {'^wayback%s+machine$', false},				['local'] = nil},
+			{['en'] = {'are you a robot', true},					['local'] = nil},
+			{['en'] = {'hugedomains', true},						['local'] = nil},
+			{['en'] = {'^[%(%[{<]?no +title[>}%]%)]?$', false},		['local'] = nil},
+			{['en'] = {'page not found', true},						['local'] = nil},
+			{['en'] = {'subscribe to read', true},					['local'] = nil},
+			{['en'] = {'^[%(%[{<]?unknown[>}%]%)]?$', false},		['local'] = nil},
+			{['en'] = {'website is for sale', true},				['local'] = nil},
+			{['en'] = {'^404', false},								['local'] = nil},
+			{['en'] = {'error[ %-]404', false},						['local'] = nil},
+			{['en'] = {'internet archive wayback machine', true},	['local'] = nil},
+			{['en'] = {'log into facebook', true},					['local'] = nil},
+			{['en'] = {'login • instagram', true},					['local'] = nil},
+			{['en'] = {'redirecting...', true},						['local'] = nil},
+			{['en'] = {'usurped title', true},						['local'] = nil},	-- added by a GreenC bot
+			{['en'] = {'wayback machine', true},					['local'] = nil},
+			{['en'] = {'webcite query result', true},				['local'] = nil},
+			{['en'] = {'wikiwix\'s cache', true},					['local'] = nil},
+			{['en'] = {'bot verification', true},					['local'] = nil},
+			{['en'] = nil,											['local'] = {'Facebook에 로그인', true}},
+			{['en'] = nil,											['local'] = {'로그인 • instagram', true}},
+			{['en'] = nil,											['local'] = {'네이버 : 로그인', true}},
+			{['en'] = nil,											['local'] = {'카카오계정', true}},
+			}
 		},
 
-	['generic_names'] = {
-		-- generic names and patterns in this table should be lowercase only
+		-- boolean 'true' for plain-text searches, search string must be lowercase only
+		-- boolean 'false' for pattern searches
 		-- leave ['local'] nil except when there is a matching generic name in your language
-		-- boolean 'true' for plain-text searches; 'false' for pattern searches
-		{['en'] = {'about us', true},										['local'] = nil},
-		{['en'] = {'%f[%a][Aa]dvisor%f[%A]', false},						['local'] = nil},
-		{['en'] = {'%f[%a][Aa]uthor%f[%A]', false},							['local'] = nil},
-		{['en'] = {'collaborator', true},									['local'] = nil},
-		{['en'] = {'contributor', true},									['local'] = nil},
-		{['en'] = {'contact us', true},										['local'] = nil},
-		{['en'] = {'directory', true},										['local'] = nil},
-		{['en'] = {'%f[%(%[][%(%[]%s*eds?%.?%s*[%)%]]?$', false},			['local'] = nil},
-		{['en'] = {'[,%.%s]%f[e]eds?%.?$', false},							['local'] = nil},
-		{['en'] = {'^eds?[%.,;]', false},									['local'] = nil},
-		{['en'] = {'^[%(%[]%s*[Ee][Dd][Ss]?%.?%s*[%)%]]', false},			['local'] = nil},
-		{['en'] = {'%f[%a][Ee]dited%f[%A]', false},							['local'] = nil},
-		{['en'] = {'%f[%a][Ee]ditors?%f[%A]', false},						['local'] = nil},
-		{['en'] = {'%f[%a]]Ee]mail%f[%A]', false},							['local'] = nil},
-		{['en'] = {'facebook', true},										['local'] = nil},
-		{['en'] = {'google', true},											['local'] = nil},
-		{['en'] = {'home page', true},										['local'] = nil},
-		{['en'] = {'instagram', true},										['local'] = nil},
-		{['en'] = {'interviewer', true},									['local'] = nil},
-		{['en'] = {'linkedIn', true},										['local'] = nil},
-		{['en'] = {'pinterest', true},										['local'] = nil},
-		{['en'] = {'policy', true},											['local'] = nil},
-		{['en'] = {'privacy', true},										['local'] = nil},
-		{['en'] = {'translator', true},										['local'] = nil},
-		{['en'] = {'tumblr', true},											['local'] = nil},
-		{['en'] = {'twitter', true},										['local'] = nil},
-		{['en'] = {'site name', true},										['local'] = nil},
-		{['en'] = {'statement', true},										['local'] = nil},
-		{['en'] = {'submitted', true},										['local'] = nil},
-		{['en'] = {'super.?user', false},									['local'] = nil},
-		{['en'] = {'%f['..is_Latn..'][Uu]ser%f[^'..is_Latn..']', false},	['local'] = nil},
-		{['en'] = {'verfasser', true},										['local'] = nil},
+
+	['generic_names'] = {
+		['accept'] = {
+			{['en'] = {'%[%[[^|]*%(author%) *|[^%]]*%]%]', false},				['local'] = nil},
+			{['en'] = nil,														['local'] = {'%[%[[^|]*%(저자%) *|[^%]]*%]%]', false}},
+			},
+		['reject'] = {
+			{['en'] = {'about us', true},										['local'] = nil},
+			{['en'] = {'%f[%a][Aa]dvisor%f[%A]', false},						['local'] = nil},
+			{['en'] = {'allmusic', true},										['local'] = nil},
+			{['en'] = {'%f[%a][Aa]uthor%f[%A]', false},							['local'] = nil},
+			{['en'] = {'^[Bb]ureau$', false},									['local'] = nil},
+			{['en'] = {'business', true},										['local'] = nil},
+			{['en'] = {'cnn', true},											['local'] = nil},
+			{['en'] = {'collaborator', true},									['local'] = nil},
+			{['en'] = {'^[Cc]ompany$', false},									['local'] = nil},
+			{['en'] = {'contributor', true},									['local'] = nil},
+			{['en'] = {'contact us', true},										['local'] = nil},
+			{['en'] = {'correspondent', true},									['local'] = nil},
+			{['en'] = {'^[Dd]esk$', false},										['local'] = nil},
+			{['en'] = {'directory', true},										['local'] = nil},
+			{['en'] = {'%f[%(%[][%(%[]%s*eds?%.?%s*[%)%]]?$', false},			['local'] = nil},
+			{['en'] = {'[,%.%s]%f[e]eds?%.?$', false},							['local'] = nil},
+			{['en'] = {'^eds?[%.,;]', false},									['local'] = nil},
+			{['en'] = {'^[%(%[]%s*[Ee][Dd][Ss]?%.?%s*[%)%]]', false},			['local'] = nil},
+			{['en'] = {'%f[%a][Ee]dited%f[%A]', false},							['local'] = nil},
+			{['en'] = {'%f[%a][Ee]ditors?%f[%A]', false},						['local'] = nil},
+			{['en'] = {'%f[%a][Ee]mail%f[%A]', false},							['local'] = nil},
+			{['en'] = {'facebook', true},										['local'] = nil},
+			{['en'] = {'google', true},											['local'] = nil},
+			{['en'] = {'^[Gg]roup$', false},									['local'] = nil},
+			{['en'] = {'home page', true},										['local'] = nil},
+			{['en'] = {'^[Ii]nc%.?$', false},									['local'] = nil},
+			{['en'] = {'instagram', true},										['local'] = nil},
+			{['en'] = {'interviewer', true},									['local'] = nil},
+			{['en'] = {'^[Ll]imited$', false},									['local'] = nil},
+			{['en'] = {'linkedIn', true},										['local'] = nil},
+			{['en'] = {'^[Nn]ews$', false},										['local'] = nil},
+			{['en'] = {'[Nn]ews[ %-]?[Rr]oom', false},							['local'] = nil},
+			{['en'] = {'pinterest', true},										['local'] = nil},
+			{['en'] = {'policy', true},											['local'] = nil},
+			{['en'] = {'privacy', true},										['local'] = nil},
+			{['en'] = {'reuters', true},										['local'] = nil},
+			{['en'] = {'translator', true},										['local'] = nil},
+			{['en'] = {'tumblr', true},											['local'] = nil},
+			{['en'] = {'twitter', true},										['local'] = nil},
+			{['en'] = {'site name', true},										['local'] = nil},
+			{['en'] = {'statement', true},										['local'] = nil},
+			{['en'] = {'submitted', true},										['local'] = nil},
+			{['en'] = {'super.?user', false},									['local'] = nil},
+			{['en'] = {'%f['..is_Latn..'][Uu]ser%f[^'..is_Latn..']', false},	['local'] = nil},
+			{['en'] = {'updated', true},										['local'] = nil},
+			{['en'] = {'verfasser', true},										['local'] = nil},
+			{['en'] = nil,														['local'] = {'개인정보', true}},
+			{['en'] = nil,														['local'] = {'구글', true}},
+			{['en'] = nil,														['local'] = {'네이버', true}},
+			{['en'] = nil,														['local'] = {'네이버[ %-]?검색', false}},
+			{['en'] = nil,														['local'] = {'네이버[ %-]?블로그', false}},
+			{['en'] = nil,														['local'] = {'네이버[ %-]?카페', false}},
+			{['en'] = nil,														['local'] = {'네이트', true}},
+			{['en'] = nil,														['local'] = {'뉴스1', false}},
+			{['en'] = nil,														['local'] = {'뉴시스', false}},
+			{['en'] = nil,														['local'] = {'다음[ %-]?검색', false}},
+			{['en'] = nil,														['local'] = {'다음[ %-]?블로그', false}},
+			{['en'] = nil,														['local'] = {'다음[ %-]?카페', false}},
+			{['en'] = nil,														['local'] = {'디지털[ %-]?뉴스팀', false}},
+			{['en'] = nil,														['local'] = {'메인[ %-]?화면', false}},
+			{['en'] = nil,														['local'] = {'백과사전', true}},
+			{['en'] = nil,														['local'] = {'%f[%a]번역%f[%A]', false}},
+			{['en'] = nil,														['local'] = {'번역가', true}},
+			{['en'] = nil,														['local'] = {'번역자', true}},
+			{['en'] = nil,														['local'] = {'번역본', true}},
+			{['en'] = nil,														['local'] = {'보도[ %-]?자료', false}},
+			{['en'] = nil,														['local'] = {'보도국', true}},
+			{['en'] = nil,														['local'] = {'브런치', true}},
+			{['en'] = nil,														['local'] = {'브런치스토리', true}},
+			{['en'] = nil,														['local'] = {'블로그', true}},
+			{['en'] = nil,														['local'] = {'엮은이', false}},
+			{['en'] = nil,														['local'] = {'엮음', false}},
+			{['en'] = nil,														['local'] = {'연합뉴스', false}},
+			{['en'] = nil,														['local'] = {'온라인[ %-]?뉴스팀', false}},
+			{['en'] = nil,														['local'] = {'인스타그램', true}},
+			{['en'] = nil,														['local'] = {'찾아오는길', true}},
+			{['en'] = nil,														['local'] = {'카카오스토리', true}},
+			{['en'] = nil,														['local'] = {'트위터', true}},
+			{['en'] = nil,														['local'] = {'특파원', true}},
+			{['en'] = nil,														['local'] = {'티스토리', true}},
+			{['en'] = nil,														['local'] = {'페이스북', true}},
+			{['en'] = nil,														['local'] = {'%f[%a]편집%f[%A]', false}},
+			{['en'] = nil,														['local'] = {'편집가', true}},
+			{['en'] = nil,														['local'] = {'편집부', true}},
+			{['en'] = nil,														['local'] = {'편집자', true}},
+			{['en'] = nil,														['local'] = {'홈페이지', true}},
+			{['en'] = nil,														['local'] = {'홍보[ %-]?자료', false}},
+			{['en'] = nil,														['local'] = {'회사[ %-]?소개', false}},
+			{['en'] = nil,														['local'] = {'회사[ %-]?연혁', false}},
+			}
 		}
 	}
 
@@ -555,8 +794,21 @@ The standard does not address 'named' dates so, for the purposes of CS1|2,
 Easter and Christmas are defined here as 98 and 99, which should be out of the
 ISO 8601 (EDTF) range of uses for a while.
 
+local_date_names_from_mediawiki is a boolean.  When set to:
+	true – module will fetch local month names from MediaWiki for both date_names['local']['long'] and date_names['local']['short']; this will unconditionally overwrite manual translations
+	false – module will *not* fetch local month names from MediaWiki
+
+Caveat lector:  There is no guarantee that MediaWiki will provide short month names.  At your wiki you can test
+the results of the MediaWiki fetch in the debug console with this command (the result is alpha sorted):
+	=mw.dumpObject (p.date_names['local'])
+
+While the module can fetch month names from MediaWiki, it cannot fetch the quarter, season, and named date names
+from MediaWiki.  Those must be translated manually.
+
 ]]
 
+local local_date_names_from_mediawiki = true;									-- when false, manual translation required for date_names['local']['long'] and date_names['local']['short']; overwrites manual translations
+																				-- when true, module fetches long and short month names from MediaWiki
 local date_names = {
 	['en'] = {																	-- English
 		['long']	= {['January'] = 1, ['February'] = 2, ['March'] = 3, ['April'] = 4, ['May'] = 5, ['June'] = 6, ['July'] = 7, ['August'] = 8, ['September'] = 9, ['October'] = 10, ['November'] = 11, ['December'] = 12},
@@ -565,31 +817,66 @@ local date_names = {
 		['season']	= {['Winter'] = 24, ['Spring'] = 21, ['Summer'] = 22, ['Fall'] = 23, ['Autumn'] = 23},
 		['named']	= {['Easter'] = 98, ['Christmas'] = 99},
 		},
+																				-- when local_date_names_from_mediawiki = false
 	['local'] = {																-- replace these English date names with the local language equivalents
-		['long']	= {['1월']=1, ['2월']=2, ['3월']=3, ['4월']=4, ['5월']=5, ['6월']=6, ['7월']=7, ['8월']=8, ['9월']=9, ['10월']=10, ['11월']=11, ['12월']=12},
-		['short']	= {['1월']=1, ['2월']=2, ['3월']=3, ['4월']=4, ['5월']=5, ['6월']=6, ['7월']=7, ['8월']=8, ['9월']=9, ['10월']=10, ['11월']=11, ['12월']=12},
-		['quarter'] = {['1분기'] = 33, ['2분기'] = 34, ['3분기'] = 35, ['4분기'] = 36},		-- 로컬: 1분기, 1/4분기, 일분기, 일사분기 등의 형식 지원?
-		['season']	= {['겨울']=24, ['봄']=21, ['여름']=22, ['가을']=23},
-		['named']	= {['부활절'] = 98, ['크리스마스'] = 99, ['성탄절'] = 99},
+		['long']	= {['1월'] = 1, ['2월'] = 2, ['3월'] = 3, ['4월'] = 4, ['5월'] = 5, ['6월'] = 6, ['7월'] = 7, ['8월'] = 8, ['9월'] = 9, ['10월'] = 10, ['11월'] = 11, ['12월'] = 12},
+		['short']	= {['1월'] = 1, ['2월'] = 2, ['3월'] = 3, ['4월'] = 4, ['5월'] = 5, ['6월'] = 6, ['7월'] = 7, ['8월'] = 8, ['9월'] = 9, ['10월'] = 10, ['11월'] = 11, ['12월'] = 12},
+		['quarter'] = {['일사분기'] = 33, ['이사분기'] = 34, ['삼사분기'] = 35, ['사사분기'] = 36},
+		['season']	= {['겨울'] = 24, ['봄'] = 21, ['여름'] = 22, ['가을'] = 23},
+		['named']	= {['크리스마스'] = 99, ['성탄절'] = 99},
 		},
-	['inv_local_l'] = {},														-- used in date reformatting; copy of date_names['local'].long where k/v are inverted: [1]='<local name>' etc.
-	['inv_local_s'] = {},														-- used in date reformatting; copy of date_names['local'].short where k/v are inverted: [1]='<local name>' etc.
+	['inv_en_long'] = {},														-- 로컬. used in date reformatting; copy of date_names['en'].long where k/v are inverted: [1]='<en name>' etc.
+	['inv_en_short'] = {},														-- 로컬. used in date reformatting; copy of date_names['en'].short where k/v are inverted: [1]='<en name>' etc.
+	['inv_en_quarter'] = {},													-- 로컬. used in date reformatting; copy of date_names['en'].quarter where k/v are inverted: [1]='<en name>' etc.
+	['inv_en_season'] = {},														-- 로컬. used in date reformatting; copy of date_names['en'].season where k/v are inverted: [1]='<en name>' etc.
+	['inv_en_named'] = {},														-- 로컬. used in date reformatting; copy of date_names['en'].named where k/v are inverted: [1]='<en name>' etc.
+	['inv_local_long'] = {},													-- used in date reformatting & translation; copy of date_names['local'].long where k/v are inverted: [1]='<local name>' etc.
+	['inv_local_short'] = {},													-- used in date reformatting & translation; copy of date_names['local'].short where k/v are inverted: [1]='<local name>' etc.
+	['inv_local_quarter'] = {},													-- used in date translation; copy of date_names['local'].quarter where k/v are inverted: [1]='<local name>' etc.
+	['inv_local_season'] = {},													-- used in date translation; copy of date_names['local'].season where k/v are inverted: [1]='<local name>' etc.
+	['inv_local_named'] = {},													-- used in date translation; copy of date_names['local'].named where k/v are inverted: [1]='<local name>' etc.
 	['local_digits'] = {['0'] = '0', ['1'] = '1', ['2'] = '2', ['3'] = '3', ['4'] = '4', ['5'] = '5', ['6'] = '6', ['7'] = '7', ['8'] = '8', ['9'] = '9'},	-- used to convert local language digits to Western 0-9
 	['xlate_digits'] = {},
 	}
 
-for name, i in pairs (date_names['local'].long) do								-- this table is ['name'] = i
-	date_names['inv_local_l'][i] = name;										-- invert to get [i] = 'name' for conversions from ymd
+if local_date_names_from_mediawiki then											-- if fetching local month names from MediaWiki is enabled
+	local long_t = {};
+	local short_t = {};
+	for i=1, 12 do																-- loop 12x and 
+		local name = lang_obj:formatDate('F', '2022-' .. i .. '-1');			-- get long month name for each i
+		long_t[name] = i;														-- save it
+		name = lang_obj:formatDate('M', '2022-' .. i .. '-1');					-- get short month name for each i
+		short_t[name] = i;														-- save it
+	end
+	date_names['local']['long'] = long_t;										-- write the long table – overwrites manual translation
+	date_names['local']['short'] = short_t;										-- write the short table – overwrites manual translation
+end
+																				-- create inverted date-name tables for reformatting and/or translation
+for _, invert_t in pairs {{'long', 'inv_local_long'}, {'short', 'inv_local_short'}, {'quarter', 'inv_local_quarter'}, {'season', 'inv_local_season'}, {'named', 'inv_local_named'}} do
+	for name, i in pairs (date_names['local'][invert_t[1]]) do					-- this table is ['name'] = i
+		date_names[invert_t[2]][i] = name;										-- invert to get [i] = 'name' for conversions from ymd
+	end
 end
 
-for name, i in pairs (date_names['local'].short) do								-- this table is ['name'] = i
-	date_names['inv_local_s'][i] = name;										-- invert to get [i] = 'name' for conversions from ymd
+for _, invert_t in pairs {{'long', 'inv_en_long'}, {'short', 'inv_en_short'}, {'quarter', 'inv_en_quarter'}, {'season', 'inv_en_season'}, {'named', 'inv_en_named'}} do		 -- 로컬 시작
+	for name, i in pairs (date_names['en'][invert_t[1]]) do						-- this table is ['name'] = i
+		date_names[invert_t[2]][i] = name;										-- invert to get [i] = 'name' for conversions from ymd
+	end
+end																				 -- 로컬 끝
+
+if local_digits_from_mediawiki then												-- if fetching local digits from MediaWiki is enabled
+	local digits_t = {};
+	for i=0, 9 do																-- loop 10x and 
+		digits_t [lang_obj:formatNum (i)] = tostring (i);						-- format the loop indexer as local lang table index and assign loop indexer (a string) as the value
+	end
+	date_names['local_digits'] = digits_t;
 end
 
 for ld, ed in pairs (date_names.local_digits) do								-- make a digit translation table for simple date translation from en to local language using local_digits table
 	date_names.xlate_digits [ed] = ld;											-- en digit becomes index with local digit as the value
 end
 
+--[[																			-- 로컬. 사용하지 않는 기능(틀을 이용하여 날짜 표시 형식을 강제로 지정함).
 local df_template_patterns = {													-- table of redirects to {{Use dmy dates}} and {{Use mdy dates}}
 	'{{ *[Uu]se +(dmy) +dates *[|}]',	-- 1159k								-- sorted by approximate transclusion count
 	'{{ *[Uu]se +(mdy) +dates *[|}]',	-- 212k
@@ -606,14 +893,22 @@ local df_template_patterns = {													-- table of redirects to {{Use dmy da
 	'{{ *([Mm]DY) *[|}]',				-- 0
 	}
 
+local title_object = mw.title.getCurrentTitle();
+local content;																	-- done this way  so that unused templates appear in unused-template-reports; self-transcluded makes them look like they are used
+if 10 ~= title_object.namespace then											-- all namespaces except Template
+	content = title_object:getContent() or '';									-- get the content of the article or ''; new pages edited w/ve do not have 'content' until saved; ve does not preview; phab:T221625
+end
+
 local function get_date_format ()
-	local content = mw.title.getCurrentTitle():getContent() or '';				-- get the content of the article or ''; new pages edited w/ve do not have 'content' until saved; ve does not preview; phab:T221625
+	if not content then															-- nil content when we're in template
+		return nil;																-- auto-formatting does not work in Template space so don't set global_df
+	end
 	for _, pattern in ipairs (df_template_patterns) do							-- loop through the patterns looking for {{Use dmy dates}} or {{Use mdy dates}} or any of their redirects
 		local start, _, match = content:find(pattern);							-- match is the three letters indicating desired date format
 		if match then
-			content = content:match ('%b{}', start);							-- get the whole template
-			if content:match ('| *cs1%-dates *= *[lsy][sy]?') then				-- look for |cs1-dates=publication date length access-/archive-date length
-				return match:lower() .. '-' .. content:match ('| *cs1%-dates *= *([lsy][sy]?)');
+			local use_dates_template = content:match ('%b{}', start);			-- get the whole template
+			if use_dates_template:match ('| *cs1%-dates *= *[lsy][sy]?') then	-- look for |cs1-dates=publication date length access-/archive-date length
+				return match:lower() .. '-' .. use_dates_template:match ('| *cs1%-dates *= *([lsy][sy]?)');
 			else
 				return match:lower() .. '-all';									-- no |cs1-dates= k/v pair; return value appropriate for use in |df=
 			end
@@ -621,8 +916,8 @@ local function get_date_format ()
 	end
 end
 
-local global_df;
-
+local global_df;																-- TODO: add this to <global_cs1_config_t>?
+]]
 
 --[[-----------------< V O L U M E ,  I S S U E ,  P A G E S >------------------
 
@@ -636,6 +931,24 @@ local templates_using_volume = {'citation', 'audio-visual', 'book', 'conference'
 local templates_using_issue = {'citation', 'conference', 'episode', 'interview', 'journal', 'magazine', 'map', 'news', 'podcast'}
 local templates_not_using_page = {'audio-visual', 'episode', 'mailinglist', 'newsgroup', 'podcast', 'serial', 'sign', 'speech'}
 
+--[[
+
+These tables control when it is appropriate for {{citation}} to render |volume= and/or |issue=.  The parameter
+names in the tables constrain {{citation}} so that its renderings match the renderings of the equivalent cs1
+templates.  For example, {{cite web}} does not support |volume= so the equivalent {{citation |website=...}} must
+not support |volume=.
+
+]]
+
+local citation_no_volume_t = {													-- {{citation}} does not render |volume= when these parameters are used
+	'website', 'mailinglist', 'script-website', '웹사이트', '메일링리스트', '문자웹사이트',
+	}
+local citation_issue_t = {														-- {{citation}} may render |issue= when these parameters are used
+	'journal', 'magazine', 'newspaper', 'periodical', 'work',
+	'script-journal', 'script-magazine', 'script-newspaper', 'script-periodical', 'script-work',
+	'저널', '잡지', '뉴스', '신문', '작품',
+	'문자저널', '문자잡지', '문자뉴스', '문자신문', '문자작품',
+	}
 
 --[[
 
@@ -650,25 +963,26 @@ local vol_iss_pg_patterns = {
 		'^[Pp][Pp]?%.&nbsp;',													-- from {{p.}} and {{pp.}} templates
 		'^[Pp]ages?',
 		'^[Pp]gs.?',
-		'^쪽?',																	-- 로컬: 확인 필요
-		'^페이지?'
+		'^[%d]*쪽',
+		'^[%d]*페이지',
+		'^[%d]*면',
 		},
-	vpatterns = {																-- patterns for |volume=
-		'^volumes?',
+	vi_patterns_t = {															-- combined to catch volume-like text in |issue= and issue-like text in |volume=
+		'^volumes?',															-- volume-like text
 		'^vols?[%.:=]?',
-		'^권?'
-		},
-	ipatterns = {																-- patterns for |issue=
-		'^issues?',
+		'^[%d]*권',
+		
+		'^issues?',																--issue-like text
 		'^iss[%.:=]?',
 		'^numbers?',
 		'^nos?%A',																-- don't match 'november' or 'nostradamus'
 		'^nr[%.:=]?',
-		'^n[%.:= ]',																-- might be a valid issue without separator (space char is sep char here)
-		'^호?',
-		'^회?',
-		'^화?'
-		}
+		'^n[%.:= ]',															-- might be a valid issue without separator (space char is sep char here)
+		'^n°',																	-- 'n' with degree sign (U+00B0)
+		'^№',																	-- precomposed unicode numero character (U+2116)
+		'^[%d]*호',
+		'^[%d]*장',
+		},
 	}
 
 --[[--------------------------< K E Y W O R D S >-------------------------------
@@ -692,32 +1006,35 @@ it is recommended that the English keywords remain in these tables.
 ]]
 
 local keywords = {
-	['amp'] = {'&', 'amp', 'ampersand', '앰퍼샌드', '앤드'}, 					-- |name-list-style=
-	['and'] = {'and', 'serial', '및'},											-- |name-list-style=
+	['amp'] = {'&', 'amp', 'ampersand', '앰퍼샌드'}, 										-- |name-list-style=
+	['and'] = {'and', 'serial', '앤드'},												-- |name-list-style=
 	['affirmative'] = {'yes', 'true', 'y', '예', '참'},										-- |no-tracking=, |no-pp= -- Used by InternetArchiveBot
-	['afterword'] = {'afterword'},												-- |contribution=
-	['bot: unknown'] = {'bot: unknown'},										-- |url-status= -- Used by InternetArchiveBot
+	['afterword'] = {'afterword', '후문', '후기'},												-- |contribution=
+	['bot: unknown'] = {'bot: unknown', 'bot: 알 수 없음'},										-- |url-status= -- Used by InternetArchiveBot
 	['cs1'] = {'cs1'},															-- |mode=
 	['cs2'] = {'cs2'},															-- |mode=
-	['dead'] = {'dead', 'deviated', '깨짐', '죽음'},											-- |url-status= -- Used by InternetArchiveBot
+	['dead'] = {'dead', 'deviated', '깨짐', '죽음', '변경'},											-- |url-status= -- Used by InternetArchiveBot
 	['dmy'] = {'dmy'},															-- |df=
 	['dmy-all'] = {'dmy-all'},													-- |df=
-	['foreword'] = {'foreword'},												-- |contribution=
-	['free'] = {'free'},														-- |<id>-access= -- Used by InternetArchiveBot
+	['etal'] = {'etal', '외'},															-- |display-authors=, etc
+	['foreword'] = {'foreword', '서문'},												-- |contribution=
+	['free'] = {'free', '자유', '무료'},														-- |<id>-access= -- Used by InternetArchiveBot
 	['harv'] = {'harv'},														-- |ref=; this no longer supported; is_valid_parameter_value() called with <invert> = true
-	['introduction'] = {'introduction'},										-- |contribution=
-	['limited'] = {'limited', '제한'},											-- |url-access= -- Used by InternetArchiveBot
-	['live'] = {'live', '살아있음'},											-- |url-status= -- Used by InternetArchiveBot
+	['introduction'] = {'introduction', '서언', '머리말', '권두언', '개요'},										-- |contribution=
+	['limited'] = {'limited', '제한'},													-- |url-access= -- Used by InternetArchiveBot
+	['live'] = {'live', '정상'},														-- |url-status= -- Used by InternetArchiveBot
+	['ko'] = {'ko'},															-- 로컬. |df=
+	['ko-all'] = {'ko-all'},													-- 로컬. |df=
 	['mdy'] = {'mdy'},															-- |df=
 	['mdy-all'] = {'mdy-all'},													-- |df=
-	['none'] = {'none', '없음'},												-- |postscript=, |ref=, |title=, |type= -- Used by InternetArchiveBot
-	['off'] = {'off', '끄기'},													-- |title= (potentially also: |title-link=, |postscript=, |ref=, |type=)
-	['preface'] = {'preface'},													-- |contribution=
-	['registration'] = {'registration', '등록'},								-- |url-access= -- Used by InternetArchiveBot
-	['subscription'] = {'subscription', '구독'},								-- |url-access= -- Used by InternetArchiveBot
-	['unfit'] = {'unfit', '부적절'},											-- |url-status= -- Used by InternetArchiveBot
-	['usurped'] = {'usurped'},													-- |url-status= -- Used by InternetArchiveBot
-	['vanc'] = {'vanc', '밴쿠버'},														-- |name-list-style=
+	['none'] = {'none', '없음'},														-- |postscript=, |ref=, |title=, |type= -- Used by InternetArchiveBot
+	['off'] = {'off', '끄기'},															-- |title= (potentially also: |title-link=, |postscript=, |ref=, |type=)
+	['preface'] = {'preface', '추천사', '추천서문'},													-- |contribution=
+	['registration'] = {'registration', '등록'},										-- |url-access= -- Used by InternetArchiveBot
+	['subscription'] = {'subscription', '구독'},										-- |url-access= -- Used by InternetArchiveBot
+	['unfit'] = {'unfit', '부적절'},														-- |url-status= -- Used by InternetArchiveBot
+	['usurped'] = {'usurped', '도용'},													-- |url-status= -- Used by InternetArchiveBot
+	['vanc'] = {'vanc'},														-- |name-list-style=
 	['ymd'] = {'ymd'},															-- |df=
 	['ymd-all'] = {'ymd-all'},													-- |df=
 	--	['yMd'] = {'yMd'},														-- |df=; not supported at en.wiki
@@ -792,7 +1109,7 @@ parameters named in this table's keys.
 local keywords_lists = {
 	['yes_true_y'] = make_keywords_list ({keywords.affirmative}),
 	['contribution'] = make_keywords_list ({keywords.afterword, keywords.foreword, keywords.introduction, keywords.preface}),
-	['df'] = make_keywords_list ({keywords.dmy, keywords['dmy-all'], keywords.mdy, keywords['mdy-all'], keywords.ymd, keywords['ymd-all']}),
+	['df'] = make_keywords_list ({keywords.dmy, keywords['dmy-all'], keywords.ko, keywords['ko-all'], keywords.mdy, keywords['mdy-all'], keywords.ymd, keywords['ymd-all']}),	-- 로컬
 	--	['df'] = make_keywords_list ({keywords.dmy, keywords['dmy-all'], keywords.mdy, keywords['mdy-all'], keywords.ymd, keywords['ymd-all'], keywords.yMd, keywords['yMd-all']}),	-- not supported at en.wiki
 	['mode'] = make_keywords_list ({keywords.cs1, keywords.cs2}),
 	['name-list-style'] = make_keywords_list ({keywords.amp, keywords['and'], keywords.vanc}),
@@ -802,6 +1119,76 @@ local keywords_lists = {
 	['id-access'] = make_keywords_list ({keywords.free}),
 	}
 
+
+--[[--------------------------< C S 1 _ C O N F I G _ G E T >--------------------------------------------------
+
+fetch and validate values from {{cs1 config}} template to fill <global_cs1_config_t>
+
+no error messages; when errors are detected, the parameter value from {{cs1 config}} is blanked.
+
+Supports all parameters and aliases associated with the metaparameters: DisplayAuthors, DisplayContributors,
+DisplayEditors, DisplayInterviewers, DisplayTranslators, NameListStyle, and Mode.  The DisplayWhatever metaparameters
+accept numeric values only (|display-authors=etal and the like is not supported).
+
+]]
+
+local global_cs1_config_t = {};													-- TODO: add value returned from get_date_format() to this table?
+--[=[																			-- 로컬. 사용하지 않는 기능(틀을 이용하여 일부 변수의 표시 형식을 제어함).
+local function get_cs1_config ()
+	if not content then															-- nil content when we're in template
+		return nil;																-- auto-formatting does not work in Template space so don't set global_df
+	end
+
+	local start = content:find('{{ *[Cc][Ss]1 config *[|}]');					-- <start> is offset into <content> when {{cs1 config}} found; nil else
+	if start then
+		local cs1_config_template = content:match ('%b{}', start);				-- get the whole template
+
+		if not cs1_config_template then
+			return nil;
+		end
+
+		local params_t = mw.text.split (cs1_config_template:gsub ('^{{%s*', ''):gsub ('%s*}}$', ''), '%s*|%s*');	-- remove '{{' and '}}'; make a sequence of parameter/value pairs (split on the pipe)
+		table.remove (params_t, 1);												-- remove the template name because it isn't a parameter/value pair
+
+		local config_meta_params_t = {'DisplayAuthors', 'DisplayContributors', 'DisplayEditors', 'DisplayInterviewers', 'DisplayTranslators', 'NameListStyle', 'Mode'};
+		local meta_param_map_t = {};											-- list of accepted parameter names usable in {{cs1 config}} goes here
+		
+		for _, meta_param in ipairs (config_meta_params_t) do					-- for i18n using <config_meta_params_t>, map template parameter names to their metaparameter equivalents
+			if 'table' == type (aliases[meta_param]) then						-- if <meta_param> is a sequence, 
+				for _, param in ipairs (aliases[meta_param]) do					-- extract its contents
+					meta_param_map_t[param] = meta_param;						-- and add to <meta_param_map_t>
+				end
+			else
+				meta_param_map_t[aliases[meta_param]] = meta_param;				-- not a sequence so just add the parameter to <meta_param_map_t>
+			end
+		end
+
+		local keywords_t = {};													-- map valid keywords to their associate metaparameter; reverse form of <keyword_lists[key] for these metaparameters
+		for _, metaparam_t in ipairs ({{'NameListStyle', 'name-list-style'}, {'Mode', 'mode'}}) do	-- only these metaparameter / keywords_lists key pairs
+			for _, keyword in ipairs (keywords_lists[metaparam_t[2]]) do		-- spin through the list of keywords
+				keywords_t[keyword] = metaparam_t[1];							-- add [keyword] = metaparameter to the map
+			end
+		end
+
+		for _, param in ipairs (params_t) do									-- spin through the {{cs1 config}} parameters and fill <global_cs1_config_t>
+			local k, v = param:match ('([^=]-)%s*=%s*(.+)');					-- <k> is the parameter name; <v> is parameter's assigned value
+			if k then
+				if k:find ('^display') then										-- if <k> is one of the |display-<namelist>= parameters
+					if v:match ('%d+') then										-- the assigned value must be digits; doesn't accept 'etal'
+						global_cs1_config_t[meta_param_map_t[k]]=v;				-- add the display param and its value to globals table
+					end
+				else
+					if keywords_t[v] == meta_param_map_t[k] then				-- keywords_t[v] returns nil or the metaparam name; these must be the same
+						global_cs1_config_t[meta_param_map_t[k]]=v;				-- add the parameter and its value to globals table
+					end
+				end
+			end
+		end
+	end
+end
+
+get_cs1_config ();																-- fill <global_cs1_config_t>
+]=]
 
 --[[---------------------< S T R I P M A R K E R S >----------------------------
 
@@ -838,9 +1225,9 @@ local invisible_defs = {
 	}
 
 local invisible_chars = {
-	{'대체', '\239\191\189'},													-- U+FFFD, EF BF BD
+	{'대체', '\239\191\189'},											-- U+FFFD, EF BF BD
 	{'폭 없는 접합자', '('.. invisible_defs.zwj .. ')'},						-- U+200D, E2 80 8D; capture because zwj may be allowed
-	{'폭 없는 공백', '\226\128\139'},											-- U+200B, E2 80 8B
+	{'폭 없는 공백', '\226\128\139'},										-- U+200B, E2 80 8B
 	{'헤어 공백', '\226\128\138'},												-- U+200A, E2 80 8A
 	{'소프트 하이픈', '\194\173'},												-- U+00AD, C2 AD
 	{'수평 탭', '\009'},													-- U+0009 (HT), 09
@@ -848,7 +1235,7 @@ local invisible_chars = {
 	{'줄 바꿈 없는 공백', '\194\160'},												-- U+00A0 (NBSP), C2 A0
 	{'캐리지 리턴', '\013'},												-- U+000D (CR), 0D
 	{'스트립마커', stripmarkers.any},											-- stripmarker; may or may not be an error; capture returns the stripmaker type
-	{'삭제', '('.. invisible_defs.del .. ')'},								-- U+007F (DEL), 7F; must be done after stripmarker test; capture to distinguish isolated del chars not part of stripmarker
+	{'지움', '('.. invisible_defs.del .. ')'},								-- U+007F (DEL), 7F; must be done after stripmarker test; capture to distinguish isolated del chars not part of stripmarker
 	{'C0 제어', '[\000-\008\011\012\014-\031]'},								-- U+0000–U+001F (NULL–US), 00–1F (except HT, LF, CR (09, 0A, 0D))
 	{'C1 제어', '[\194\128-\194\159]'},										-- U+0080–U+009F (XXX–APC), C2 80 – C2 9F
 	--	{'Specials', '[\239\191\185-\239\191\191]'},								-- U+FFF9-U+FFFF, EF BF B9 – EF BF BF
@@ -883,28 +1270,53 @@ the pattern is used by has_invisible_chars() and coins_cleanup()
 
 local indic_script = '[\224\164\128-\224\181\191\224\163\160-\224\183\191\225\128\128-\225\130\159\234\167\160-\234\167\191\234\169\160-\234\169\191]';
 
--- list of emoji that use zwj character (U+200D) to combine with another emoji
-local emoji = {																	-- indexes are decimal forms of the hex values in U+xxxx
+-- list of emoji that use a zwj character (U+200D) to combine with another emoji
+-- from: https://unicode.org/Public/emoji/17.0/emoji-zwj-sequences.txt; version: 17.0; 2025-01-08
+-- table created by: [[:en:Module:Make emoji zwj table]]
+local emoji_t = {																-- indexes are decimal forms of the hex values in U+xxxx
+	[8596] = true,																-- U+2194 ↔ left right arrow
+	[8597] = true,																-- U+2195 ↕ up down arrow
+	[9760] = true,																-- U+2620 ☠ skull and crossbones
+	[9792] = true,																-- U+2640 ♀ female sign
+	[9794] = true,																-- U+2642 ♂ male sign
+	[9877] = true,																-- U+2695 ⚕ staff of aesculapius
+	[9878] = true,																-- U+2696 ⚖ scales
+	[9895] = true,																-- U+26A7 ⚧ male with stroke and male and female sign
+	[9992] = true,																-- U+2708 ✈ airplane
+	[10052] = true,																-- U+2744 ❄ snowflake
+	[10084] = true,																-- U+2764 ❤ heavy black heart
+	[10145] = true,																-- U+27A1 ➡ black rightwards arrow
+	[11035] = true,																-- U+2B1B ⬛ black large square
 	[127752] = true,															-- U+1F308 🌈 rainbow
+	[127787] = true,															-- U+1F32B 🌫 fog
 	[127806] = true,															-- U+1F33E 🌾 ear of rice
 	[127859] = true,															-- U+1F373 🍳 cooking
+	[127868] = true,															-- U+1F37C 🍼 baby bottle
+	[127876] = true,															-- U+1F384 🎄 christmas tree
 	[127891] = true,															-- U+1F393 🎓 graduation cap
 	[127908] = true,															-- U+1F3A4 🎤 microphone
 	[127912] = true,															-- U+1F3A8 🎨 artist palette
 	[127979] = true,															-- U+1F3EB 🏫 school
 	[127981] = true,															-- U+1F3ED 🏭 factory
+	[128048] = true,															-- U+1F430 🐰 rabbit face
 	[128102] = true,															-- U+1F466 👦 boy
 	[128103] = true,															-- U+1F467 👧 girl
 	[128104] = true,															-- U+1F468 👨 man
 	[128105] = true,															-- U+1F469 👩 woman
 	[128139] = true,															-- U+1F48B 💋 kiss mark
+	[128165] = true,															-- U+1F4A5 💥 collision symbol
+	[128168] = true,															-- U+1F4A8 💨 dash symbol
+	[128171] = true,															-- U+1F4AB 💫 dizzy symbol
 	[128187] = true,															-- U+1F4BB 💻 personal computer
 	[128188] = true,															-- U+1F4BC 💼 brief case
+	[128293] = true,															-- U+1F525 🔥 fire
 	[128295] = true,															-- U+1F527 🔧 wrench
 	[128300] = true,															-- U+1F52C 🔬 microscope
 	[128488] = true,															-- U+1F5E8 🗨 left speech bubble
 	[128640] = true,															-- U+1F680 🚀 rocket
 	[128658] = true,															-- U+1F692 🚒 fire engine
+	[129001] = true,															-- U+1F7E9 🟩 large green square
+	[129003] = true,															-- U+1F7EB 🟫 large brown square
 	[129309] = true,															-- U+1F91D 🤝 handshake
 	[129455] = true,															-- U+1F9AF 🦯 probing cane
 	[129456] = true,															-- U+1F9B0 🦰 emoji component red hair
@@ -915,13 +1327,11 @@ local emoji = {																	-- indexes are decimal forms of the hex values i
 	[129468] = true,															-- U+1F9BC 🦼 motorized wheelchair
 	[129469] = true,															-- U+1F9BD 🦽 manual wheelchair
 	[129489] = true,															-- U+1F9D1 🧑 adult
-	[9760] = true,																-- U+2620 ☠ skull and crossbones
-	[9792] = true,																-- U+2640 ♀ female sign
-	[9794] = true,																-- U+2642 ♂ male sign
-	[9877] = true,																-- U+2695 ⚕ staff of aesculapius
-	[9878] = true,																-- U+2696 ⚖ scales
-	[9992] = true,																-- U+2708 ✈ airplane
-	[10084] = true,																-- U+2764 ❤ heavy black heart
+	[129490] = true,															-- U+1F9D2 🧒 child
+	[129648] = true,															-- U+1FA70 🩰 ballet shoes
+	[129657] = true,															-- U+1FA79 🩹 adhesive bandage
+	[129775] = true,															-- U+1FAEF 🫯 fight cloud
+	[129778] = true,															-- U+1FAF2 🫲 leftwards hand
 	}
 
 
@@ -931,21 +1341,24 @@ These tables and constants support various language-specific functionality.
 
 ]]
 
-local this_wiki_code = mw.getContentLanguage():getCode();						-- get this wiki's language code
-	if string.match (mw.site.server, 'wikidata') then
-		this_wiki_code = mw.getCurrentFrame():preprocess('{{int:lang}}');		-- on Wikidata so use interface language setting instead
+--local this_wiki_code = mw.getContentLanguage():getCode();						-- get this wiki's language code
+local this_wiki_code = lang_obj:getCode();										-- get this wiki's language code
+if string.match (mw.site.server, 'wikidata') then
+		this_wiki_code = mw.getCurrentFrame():callParserFunction('int', {'lang'}); -- on Wikidata so use interface language setting instead
 	end
 
 local mw_languages_by_tag_t = mw.language.fetchLanguageNames (this_wiki_code, 'all');	-- get a table of language tag/name pairs known to Wikimedia; used for interwiki tests
-local mw_languages_by_name_t = {};
-	for k, v in pairs (mw_languages_by_tag_t) do								-- build a 'reversed' table name/tag language pairs know to MediaWiki; used for |language=
-		v = mw.ustring.lower (v);												-- lowercase for tag fetch; get name's proper case from mw_languages_by_tag_t[<tag>]
-		if mw_languages_by_name_t[v] then										-- when name already in the table
-			if 2 == #k or 3 == #k then											-- if tag does not have subtags
-				mw_languages_by_name_t[v] = k;									-- prefer the shortest tag for this name
-			end
-		else																	-- here when name not in the table
-			mw_languages_by_name_t[v] = k;										-- so add name and matching tag
+local mw_languages_by_name_t = {};												-- 로컬 시작. 한국어 및 영어 이름 모두 사용.
+	for _, mw_languages_by_tag_table in ipairs{ mw_languages_by_tag_t, mw.language.fetchLanguageNames ('en', 'all') } do
+		for k, v in pairs (mw_languages_by_tag_table) do						-- build a 'reversed' table name/tag language pairs know to MediaWiki; used for |language=
+			v = mw.ustring.lower (v);											-- lowercase for tag fetch; get name's proper case from mw_languages_by_tag_t[<tag>]
+			if mw_languages_by_name_t[v] then									-- when name already in the table
+				if 2 == #k or 3 == #k then										-- if tag does not have subtags
+					mw_languages_by_name_t[v] = k;								-- prefer the shortest tag for this name
+				end
+			else																-- here when name not in the table
+				mw_languages_by_name_t[v] = k;									-- so add name and matching tag
+			end																	-- 로컬 끝.
 		end
 	end
 
@@ -965,10 +1378,12 @@ language codes that apply only to |script-title= and |script-chapter=
 ]]
 
 local script_lang_codes = {
-	'ab', 'am', 'ar', 'be', 'bg', 'bn', 'bo', 'bs', 'dv', 'dz', 'el', 'fa', 'gu', 
-	'he', 'hi', 'hy', 'ja', 'ka', 'kk', 'km', 'kn', 'ku', 'ky', 'lo', 'mk',
-	'ml', 'mn', 'mr', 'my', 'ne', 'or', 'ota', 'ps', 'ru', 'sd', 'si', 'sr', 'syc',
-	'ta', 'te', 'tg', 'th', 'ti', 'ug', 'uk', 'ur', 'uz', 'yi', 'yue', 'zh'
+	'ab', 'am', 'ar', 'as', 'az', 'be', 'bg', 'bn', 'bo', 'bs', 'ce', 'chr',
+	'cu', 'dv', 'dz', 'el', 'fa', 'grc', 'gu', 'he', 'hi', 'hy', 'ja', 'ka',
+	'kaa', 'kk', 'km', 'kn', 'ku', 'ky', 'lo', 'mk', 'ml', 'mn', 'mni',			-- 로컬. ko 제거. scritp- 기능 미사용.
+	'mr', 'my', 'ne', 'or', 'ota', 'pa', 'ps', 'ru', 'sd', 'si', 'sr', 'syc',
+	'ta', 'te', 'tg', 'th', 'ti', 'tkr', 'tt', 'ug', 'uk', 'ur', 'uz', 'yi',
+	'yue', 'zh', 'zgh'
 	};
 
 
@@ -976,50 +1391,589 @@ local script_lang_codes = {
 
 These tables hold language information that is different (correct) from MediaWiki's definitions
 
-For each ['code'] = 'language name' in lang_code_remap{} there must be a matching ['language name'] = {'language name', 'code'} in lang_name_remap{}
+For each ['<tag>'] = 'language name' in lang_code_remap{} there must be a matching ['language name'] = {'language name', '<tag>'} in lang_name_remap{}
 
-lang_code_remap{}:
-	key is always lowercase ISO 639-1, -2, -3 language code or a valid lowercase IETF language tag
-	value is properly spelled and capitalized language name associated with key
-	only one language name per key;
+lang_tag_remap{}:
+	key is always lowercase ISO 639-1, -2, -3 language tag or a valid lowercase IETF language tag
+	value is properly spelled and capitalized language name associated with <tag>
+	only one language name per <tag>;
 	key/value pair must have matching entry in lang_name_remap{}
 
 lang_name_remap{}:
 	key is always lowercase language name
-	value is a table the holds correctly spelled and capitalized language name [1] and associated code [2] (code must match a code key in lang_code_remap{})
-	may have multiple keys referring to a common preferred name and code; For example:
+	value is a table the holds correctly spelled and capitalized language name [1] and associated tag [2] (tag must match a tag key in lang_tag_remap{})
+	may have multiple keys referring to a common preferred name and tag; For example:
 		['kolsch'] and ['kölsch'] both refer to 'Kölsch' and 'ksh'
 
 ]]
 
-local lang_code_remap = {														-- used for |language= and |script-title= / |script-chapter=
-	['als'] = '토스크 알바니아어',												-- 'Tosk Albanian' / MediaWiki returns Alemannisch (알레만어)
-	['bh'] = '비하르어',														-- 'Bihari' / MediaWiki uses 'bh' as a subdomain name for Bhojpuri (보지푸리어) Wikipedia: bh.wikipedia.org
-	['bla'] = '블랙풋어',														-- 'Blackfoot' / MediaWiki/IANA/ISO 639: Siksika (식시카어); use en.wiki preferred name
---	['bn'] = 'Bengali',															-- MediaWiki returns Bangla
-	['ca-valencia'] = '발렌시아어',												-- 'Valencian' / IETF variant of Catalan
-	['ilo'] = '일로카노어',														-- 'Ilocano' / MediaWiki/IANA/ISO 639: Iloko (일로코어); use en.wiki preferred name
-	['ksh'] = '쾰치어',															-- 'Kölsch' / MediaWiki: Colognian (콜로그니안어); use IANA/ISO 639 preferred name
-	['ksh-x-colog'] = '콜로그니안어',											-- 'Colognian' / override MediaWiki ksh; no IANA/ISO 639 code for Colognian; IETF private code created at Module:Lang/data
-	['mis-x-ripuar'] = '리프아리아어',											-- 'Ripuarian' / override MediaWiki ksh; no IANA/ISO 639 code for Ripuarian; IETF private code created at Module:Lang/data
-	['nan-tw'] = '대만어',														-- 'Taiwanese Hokkien' / make room for MediaWiki/IANA/ISO 639 nan: Min Nan Chinese and support en.wiki preferred name
+local lang_tag_remap = {														-- used for |language= and |script-title= / |script-chapter=
+-- CLDR 또는 LocalNames와 다른 이름 사용
+	['ab'] = '압하스어',														-- CLDR 압카즈어, Abkhazian
+	['akz'] = '앨라배마어',														-- CLDR Alabama
+	['aln'] = '게그 알바니아어',												-- CLDR Gheg Albanian
+	['alt'] = '알타이어',														-- CLDR 남부 알타이어, Southern Altai
+	['anp'] = '앙기카어',														-- CLDR 앙가어, Angika
+	['arn'] = '마푸체어',														-- CLDR 마푸둥군어, Mapuche
+	['aro'] = '아라오나어',														-- CLDR Araona
+	['ars'] = '나지드 아랍어',													-- CLDR 아랍어(나즈디), Najdi Arabic
+	['ase'] = '미국 수어',														-- CLDR American Sign Language
+	['ast'] = '아스투리아스어',													-- CLDR 아스투리아어, Asturian
+	['av'] = '아바르어',														-- CLDR 아바릭어, Avaric
+	['avk'] = '코타바',															-- CLDR Kotava
+	['awa'] = '아와드어',														-- CLDR 아와히어, Awadhi
+	['ba'] = '바시키르어',														-- CLDR 바슈키르어, Bashkir
+	['bar'] = '바이에른어',														-- CLDR Bavarian
+	['bbc'] = '바탁 토바어',													-- CLDR Batak Toba
+	['bew'] = '베타위어',														-- CLDR Betawi
+	['bfq'] = '바다가어',														-- CLDR Badaga
+	['bgc'] = '하리아나어',														-- CLDR 하리안비어, Haryanvi
+	['bho'] = '보지푸리어',														-- CLDR 호즈푸리어, Bhojpuri
+	['bi'] = '비슬라마',														-- CLDR 비슬라마어, Bislama
+	['bjn'] = '반자르어',														-- CLDR Banjar
+	['blo'] = '아니이어',														-- CLDR Anii
+	['blt'] = '따이담어',														-- CLDR Tai Dam
+	['bpy'] = '비슈누프리야어',													-- CLDR Bishnupriya
+	['bqi'] = '바흐티아리어',													-- CLDR Bakhtiari
+	['bua'] = '부랴트어',														-- CLDR 부리아타, Buriat
+	['ca'] = '카탈루냐어',														-- CLDR 카탈로니아어, Catalan
+	['cad'] = '캐도어',															-- CLDR 카도어, Caddo
+	['chp'] = '치퍼와이언어',													-- CLDR 치페우얀, Chipewyan
+	['cic'] = '치카소어',														-- CLDR Chickasaw
+	['ckb'] = '소라니어',														-- CLDR 소라니 쿠르드어, Central Kurdish
+	['cnh'] = '하카 친어',														-- LocalNames 하카친어, Hakka-Chin
+	['cps'] = '카피스논어',														-- CLDR Capiznon
+	['crh'] = '크림 타타르어',													-- CLDR '크리민 터키어; 크리민 타타르어', 'Crimean Tatar'
+	['crs'] = '세이셀 크리올',													-- CLDR 세이셸 크리올 프랑스, Seselwa Creole French
+	['csb'] = '카슈브어',														-- CLDR 카슈비아어, Kashubian
+	['dar'] = '다르긴어',														-- CLDR 다르그와어, Dargwa
+	['de-at'] = '오스트리아 독일어',											-- CLDR Austrian German
+	['de-ch'] = '스위스 표준 독일어',											-- CLDR 고지 독일어(스위스), Swiss High German
+	['den'] = '슬레이비어',														-- CLDR 슬라브어, Slave
+	['dsb'] = '저지 소르브어',													-- CLDR 저지 소르비아어, Lower Sorbian
+	['dtp'] = '중앙 두순어',													-- CLDR Central Dusu 
+	['dyo'] = '졸라포니어',														-- CLDR 졸라 포니어, Jola-Fonyi
+	['dyu'] = '줄라어',															-- CLDR 드율라어, Dyula
+	['dzg'] = '다자가어',														-- CLDR 다장가어, Dazaga
+	['efi'] = '에피크어',														-- CLDR 이픽어, Efik
+	['egl'] = '에밀리아어',														-- CLDR Emilian
+	['en-au'] = '오스트레일리아 영어',											-- CLDR Australian English
+	['en-ca'] = '캐나다 영어',													-- CLDR Canadian English
+	['en-gb'] = '영국 영어',													-- CLDR British English
+	['en-us'] = '미국 영어',													-- CLDR American English
+	['eo'] = '에스페란토',														-- CLDR 에스페란토어, Esperanto
+	['es-419'] = '라틴 아메리카 스페인어',										-- CLDR Latin American Spanish
+	['es-es'] = '유럽 스페인어',												-- CLDR 스페인어(유럽), European Spanish
+	['es-mx'] = '멕시코 스페인어',												-- CLDR Mexican Spanish
+	['esu'] = '중앙 알래스카 유픽어',											-- CLDR Central Yupik
+	['etu'] = '자감어',															-- LocalNames 에자감어, Ejagham
+	['ewo'] = '에원도어',														-- CLDR 이원도어, Ewondo
+	['fan'] = '팡어',															-- CLDR 팡그어, Fang
+	['fit'] = '메앤키엘리',														-- CLDR Tornedalen Finnish
+	['fr-ca'] = '캐나다 프랑스어',												-- CLDR Canadian French
+	['fr-ch'] = '스위스 프랑스어',												-- CLDR Swiss French
+	['frp'] = '프랑코프로방스어',												-- CLDR Arpitan
+	['frr'] = '북프리슬란트어',													-- CLDR 북부 프리지아어, Northern Frisian
+	['frs'] = '동프리슬란트어',													-- CLDR 동부 프리슬란드어, Eastern Frisian
+	['fy'] = '서프리슬란트어',													-- CLDR 서부 프리지아어, Western Frisian
+	['gag'] = '가가우즈어',														-- CLDR 가가우스어, Gagauz
+	['gez'] = '그으즈어',														-- CLDR 게이즈어, Geez 
+	['gon'] = '곤드어',															-- CLDR 곤디어, Gondi
+	['gpe'] = '가나 피진 영어',													-- LocalNames 가나 피진, Ghanaian Pidgin
+	['grb'] = '그레보어',														-- CLDR 게르보어, Grebo
+	['gsw'] = '스위스 독일어',													-- CLDR 독일어(스위스), Swiss German / LocalNames Alemannic
+	['guc'] = '와유어',															-- CLDR Wayuu
+	['gur'] = '파레파레어',														-- CLDR Frafra
+	['gv'] = '맨어',															-- CLDR 맹크스어, Manx
+	['hbo'] = '고대 히브리어',													-- LocalNames 성서 히브리어, Biblical Hebrew
+	['hi-latn'] = '힌디어 (라틴 문자)',											-- CLDR Hindi (Latin)
+	['hil'] = '힐리가이논어',													-- CLDR 헤리가뇬어, Hiligaynon
+	['hit'] = '히타이트어',														-- CLDR 하타이트어, Hittite
+	['hmn'] = '몽어',															-- CLDR 히몸어, Hmong
+	['hnj'] = '몽은주아어',														-- CLDR Hmong Njua
+	['ho'] = '히리 모투',														-- CLDR 히리 모투어, Hiri Motu
+	['hsb'] = '고지 소르브어',													-- CLDR 고지 소르비아어, Upper Sorbian
+	['ia'] = '인테르링구아',													-- CLDR 인터랑구아, Interlingua
+	['ig'] = '이보어',															-- CLDR 이그보어, Igbo
+	['ilo'] = '일로카노어',														-- CLDR 이로코어, Iloko
+	['inh'] = '인구시어',														-- CLDR 인귀시어, Ingush
+	['io'] = '이도',															-- CLDR 이도어, Ido
+	['iu'] = '이누크티투트어',													-- CLDR 이눅티투트어, Inuktitut
+	['izh'] = '잉그리아어',														-- CLDR Ingrian
+	['jam'] = '자메이카 크리올 영어',											-- CLDR Jamaican Creole English
+	['jbo'] = '로지반',															-- CLDR 로반어, Lojban
+	['jmc'] = '마차메어',														-- CLDR Machame
+	['jpr'] = '유대 페르시아어',												-- CLDR 유대-페르시아어, Judeo-Persian
+	['jrb'] = '유대 아라비아어',												-- CLDR 유대-아라비아어, Judeo-Arabic
+	['jut'] = '유트어',															-- CLDR Jutish
+	['jv'] = '자와어',															-- CLDR 자바어, Javanese
+	['kab'] = '카빌어',															-- CLDR 커바일어, Kabyle
+	['kaj'] = '쭈어',															-- CLDR 까꼬토끄어, Jju
+	['kbd'] = '카바르다어',														-- CLDR 카바르디어, Kabardian
+	['kea'] = '카보베르데 크리올',												-- CLDR 크리올어, Kabuverdianu
+	['ken'] = '케냥어',															-- CLDR Kenyang
+	['khq'] = '코이라치니어',													-- CLDR 코이라 친니어, Koyra Chiini
+	['kiu'] = '키르만즈키어',													-- CLDR Kirmanjki
+	['kj'] = '콰냐마어',														-- CLDR 쿠안야마어, Kuanyama
+	['kok'] = '콘칸어',															-- CLDR 코카니어, Konkani
+	['kos'] = '코스라에어',														-- CLDR 코스라이엔어, Kosraean
+	['kr'] = '카누리어',														-- CLDR 칸누리어, Kanuri
+	['krc'] = '카라차이발카르어',												-- CLDR 카라챠이-발카르어, Karachay-Balkar
+	['kri'] = '크리오어',														-- CLDR Krio
+	['krj'] = '카라이아어',														-- CLDR Kinaray-a
+	['krl'] = '카렐어',															-- CLDR 카렐리야어, Karelian
+	['kru'] = '쿠르흐어',														-- CLDR 쿠르크어, Kurukh
+	['ksh'] = '쾰른어',															-- CLDR Colognian, 콜로그니안어
+	['kum'] = '쿠미크어',														-- CLDR Kumyk, 쿠믹어
+	['kut'] = '쿠테나이어',														-- CLDR 쿠테네어, Kutenai
+	['kwk'] = '콰콸라어',														-- CLDR Kwakʼwala
+	['lah'] = '란다어',															-- CLDR 라한다어, Western Panjabi
+	['lez'] = '레즈긴어',														-- CLDR 레즈기안어, Lezghian
+	['lfn'] = '링구아프랑카노바',												-- CLDR 링구아 프랑카 노바, Lingua Franca Nova
+	['lg'] = '루간다어',														-- CLDR 간다어, Ganda
+	['li'] = '림뷔르흐어',														-- CLDR 림버거어, Limburgish
+	['lil'] = '릴로엣어',														-- CLDR 릴루엣어, Lillooet
+	['liv'] = '리보니아어',														-- CLDR Livonian
+	['lmo'] = '롬바르디아어',													-- CLDR 롬바르드어
+	['lou'] = '루이지애나 크리올',												-- CLDR 루이지애나 크리올어, Louisiana Creole
+	['lrc'] = '북부 루르어',													-- CLDR 북부 루리어, Northern Luri
+	['ltg'] = '라트갈레어',														-- CLDR Latgalian
+	['lu'] = '루바카탕가어',													-- CLDR 루바-카탄가어, Luba-Katanga
+	['lua'] = '루바룰루아어',													-- CLDR 루바-룰루아어, Luba-Lulua
+	['lui'] = '루이세뇨어',														-- CLDR 루이세노어, Luiseno
+	['lzh'] = '한문',															-- CLDR Literary Chinese
+	['lzz'] = '라즈어',															-- CLDR Laz
+	['mak'] = '마카사르어',														-- CLDR 마카사어, Makasar
+	['mdf'] = '목샤어',															-- CLDR 모크샤어, Moksha
+	['mfe'] = '모리셔스 크리올',												-- CLDR Morisyen
+	['mgh'] = '마쿠와메토어',													-- CLDR 마크후와-메토어, Makhuwa-Meetto
+	['mni'] = '마니푸르어',														-- CLDR 마니푸리어, Manipuri
+	['moe'] = '인누어',															-- CLDR 이누아문, Innu-aimun
+	['mus'] = '머스코기어',														-- CLDR 크리크어, Muscogee
+	['mwl'] = '미란다어',														-- CLDR 미란데어, Mirandese
+	['mwv'] = '믄타와이어',														-- CLDR Mentawai
+	['myv'] = '에르자어',														-- CLDR 엘즈야어, Erzya
+	['mzn'] = '마잔다란어',														-- CLDR 마잔데라니어, Mazanderani
+	['nb'] = '보크몰',															-- CLDR 노르웨이어(보크말), Norwegian Bokmål
+	['nd'] = '북은데벨레어',													-- CLDR 북부 은데벨레어, North Ndebele
+	['ng'] = '은동가어',														-- CLDR 느동가어, Ndonga
+	['niu'] = '니우에어',														-- CLDR 니웨언어, Niuean
+	['njo'] = '아오어',															-- CLDR Ao Naga
+	['nl-be'] = '플람스어',														-- CLDR 플라망어, Flemish
+	['nn'] = '뉘노르스크',														-- CLDR 노르웨이어(니노르스크), Norwegian Nynorsk
+	['nnh'] = '응기엠분어',														-- CLDR 느기엠본어, Ngiemboon
+	['nov'] = '노비알',															-- CLDR Novial
+	['nr'] = '남은데벨레어',													-- CLDR 남부 은데벨레어, South Ndebele / LocalNames South Ndebele
+	['ny'] = '치체와어',														-- CLDR 냔자어, Nyanja
+	['nyn'] = '니안콜레어',														-- CLDR 니안콜어, Nyankole
+	['nyo'] = '니오로어',														-- CLDR 뉴로어, Nyoro / LocalNames Nyoro
+	['nzi'] = '은지마어',														-- CLDR 느지마어, Nzima
+	['oj'] = '오지브웨이어',													-- CLDR 오지브와어, Ojibwa
+	['ojb'] = '북서부 오지브웨이어',											-- CLDR 북서부 오지브와어, Northwestern Ojibwa
+	['ojc'] = '중부 오지브웨이어',												-- CLDR 중앙 오지브와어, Central Ojibwa
+	['ojw'] = '서부 오지브웨이어',												-- CLDR 서부 오지브와어, Western Ojibwa
+	['ota'] = '오스만 튀르크어',												-- CLDR 오스만 터키어, Ottoman Turkish
+	['pa'] = '펀자브어',														-- CLDR 펀잡어, Punjabi
+	['pag'] = '팡가시난어',														-- CLDR 판가시난어, Pangasinan
+	['pal'] = '팔라비어',														-- CLDR 팔레비어, Pahlavi
+	['pap'] = '파피아멘토어',													-- CLDR 파피아먼토어, Papiamento
+	['pcd'] = '피카르디어',														-- CLDR Picard
+	['pcm'] = '나이지리아 피진',												-- CLDR 나이지리아 피진어, Nigerian Pidgin
+	['pdc'] = '펜실베이니아 독일어',											-- CLDR Pennsylvania German
+	['pdt'] = '메노나이트 저지 독일어',											-- CLDR Plautdietsch
+	['pfl'] = '팔츠어',															-- CLDR Palatine German
+	['pms'] = '피에몬테어',														-- CLDR Piedmontese
+	['pnt'] = '폰토스 그리스어',												-- CLDR 폰틱어, Pontic
+	['pon'] = '폰페이어',														-- CLDR 폼페이어, Pohnpeian
+	['pqm'] = '맬리싯패서매쿼디어',												-- CLDR 말리시트 파사마쿼디어, Maliseet-Passamaquoddy
+	['pt-br'] = '브라질 포르투갈어',											-- CLDR Brazilian Portuguese
+	['pt-pt'] = '유럽 포르투갈어',												-- CLDR 포르투갈어(유럽), European Portuguese
+	['qug'] = '침보라소 고지 키추아어',											-- CLDR Chimborazo Highland Quichua
+	['rap'] = '라파누이어',														-- CLDR 라파뉴이, Rapanui
+	['rgn'] = '로마냐어',														-- CLDR Romagnol
+	['rif'] = '리프어',															-- CLDR Riffian
+	['rm'] = '로만슈어',														-- CLDR 로만시어, Romansh
+	['rm-vallader'] = '발라데르어',												-- LocalNames Vallader, 발라데어
+	['rom'] = '롬어',															-- CLDR 집시어, Romany
+	['rtm'] = '로투마어',														-- CLDR Rotuman
+	['rug'] = '로비아나어',														-- CLDR Roviana
+	['sam'] = '사마리아 아람어',												-- CLDR 사마리아 아랍어, Samaritan Aramaic
+	['sat'] = '산탈어',															-- CLDR 산탈리아, Santali
+	['saz'] = '사우라슈트라어',													-- CLDR Saurashtra
+	['sba'] = '응감바이어',														-- CLDR 느감바이어, Ngambay
+	['sc'] = '사르데냐어',														-- CLDR 사르디니아어, Sardinian
+	['sco'] = '스코트어',														-- CLDR 스코틀랜드어, Scots
+	['sd'] = '신드어',															-- CLDR 신드어, Sindhi
+	['sdc'] = '사사리어',														-- CLDR Sassarese Sardinian
+	['sei'] = '세리어',															-- CLDR Seri
+	['ses'] = '코이라보로센니어',												-- CLDR 코이야보로 세니어, Koyraboro Senni
+	['sg'] = '상고어',															-- CLDR 산고어, Sango
+	['sgs'] = '사모기티아어',													-- CLDR Samogitian
+	['sh'] = '세르보크로아트어',												-- CLDR 세르비아-크로아티아어, Serbo-Croatian
+	['shu'] = '차드 아랍어',													-- CLDR 차디언 아라비아어, Chadian Arabic
+	['sid'] = '시다마어',														-- CLDR 시다모어, Sidamo
+	['sli'] = '실레시아 독일어',												-- CLDR Lower Silesian
+	['sly'] = '슬라야르어',														-- CLDR Selayar
+	['snk'] = '소닝케어',														-- CLDR 소닌케어, Soninke
+	['so'] = '소말리어',														-- CLDR 소말리아어, Somali
+	['sog'] = '소그드어',														-- CLDR 소그디엔어, Sogdien
+	['sr-me'] = '몬테네그로어',													-- CLDR Montenegrin
+	['srn'] = '스라난 통고',													-- CLDR 스라난 통가어, Sranan Tongo
+	['ss'] = '스와티어',														-- CLDR 시스와티어, Swati
+	['stq'] = '자털란트 프리지아어',											-- CLDR Saterland Frisian
+	['str'] = '북부해협 세일리시어',											-- CLDR 해안 살리시어, Straits Salish
+	['tce'] = '남부 투초네어',													-- CLDR 남부 투톤어, Southern Tutchone
+	['tcy'] = '툴루어',															-- CLDR Tulu
+	['tem'] = '템네어',															-- CLDR 팀니어, Timne
+	['teo'] = '테소어',															-- CLDR 테조어, Teso
+	['ter'] = '테레나어',														-- CLDR 테레노어, Tereno
+	['tkl'] = '토켈라우어',														-- CLDR 토켈라우제도어, Tokelau
+	['tli'] = '틀링깃어',														-- CLDR 틀링깃족어, Tlingit
+	['tly'] = '탈리슈어',														-- CLDR 탈리쉬어, Talysh
+	['tmh'] = '타마셰크어',														-- CLDR 타마섹어, Tamashek
+	['tpi'] = '톡 피신',														-- CLDR 토크 피신어, Tok Pisin
+	['tru'] = '투로요어',														-- CLDR Turoyo
+	['trw'] = '토르왈리어',														-- CLDR Torwali
+	['tsd'] = '차코치나어',														-- CLDR Tsakonian
+	['tsi'] = '침시안어',														-- CLDR 트심시안어, Tsimshian
+	['ttm'] = '북부 투초네어',													-- CLDR 북부 투톤어, Northern Tutchone
+	['ttt'] = '타트어',															-- CLDR Muslim Tat
+	['tyv'] = '투바어',															-- CLDR 투비니안어, Tuvinian
+	['tzm'] = '중앙 아틀라스 타마지트어',										-- CLDR 중앙 모로코 타마지트어, Central Atlas Tamazight
+	['udl'] = '우즈람어',														-- CLDR 유가리틱어, Ugaritic
+	['udm'] = '우드무르트어',													-- CLDR 우드말트어, Udmurt
+	['vec'] = '베네토어',														-- CLDR 베네치아어, Venetian
+	['vep'] = '벱스어',															-- CLDR Veps
+	['vls'] = '서플람스어',														-- CLDR West Flemish
+	['vmf'] = '동프랑켄 독일어',												-- CLDR Main-Franconian
+	['vmw'] = '마쿠아어',														-- CLDR 마쿠와어, Makhuwa
+	['vo'] = '볼라퓌크',														-- CLDR 볼라퓌크어, Volapük
+	['vot'] = '보트어',															-- CLDR 보틱어, Votic
+	['vro'] = '버로어',															-- CLDR Võro
+	['wa'] = '왈롱어',															-- CLDR 왈론어, Walloon
+	['wae'] = '발리스 독일어',													-- CLDR Walser
+	['xmf'] = '민그렐어',														-- CLDR Mingrelian
+	['xnr'] = '캉그리어',														-- CLDR 캉리어, Kangri
+	['yao'] = '야오어',															-- CLDR 야오족어, Yao
+	['yap'] = '야프어',															-- CLDR 얍페세어, Yapese
+	['yav'] = '양벤어',															-- CLDR 양본어, Yangben
+	['yrl'] = '녜엥가투어',														-- CLDR 넨가투어, Nheengatu
+	['za'] = '좡어',															-- CLDR 주앙어, Zhuang
+	['zap'] = '사포텍어',														-- CLDR 사포테크어, Zapotec
+	['zbl'] = '블리스심볼',														-- CLDR Blissymbols, 블리스 심볼
+	['zea'] = '제일란트어',														-- CLDR Zeelandic
+	['zh-hans'] = '중국어 (간체자)',											-- CLDR Simplified Chinese
+	['zh-hant'] = '중국어 (번체자)',											-- CLDR Traditional Chinese
+
+-- 영어판 목록
+	['bh'] = '비하르어',														-- MediaWiki uses 'bh' as a subdomain name for Bhojpuri Wikipedia: bh.wikipedia.org
+	['ca-valencia'] = '발렌시아어',												-- IETF variant of Catalan
+	['ksh-x-colog'] = '쾰른어',													-- override MediaWiki ksh; no IANA/ISO 639 code for Colognian; IETF private code created at Module:Lang/data
+	['mis-x-ripuar'] = '리푸아리아어',											-- override MediaWiki ksh; no IANA/ISO 639 code for Ripuarian; IETF private code created at Module:Lang/data
+	['nan-tw'] = '대만어',														-- make room for MediaWiki/IANA/ISO 639 nan: Min Nan Chinese and support en.wiki preferred name
+
+-- 한국어판 추가 목록
+	['jje'] = '제주어',
+	['kvk'] = '한국 수어',
+	['okm'] = '중세 한국어',
+	['oko'] = '고대 한국어',
 	}
 
-local lang_name_remap = {														-- used for |language=
-	['알레만어'] = {'스위스 독일어', 'gsw'},									-- 'alemannisch' / 'Swiss German' / not an ISO or IANA language name; MediaWiki uses 'als' as a subdomain name for Alemannic Wikipedia: als.wikipedia.org
---	['bangla'] = {'Bengali', 'bn'},												-- MediaWiki returns Bangla (the endonym) but we want Bengali (the exonym); here we remap
---	['bengali'] = {'Bengali', 'bn'},											-- MediaWiki doesn't use exonym so here we provide correct language name and 639-1 code
-	['보지푸리어'] = {'보지푸리어', 'bho'},										-- 'bhojpuri' / 'Bhojpuri' / MediaWiki uses 'bh' as a subdomain name for Bhojpuri Wikipedia: bh.wikipedia.org
-	['비하르어'] = {'비하르어', 'bh'},											-- 'bihari' / 'Bihari' / MediaWiki replaces 'Bihari' with 'Bhojpuri' so 'Bihari' cannot be found
-	['블랙풋어'] = {'블랙풋어', 'bla'},											-- 'blackfoot' / 'Blackfoot' / MediaWiki/IANA/ISO 639: Siksika; use en.wiki preferred name
-	['콜로그니안어'] = {'콜로그니안어', 'ksh-x-colog'},							-- 'colognian' / 'Colognian' / MediaWiki preferred name for ksh
-	['일로카노어'] = {'일로카노어', 'ilo'},										-- 'ilocano' / 'Ilocano' / MediaWiki/IANA/ISO 639: Iloko; use en.wiki preferred name
---	['kolsch'] = {'Kölsch', 'ksh'},												-- use IANA/ISO 639 preferred name (use non-diacritical o instead of umlaut ö)
-	['쾰치어'] = {'쾰치어', 'ksh'},												-- 'kölsch' / 'Kölsch' / use IANA/ISO 639 preferred name
-	['리프아리아어'] = {'리프아리아어', 'mis-x-ripuar'},						-- 'ripuarian' / 'Ripuarian' / group of dialects; no code in MediaWiki or in IANA/ISO 639
-	['대만어'] = {'대만어', 'nan-TW'},											-- 'taiwanese hokkien' / 'Taiwanese Hokkien' / make room for MediaWiki/IANA/ISO 639 nan: Min Nan Chinese 
-	['토스크 알바니아어'] = {'토스크 알바니아어', 'als'},						-- 'tosk albanian / 'Tosk Albanian' / MediaWiki replaces 'Tosk Albanian' with 'Alemannisch' so 'Tosk Albanian' cannot be found
-	['발렌시아어'] = {'발렌시아어', 'ca'},										-- 'valencian' / 'Valencian' / variant of Catalan; categorizes as Catalan
+local lang_name_remap = {														-- used for |language=; names require proper capitalization; tags must be lowercase
+	['압하스어'] = {'압하스어', 'ab'},
+	['앨라배마어'] = {'앨라배마어', 'akz'},
+	['게그 알바니아어'] = {'게그 알바니아어', 'aln'},
+	['알타이어'] = {'알타이어', 'alt'},
+	['앙기카어'] = {'앙기카어', 'anp'},
+	['마푸체어'] = {'마푸체어', 'arn'},
+	['아라오나어'] = {'아라오나어', 'aro'},
+	['나지드 아랍어'] = {'나지드 아랍어', 'ars'},
+	['미국 수어'] = {'미국 수어', 'ase'},
+	['아스투리아스어'] = {'아스투리아스어', 'ast'},
+	['아바르어'] = {'아바르어', 'av'},
+	['코타바'] = {'코타바', 'avk'},
+	['아와드어'] = {'아와드어', 'awa'},
+	['바시키르어'] = {'바시키르어', 'ba'},
+	['바이에른어'] = {'바이에른어', 'bar'},
+	['바탁 토바어'] = {'바탁 토바어', 'bbc'},
+	['베타위어'] = {'베타위어', 'bew'},
+	['바다가어'] = {'바다가어', 'bfq'},
+	['하리아나어'] = {'하리아나어', 'bgc'},
+	['보지푸리어'] = {'보지푸리어', 'bho'},
+	['비슬라마'] = {'비슬라마', 'bi'},
+	['반자르어'] = {'반자르어', 'bjn'},
+	['아니이어'] = {'아니이어', 'blo'},
+	['따이담어'] = {'따이담어', 'blt'},
+	['비슈누프리야어'] = {'비슈누프리야어', 'bpy'},
+	['바흐티아리어'] = {'바흐티아리어', 'bqi'},
+	['부랴트어'] = {'부랴트어', 'bua'},
+	['카탈루냐어'] = {'카탈루냐어', 'ca'},
+	['캐도어'] = {'캐도어', 'cad'},
+	['치퍼와이언어'] = {'치퍼와이언어', 'chp'},
+	['치카소어'] = {'치카소어', 'cic'},
+	['소라니어'] = {'소라니어', 'ckb'},
+	['하카 친어'] = {'하카 친어', 'cnh'},
+	['카피스논어'] = {'카피스논어', 'cps'},
+	['크림 타타르어'] = {'크림 타타르어', 'crh'},
+	['세이셀 크리올'] = {'세이셀 크리올', 'crs'},
+	['카슈브어'] = {'카슈브어', 'csb'},
+	['다르긴어'] = {'다르긴어', 'dar'},
+	['오스트리아 독일어'] = {'오스트리아 독일어', 'de-at'},
+	['스위스 표준 독일어'] = {'스위스 표준 독일어', 'de-ch'},
+	['슬레이비어'] = {'슬레이비어', 'den'},
+	['저지 소르브어'] = {'저지 소르브어', 'dsb'},
+	['중앙 두순어'] = {'중앙 두순어', 'dtp'},
+	['졸라포니어'] = {'졸라포니어', 'dyo'},
+	['줄라어'] = {'줄라어', 'dyu'},
+	['다자가어'] = {'다자가어', 'dzg'},
+	['에피크어'] = {'에피크어', 'efi'},
+	['에밀리아어'] = {'에밀리아어', 'egl'},
+	['오스트레일리아 영어'] = {'오스트레일리아 영어', 'en-au'},
+	['캐나다 영어'] = {'캐나다 영어', 'en-ca'},
+	['영국 영어'] = {'영국 영어', 'en-gb'},
+	['미국 영어'] = {'미국 영어', 'en-us'},
+	['에스페란토'] = {'에스페란토', 'eo'},
+	['라틴 아메리카 스페인어'] = {'라틴 아메리카 스페인어', 'es-419'},
+	['유럽 스페인어'] = {'유럽 스페인어', 'es-es'},
+	['멕시코 스페인어'] = {'멕시코 스페인어', 'es-mx'},
+	['중앙 알래스카 유픽어'] = {'중앙 알래스카 유픽어', 'esu'},
+	['자감어'] = {'자감어', 'etu'},
+	['에원도어'] = {'에원도어', 'ewo'},
+	['팡어'] = {'팡어', 'fan'},
+	['메앤키엘리'] = {'메앤키엘리', 'fit'},
+	['캐나다 프랑스어'] = {'캐나다 프랑스어', 'fr-ca'},
+	['스위스 프랑스어'] = {'스위스 프랑스어', 'fr-ch'},
+	['프랑코프로방스어'] = {'프랑코프로방스어', 'frp'},
+	['북프리슬란트어'] = {'북프리슬란트어', 'frr'},
+	['동프리슬란트어'] = {'동프리슬란트어', 'frs'},
+	['서프리슬란트어'] = {'서프리슬란트어', 'fy'},
+	['가가우즈어'] = {'가가우즈어', 'gag'},
+	['그으즈어'] = {'그으즈어', 'gez'},
+	['곤드어'] = {'곤드어', 'gon'},
+	['가나 피진 영어'] = {'가나 피진 영어', 'gpe'},
+	['그레보어'] = {'그레보어', 'grb'},
+	['스위스 독일어'] = {'스위스 독일어', 'gsw'},
+	['와유어'] = {'와유어', 'guc'},
+	['파레파레어'] = {'파레파레어', 'gur'},
+	['맨어'] = {'맨어', 'gv'},
+	['고대 히브리어'] = {'고대 히브리어', 'hbo'},
+	['힌디어 (라틴 문자)'] = {'힌디어 (라틴 문자)', 'hi-latn'},
+	['힐리가이논어'] = {'힐리가이논어', 'hil'},
+	['히타이트어'] = {'히타이트어', 'hit'},
+	['몽어'] = {'몽어', 'hmn'},
+	['몽은주아어'] = {'몽은주아어', 'hnj'},
+	['히리 모투'] = {'히리 모투', 'ho'},
+	['고지 소르브어'] = {'고지 소르브어', 'hsb'},
+	['인테르링구아'] = {'인테르링구아', 'ia'},
+	['이보어'] = {'이보어', 'ig'},
+	['일로카노어'] = {'일로카노어', 'ilo'},
+	['인구시어'] = {'인구시어', 'inh'},
+	['이도'] = {'이도', 'io'},
+	['이누크티투트어'] = {'이누크티투트어', 'iu'},
+	['잉그리아어'] = {'잉그리아어', 'izh'},
+	['자메이카 크리올 영어'] = {'자메이카 크리올 영어', 'jam'},
+	['로지반'] = {'로지반', 'jbo'},
+	['마차메어'] = {'마차메어', 'jmc'},
+	['유대 페르시아어'] = {'유대 페르시아어', 'jpr'},
+	['유대 아라비아어'] = {'유대 아라비아어', 'jrb'},
+	['유트어'] = {'유트어', 'jut'},
+	['자와어'] = {'자와어', 'jv'},
+	['카빌어'] = {'카빌어', 'kab'},
+	['쭈어'] = {'쭈어', 'kaj'},
+	['카바르다어'] = {'카바르다어', 'kbd'},
+	['카보베르데 크리올'] = {'카보베르데 크리올', 'kea'},
+	['케냥어'] = {'케냥어', 'ken'},
+	['코이라치니어'] = {'코이라치니어', 'khq'},
+	['키르만즈키어'] = {'키르만즈키어', 'kiu'},
+	['콰냐마어'] = {'콰냐마어', 'kj'},
+	['콘칸어'] = {'콘칸어', 'kok'},
+	['코스라에어'] = {'코스라에어', 'kos'},
+	['카누리어'] = {'카누리어', 'kr'},
+	['카라차이발카르어'] = {'카라차이발카르어', 'krc'},
+	['크리오어'] = {'크리오어', 'kri'},
+	['카라이아어'] = {'카라이아어', 'krj'},
+	['카렐어'] = {'카렐어', 'krl'},
+	['쿠르흐어'] = {'쿠르흐어', 'kru'},
+	['쾰른어'] = {'쾰른어', 'ksh'},
+	['쿠미크어'] = {'쿠미크어', 'kum'},
+	['쿠테나이어'] = {'쿠테나이어', 'kut'},
+	['콰콸라어'] = {'콰콸라어', 'kwk'},
+	['란다어'] = {'란다어', 'lah'},
+	['레즈긴어'] = {'레즈긴어', 'lez'},
+	['링구아프랑카노바'] = {'링구아프랑카노바', 'lfn'},
+	['루간다어'] = {'루간다어', 'lg'},
+	['림뷔르흐어'] = {'림뷔르흐어', 'li'},
+	['릴로엣어'] = {'릴로엣어', 'lil'},
+	['리보니아어'] = {'리보니아어', 'liv'},
+	['롬바르디아어'] = {'롬바르디아어', 'lmo'},
+	['루이지애나 크리올'] = {'루이지애나 크리올', 'lou'},
+	['북부 루르어'] = {'북부 루르어', 'lrc'},
+	['라트갈레어'] = {'라트갈레어', 'ltg'},
+	['루바카탕가어'] = {'루바카탕가어', 'lu'},
+	['루바룰루아어'] = {'루바룰루아어', 'lua'},
+	['루이세뇨어'] = {'루이세뇨어', 'lui'},
+	['한문'] = {'한문', 'lzh'},
+	['라즈어'] = {'라즈어', 'lzz'},
+	['마카사르어'] = {'마카사르어', 'mak'},
+	['목샤어'] = {'목샤어', 'mdf'},
+	['모리셔스 크리올'] = {'모리셔스 크리올', 'mfe'},
+	['마쿠와메토어'] = {'마쿠와메토어', 'mgh'},
+	['마니푸르어'] = {'마니푸르어', 'mni'},
+	['인누어'] = {'인누어', 'moe'},
+	['머스코기어'] = {'머스코기어', 'mus'},
+	['미란다어'] = {'미란다어', 'mwl'},
+	['믄타와이어'] = {'믄타와이어', 'mwv'},
+	['에르자어'] = {'에르자어', 'myv'},
+	['마잔다란어'] = {'마잔다란어', 'mzn'},
+	['보크몰'] = {'보크몰', 'nb'},
+	['북은데벨레어'] = {'북은데벨레어', 'nd'},
+	['은동가어'] = {'은동가어', 'ng'},
+	['니우에어'] = {'니우에어', 'niu'},
+	['아오어'] = {'아오어', 'njo'},
+	['플람스어'] = {'플람스어', 'nl-be'},
+	['뉘노르스크'] = {'뉘노르스크', 'nn'},
+	['응기엠분어'] = {'응기엠분어', 'nnh'},
+	['노비알'] = {'노비알', 'nov'},
+	['남은데벨레어'] = {'남은데벨레어', 'nr'},
+	['치체와어'] = {'치체와어', 'ny'},
+	['니안콜레어'] = {'니안콜레어', 'nyn'},
+	['니오로어'] = {'니오로어', 'nyo'},
+	['은지마어'] = {'은지마어', 'nzi'},
+	['오지브웨이어'] = {'오지브웨이어', 'oj'},
+	['북서부 오지브웨이어'] = {'북서부 오지브웨이어', 'ojb'},
+	['중부 오지브웨이어'] = {'중부 오지브웨이어', 'ojc'},
+	['서부 오지브웨이어'] = {'서부 오지브웨이어', 'ojw'},
+	['오스만 튀르크어'] = {'오스만 튀르크어', 'ota'},
+	['펀자브어'] = {'펀자브어', 'pa'},
+	['팡가시난어'] = {'팡가시난어', 'pag'},
+	['팔라비어'] = {'팔라비어', 'pal'},
+	['파피아멘토어'] = {'파피아멘토어', 'pap'},
+	['피카르디어'] = {'피카르디어', 'pcd'},
+	['나이지리아 피진'] = {'나이지리아 피진', 'pcm'},
+	['펜실베이니아 독일어'] = {'펜실베이니아 독일어', 'pdc'},
+	['메노나이트 저지 독일어'] = {'메노나이트 저지 독일어', 'pdt'},
+	['팔츠어'] = {'팔츠어', 'pfl'},
+	['피에몬테어'] = {'피에몬테어', 'pms'},
+	['폰토스 그리스어'] = {'폰토스 그리스어', 'pnt'},
+	['폰페이어'] = {'폰페이어', 'pon'},
+	['맬리싯패서매쿼디어'] = {'맬리싯패서매쿼디어', 'pqm'},
+	['브라질 포르투갈어'] = {'브라질 포르투갈어', 'pt-br'},
+	['유럽 포르투갈어'] = {'유럽 포르투갈어', 'pt-pt'},
+	['침보라소 고지 키추아어'] = {'침보라소 고지 키추아어', 'qug'},
+	['라파누이어'] = {'라파누이어', 'rap'},
+	['로마냐어'] = {'로마냐어', 'rgn'},
+	['리프어'] = {'리프어', 'rif'},
+	['로만슈어'] = {'로만슈어', 'rm'},
+	['발라데르어'] = {'발라데르어', 'rm-vallader'},
+	['롬어'] = {'롬어', 'rom'},
+	['로투마어'] = {'로투마어', 'rtm'},
+	['로비아나어'] = {'로비아나어', 'rug'},
+	['사마리아 아람어'] = {'사마리아 아람어', 'sam'},
+	['산탈어'] = {'산탈어', 'sat'},
+	['사우라슈트라어'] = {'사우라슈트라어', 'saz'},
+	['응감바이어'] = {'응감바이어', 'sba'},
+	['사르데냐어'] = {'사르데냐어', 'sc'},
+	['스코트어'] = {'스코트어', 'sco'},
+	['신드어'] = {'신드어', 'sd'},
+	['사사리어'] = {'사사리어', 'sdc'},
+	['세리어'] = {'세리어', 'sei'},
+	['코이라보로센니어'] = {'코이라보로센니어', 'ses'},
+	['상고어'] = {'상고어', 'sg'},
+	['사모기티아어'] = {'사모기티아어', 'sgs'},
+	['세르보크로아트어'] = {'세르보크로아트어', 'sh'},
+	['차드 아랍어'] = {'차드 아랍어', 'shu'},
+	['시다마어'] = {'시다마어', 'sid'},
+	['실레시아 독일어'] = {'실레시아 독일어', 'sli'},
+	['슬라야르어'] = {'슬라야르어', 'sly'},
+	['소닝케어'] = {'소닝케어', 'snk'},
+	['소말리어'] = {'소말리어', 'so'},
+	['소그드어'] = {'소그드어', 'sog'},
+	['몬테네그로어'] = {'몬테네그로어', 'sr-me'},
+	['스라난 통고'] = {'스라난 통고', 'srn'},
+	['스와티어'] = {'스와티어', 'ss'},
+	['자털란트 프리지아어'] = {'자털란트 프리지아어', 'stq'},
+	['북부해협 세일리시어'] = {'북부해협 세일리시어', 'str'},
+	['남부 투초네어'] = {'남부 투초네어', 'tce'},
+	['툴루어'] = {'툴루어', 'tcy'},
+	['템네어'] = {'템네어', 'tem'},
+	['테소어'] = {'테소어', 'teo'},
+	['테레나어'] = {'테레나어', 'ter'},
+	['토켈라우어'] = {'토켈라우어', 'tkl'},
+	['틀링깃어'] = {'틀링깃어', 'tli'},
+	['탈리슈어'] = {'탈리슈어', 'tly'},
+	['타마셰크어'] = {'타마셰크어', 'tmh'},
+	['톡 피신'] = {'톡 피신', 'tpi'},
+	['투로요어'] = {'투로요어', 'tru'},
+	['토르왈리어'] = {'토르왈리어', 'trw'},
+	['차코치나어'] = {'차코치나어', 'tsd'},
+	['침시안어'] = {'침시안어', 'tsi'},
+	['북부 투초네어'] = {'북부 투초네어', 'ttm'},
+	['타트어'] = {'타트어', 'ttt'},
+	['투바어'] = {'투바어', 'tyv'},
+	['중앙 아틀라스 타마지트어'] = {'중앙 아틀라스 타마지트어', 'tzm'},
+	['우즈람어'] = {'우즈람어', 'udl'},
+	['우드무르트어'] = {'우드무르트어', 'udm'},
+	['베네토어'] = {'베네토어', 'vec'},
+	['벱스어'] = {'벱스어', 'vep'},
+	['서플람스어'] = {'서플람스어', 'vls'},
+	['동프랑켄 독일어'] = {'동프랑켄 독일어', 'vmf'},
+	['마쿠아어'] = {'마쿠아어', 'vmw'},
+	['볼라퓌크'] = {'볼라퓌크', 'vo'},
+	['보트어'] = {'보트어', 'vot'},
+	['버로어'] = {'버로어', 'vro'},
+	['왈롱어'] = {'왈롱어', 'wa'},
+	['발리스 독일어'] = {'발리스 독일어', 'wae'},
+	['민그렐어'] = {'민그렐어', 'xmf'},
+	['캉그리어'] = {'캉그리어', 'xnr'},
+	['야오어'] = {'야오어', 'yao'},
+	['야프어'] = {'야프어', 'yap'},
+	['양벤어'] = {'양벤어', 'yav'},
+	['녜엥가투어'] = {'녜엥가투어', 'yrl'},
+	['좡어'] = {'좡어', 'za'},
+	['사포텍어'] = {'사포텍어', 'zap'},
+	['블리스심볼'] = {'블리스심볼', 'zbl'},
+	['제일란트어'] = {'제일란트어', 'zea'},
+	['중국어 (간체자)'] = {'중국어 (간체자)', 'zh-hans'},
+	['중국어 (번체자)'] = {'중국어 (번체자)', 'zh-hant'},
+
+	['alemannic'] = {'스위스 독일어', 'gsw'},									-- ISO 639-2, -3 alternate for Swiss German; MediaWiki mediawiki returns Alemannic for gsw; en.wiki preferred name
+	['alemannisch'] = {'스위스 독일어', 'gsw'},									-- not an ISO or IANA language name; MediaWiki uses 'als' as a subdomain name for Alemannic Wikipedia: als.wikipedia.org
+	['bangla'] = {'벵골어', 'bn'},												-- MediaWiki returns Bangla (the endonym) but we want Bengali (the exonym); here we remap
+	['bengali'] = {'벵골어', 'bn'},												-- MediaWiki doesn't use exonym so here we provide correct language name and 639-1 code
+	['bhojpuri'] = {'보지푸리어', 'bho'},										-- MediaWiki uses 'bh' as a subdomain name for Bhojpuri Wikipedia: bh.wikipedia.org
+	['bihari'] = {'비하르어', 'bh'},											-- MediaWiki replaces 'Bihari' with 'Bhojpuri' so 'Bihari' cannot be found
+	['blackfoot'] = {'식시카어', 'bla'},										-- MediaWiki/IANA/ISO 639: Siksika; use en.wiki preferred name
+	['colognian'] = {'쾰른어', 'ksh-x-colog'},									-- MediaWiki preferred name for ksh
+	['ilocano'] = {'일로카노어', 'ilo'},										-- MediaWiki/IANA/ISO 639: Iloko; use en.wiki preferred name
+	['kolsch'] = {'쾰른어', 'ksh'},												-- use IANA/ISO 639 preferred name (use non-diacritical o instead of umlaut ö)
+	['kölsch'] = {'쾰른어', 'ksh'},												-- use IANA/ISO 639 preferred name
+	['kven'] = {'크벤어', 'fkv'},												-- Unicode CLDR have decided not to support English language name for these two...
+	['kvensk'] = {'크벤어', 'fkv'},												-- ...they say to refer to IANA registry for English names
+	['ripuarian'] = {'리푸아리아어', 'mis-x-ripuar'},							-- group of dialects; no code in MediaWiki or in IANA/ISO 639
+	['swiss german'] = {'스위스 독일어', 'gsw'},
+	['taiwanese hokkien'] = {'대만어', 'nan-tw'},								-- make room for MediaWiki/IANA/ISO 639 nan: Min Nan Chinese 
+	['tosk albanian'] = {'토스크 알바니아어', 'als'},							-- MediaWiki replaces 'Tosk Albanian' with 'Alemannisch' so 'Tosk Albanian' cannot be found
+	['valencian'] = {'발렌시아어', 'ca-valencia'},								-- variant of Catalan; categorizes as Valencian
+
+	['알레만어'] = {'스위스 독일어', 'gsw'},
+	['비하르어'] = {'비하르어', 'bh'},
+	['블랙풋어'] = {'식시카어', 'bla'},
+	['토스크 알바니아어'] = {'토스크 알바니아어', 'als'},
+	['발렌시아어'] = {'발렌시아어', 'ca-valencia'},
+	['쾰른어'] = {'쾰른어', 'ksh-x-colog'},
+	['리푸아리아어'] = {'리푸아리아어', 'mis-x-ripuar'},
+	['대만어'] = {'대만어', 'nan-tw'},
+
+	['제주어'] = {'제주어', 'jje'},
+	['한국 수어'] = {'한국 수어', 'kvk'},
+	['중세 한국어'] = {'중세 한국어', 'okm'},
+	['고대 한국어'] = {'고대 한국어', 'oko'},
+	['터키어'] = {'튀르키예어', 'tr'},											-- 2025-12-30 기준 약 41개 문서, 정리 완료
+	['간체자'] = {'중국어 (간체자)', 'zh-hans'},
+	['번체자'] = {'중국어 (번체자)', 'zh-hant'},
+	['중국어 간체'] = {'중국어 (간체자)', 'zh-hans'},
+	['중국어 번체'] = {'중국어 (번체자)', 'zh-hant'},
+--	['日本語'] = {'일본어', 'ja'},												-- 2025-12-30 기준 약 44개 문서, 정리 완료
 	}
 
 
@@ -1030,15 +1984,18 @@ Properties categories. These are used for investigating qualities of citations.
 ]]
 
 local prop_cats = {
-	['foreign-lang-source'] = 'CS1 - $1 인용 ($2)',								-- |language= categories; $1 is foreign-language name, $2 is ISO639-1 code
---	['foreign-lang-source-2'] = 'CS1 - 외국어 인용 (ISO 639-2)|$1',				-- |language= category; a cat for ISO639-2 languages; $1 is the ISO 639-2 code used as a sort key
---	['jul-greg-uncertainty'] = 'CS1 - 율리우스 그레고리오력 불확실',			-- probably temporary cat to identify scope of template with dates 1 October 1582 – 1 January 1926
---	['local-lang-source'] = 'CS1 - $1 출처 ($2)',								-- |language= categories; $1 is local-language name, $2 is ISO639-1 code; not emitted when local_lang_cat_enable is false
---	['location-test'] = 'CS1 - 위치 테스트',
---	['long-vol'] = 'CS1 - 길거나 숫자, 로마자가 아닌 권',						-- probably temporary cat to identify scope of |volume= values longer than 4 charachters
---	['script'] = 'CS1 - $1 문자 사용 ($2)',										-- |script-title=xx: has matching category; $1 is language name, $2 is ISO639-1 code
---	['tracked-param'] = 'CS1 - 추적 매개변수: $1',								-- $1 is base (enumerators removed) parameter name
---	['year-range-abbreviated'] = 'CS1 - 축약된 연도 범위',						-- probably temporary cat to identify scope of |date=, |year= values using YYYY–YY form
+	['foreign-lang-source'] = 'CS1 - $1 인용 ($2)',					-- |language= categories; $1 is foreign-language name, $2 is ISO639-1 code
+	['foreign-lang-source-2'] = 'CS1 - 외국어 인용 (ISO 639-2, 3)|$1',	-- |language= category; a cat for ISO639-2 languages; $1 is the ISO 639-2 code used as a sort key
+	['interproj-linked-name'] = 'CS1 관리 - 다른 프로젝트로 연결된 이름|$1',				-- any author, editor, etc that has an interproject link; $1 is interproject tag used as a sort key
+	['interwiki-linked-name'] = 'CS1 관리 - 인터위키로 연결된 이름|$1',				-- any author, editor, etc that has an interwiki link; $1 is interwiki tag used as a sort key; yeilds to interproject
+	['local-lang-source'] = 'CS1 - $1 인용 ($2)',						-- |language= categories; $1 is local-language name, $2 is ISO639-1 code; not emitted when local_lang_cat_enable is false
+	['location-test'] = 'CS1 관리 - 위치 테스트',
+	['long-vol'] = 'CS1 관리 - 길이가 긴 권 값',									-- probably temporary cat to identify scope of |volume= values longer than 4 characters
+	['script'] = 'CS1 관리 - $1 문자 사용 ($2)',							-- |script-title=xx: has matching category; $1 is language name, $2 is language tag
+	['tracked-param'] = 'CS1 관리 - 추적 중인 변수: $1',							-- $1 is base (enumerators removed) parameter name
+	['unfit'] = 'CS1 관리 - 부적절한 URL',												-- |url-status=unfit or |url-status=usurped; used to be a maint cat
+-- ['vanc-accept'] = 'CS1:Vancouver names with accept markup',					-- for |vauthors=/|veditors= with accept-as-written markup
+	['year-range-abbreviated'] = 'CS1 관리 - 축약된 연도 범위',					-- probably temporary cat to identify scope of |date=, |year= values using YYYY–YY form
 	}
 
 
@@ -1050,22 +2007,93 @@ Here we map a template's CitationClass to TitleType (default values for |type= p
 
 local title_types = {
 	['AV-media-notes'] = '미디어 설명',
+	['document'] = '문서',
 	['interview'] = '인터뷰',
 	['mailinglist'] = '메일링 리스트',
 	['map'] = '지도',
 	['podcast'] = '팟캐스트',
-	['pressrelease'] = '보도자료',
+	['pressrelease'] = '보도 자료',
 	['report'] = '보고서',
-	['speech'] = '연설',
+	['speech'] = '연술',
 	['techreport'] = '기술 보고서',
-	['thesis'] = '학위 논문',
+	['thesis'] = '학위논문',
+	}
+
+
+--[[--------------------------< B U I L D _ K N O W N _ F R E E _ D O I _ R E G I S T R A N T S _ T A B L E >--
+
+build a table of doi registrants known to be free-to-read  In a doi, the registrant ID is the series of digits
+between the '10.' and the first '/': in doi 10.1100/sommat, 1100 is the registrant ID
+
+see §3.2.2 DOI prefix of the Doi Handbook p. 43
+https://www.doi.org/doi-handbook/DOI_Handbook_Final.pdf#page=43
+
+]]
+
+local function build_free_doi_registrants_table()
+	local registrants_t = {};
+	for _, v in ipairs ({
+		'1045', '1074', '1096', '1100', '1155', '1186', '1194', '1371', '1613', '1629', '1989', '1999', '2147', '2196', '3285', '3389', '3390', '3906',
+		'3748', '3814', '3847', '3897', '4061', '4089', '4103', '4172', '4175', '4230', '4236', '4239', '4240', '4249', '4251',
+		'4252', '4253', '4254', '4291', '4292', '4329', '4330', '4331', '5086', '5194', '5210', '5306', '5312', '5313', '5314',
+		'5315', '5316', '5317', '5318', '5319', '5320', '5321', '5334', '5402', '5409', '5410', '5411', '5412',
+		'5492', '5493', '5494', '5495', '5496', '5497', '5498', '5499', '5500', '5501', '5527', '5528', '5662',
+		'6064', '6219', '7167', '7217', '7287', '7482', '7490', '7554', '7717', '7759', '7766', '9778', '11131', '11569', '11647',
+		'11648', '12688', '12703', '12715', '12942', '12998', '13105', '14256', '14293', '14303', '15215', '15347', '15412', '15560', '16995',
+		'17645', '18637', '19080', '19173', '20944', '21037', '21105', '21468', '21767', '21425', '22261', '22323', '22459', '24105', '24196', '24966',
+		'26775', '30845', '32545', '35711', '35712', '35713', '35995', '36648', '37126', '37532', '37871', '47128',
+		'47622', '47959', '52437', '52975', '53288', '53347', '54081', '54947', '55667', '55914', '57009', '58647', '59081',
+		}) do
+			registrants_t[v] = true;											-- build a k/v table of known free-to-read doi registrants
+	end
+
+	return registrants_t;
+end
+
+-- known free registrants identifiable by the doi suffix incipit
+local extended_registrants_t = {												-- doi suffix incipits are evaluated as lua patterns
+	['1002'] = {'aelm', 'leap', 'loe2%.', 'lol2%.'},							    	-- Advanced Electronic Materials, Learned Publishing, L&O e-Lectures, L&O Letters
+	['1016'] = {'j%.aace', 'j%.aed', 'j%.aiopen', 'j%.animal', 'j%.apsb', 'j%.addicn',	-- AACE Endocrinology and Diabetes, AACE Endocrinology and Diabetes, AI Open, Animal, Acta Pharmaceutica Sinica B, Addiction Neuroscience
+				'j%.abrep', 'j%.gpb', 'j%.heliyon', 'j%.nlp', 'j%.patter', 'j%.proche', -- Addictive Behaviors Reports, Genomics, Proteomics & Bioinformatics after 2015, Heliyon, Natural Language Processing, Patterns, Procedia Chemistry
+				'j%.vgie', 'S1672-0229'},		                                -- VideoGIE, Genomics, Proteomics & Bioinformatics before 2015
+	['1017'] = {'apj%.', 'nlp', 'mdh', 'S15574660'},  							-- Natural Language Processing Journal, Medical History, Asia Pacific Journal
+	['1046'] = {'j%.1365-8711', 'j%.1365-246x'},								-- MNRAS, GJI
+	['1021'] = {'acscentsci', 'acsomega'},                                      -- ACS Central Science, ACS Omega
+	['1093'] = {'mnras', 'mnrasl', 'gji', 'pnasnexus', 'rasti'},				-- MNRAS, MNRAS Letters, GJI, PNAS Nexus, RASTI
+	['1098'] = {'rsbm', 'rsob', 'rsos'},                                        -- Biographical Memoirs of Fellows of the Royal Society, Open Biology, Royal Society Open Science
+	['1099'] = {'acmi', 'mic', '00221287', 'mgen'},                             -- Access Microbiology, Microbiology, Journal of General Microbiology, Microbial Genomics
+	['1107'] = {'S20569890', 'S20522525', 'S16005775', 'S24143146'},            -- Acta Crystallographica E, IUCrJ, Journal of Synchrotron Radiation, IUCrData
+	['1109'] = {'oa', 'oj'},                                                    -- IEEE Open Access..., IEEE Open Journal...
+	['1111'] = {'aogs', 'j%.1365-2966', 'j%.1745-3933', 'j%.1365-246X'},			-- Acta Obstetricia et Gynecologica Scandinavica, MNRAS, MNRAS Letters, GJI
+	['1128'] = {'asmcr', 'jmbe', 'mbio', 'mra', 'spectrum', 'msphere', 'msystems'}, --ASM Case Reports, Journal of Microbiology & Biology Education, mBio, Microbiology Resource Announcements, Microbiology Spectrum, mSphere, mSystems
+	['1136'] = {'bmjopen'},                                                     -- BMJ Open
+	['1140'] = {'epjc'},														-- European Physical Journal C
+	['1192'] = {'bjo'},                                                         -- BJPsych Open
+	['1210'] = {'jendso','jcemcr'},												-- Journal of the Endocrine Society, JCEM Case Reports
+	['1215'] = {'21573689', '21573698'},                                        -- L&O Fluids 
+	['1590'] = {'0102-3306'},                                                   -- Acta Botanica Brasilica
+	['4171'] = {'dm','mag'},												    -- Documenta Mathematica, EMS Magazine
+	['4319'] = {'lo%.', 'lol%.', 'lom%.'},                                         -- L&O, L&O e-Lectures, L&O Methods
+	['5852'] = {'ejt'},                                                         -- European Journal of Taxonomy
+	['7155'] = {'jgaa'},                                                        -- Journal of Graph Algorithms and Applications
+	['11158'] = {'saasp'},                                                      -- Systematic and Applied Acarology Special Publications
+	['11646'] = {'megataxa', 'mesozoic'},                                       -- Megataxa, Mesozoic
+	['14231'] = {'ag'},															-- Algebraic Geometry
+	['15446'] = {'abc'},                                                        -- Acta Biológica Colombiana
+	['17239'] = {'jowr'},                                                       -- Journal of Writing Research
+	['22073'] = {'pja'},                                                        -- Persian Journal of Acarology
+	['24310'] = {'abm'},                                                        -- Acta Botanica Malacitana
+	['24425'] = {'agp'},                                                        -- Acta  Geologica  Polonica
+	['35249'] = {'rche'},                                                       -- Revista Chilena de Entomología
+	['37520'] = {'fi'},                                                         -- Fossil Imprint
+	['53562'] = {'ajcb'}                                                        -- Asian Journal of Conservation Biology
 	}
 
 
 --[[===================<< E R R O R   M E S S A G I N G >>======================
 ]]
 
---[[----------< E R R O R   M E S S A G E   S U P P L I M E N T S >-------------
+--[[----------< E R R O R   M E S S A G E   S U P P L E M E N T S >-------------
 
 I18N for those messages that are supplemented with additional specific text that
 describes the reason for the error
@@ -1074,27 +2102,28 @@ TODO: merge this with special_case_translations{}?
 ]]
 
 local err_msg_supl = {
-	['char'] = '인식 불가능한 문자',											-- |isbn=, |sbn=
+	['char'] = '잘못된 문자',												-- |isbn=, |sbn=
 	['check'] = '체크섬',														-- |isbn=, |sbn=
-	['flag'] = 'flag',															-- |archive-url=
-	['form'] = '인식 불가능한 형식',													-- |isbn=, |sbn=
-	['group'] = '인식 불가능한 그룹 ID',												-- |isbn=
-	['initials'] = '두문자어',													-- Vancouver
-	['invalid language code'] = '인식 불가능한 언어 코드',						-- |script-<param>=
-	['journal'] = '논문',													-- |bibcode=
+	empty_str = '(빈 문자열)',												-- empty unknown parameter check when cite has |=
+	['flag'] = '플래그',															-- |archive-url=
+	['form'] = '잘못된 형식',													-- |isbn=, |sbn=
+	['group'] = '잘못된 그룹 id',												-- |isbn=
+	['initials'] = '머릿글자',													-- Vancouver
+	['invalid language code'] = '잘못된 언어 코드',						-- |script-<param>=
+	['journal'] = '저널',													-- |bibcode=
 	['length'] = '길이',														-- |isbn=, |bibcode=, |sbn=
 	['liveweb'] = 'liveweb',													-- |archive-url=
-	['missing comma'] = '쉼표가 없음',										-- Vancouver
-	['missing prefix'] = '접두사가 없음',										-- |script-<param>=
-	['missing title part'] = '제목 부분이 없음',								-- |script-<param>=
+	['missing comma'] = '쉼표 누락',										-- Vancouver
+	['missing prefix'] = '접두사 누락',										-- |script-<param>=
+	['missing title part'] = '제목 부분 누락',								-- |script-<param>=
 	['name'] = '이름',															-- Vancouver
-	['non-Latin char'] = '라틴 문자가 아님',									-- Vancouver
-	['path'] = 'path',															-- |archive-url=
-	['prefix'] = '인식 불가능한 접두사',												-- |isbn=
-	['punctuation'] = '문장 부호',											-- Vancouver
-	['save'] = 'save command',													-- |archive-url=
+	['non-Latin char'] = '비라틴 문자',									-- Vancouver
+	['path'] = '경로',															-- |archive-url=
+	['prefix'] = '잘못된 접두사',												-- |isbn=
+	['punctuation'] = '구두점',											-- Vancouver
+	['save'] = '저장 명령',													-- |archive-url=
 	['suffix'] = '접미사',														-- Vancouver
-	['timestamp'] = 'timestamp',												-- |archive-url=
+	['timestamp'] = '타임스탬프',												-- |archive-url=
 	['unknown language code'] = '알 수 없는 언어 코드',						-- |script-<param>=
 	['value'] = '값',														-- |bibcode=
 	['year'] = '연도',															-- |bibcode=
@@ -1125,11 +2154,23 @@ local error_conditions = {
 		hidden = false
  		},
 	err_apostrophe_markup = {
-		message = '이탤릭체 또는 굵은 글씨 스타일의 마크업은 <code class="cs1-code">&#124;$1=</code>에서 사용할 수 없음',	-- $1 is parameter name
+		message = '기울임체 또는 굵게 표시 스타일의 마크업은 다음 변수에서 사용할 수 없음: <code class="cs1-code">&#124;$1=</code>',	-- $1 is parameter name
 		anchor = 'apostrophe_markup',
 		category = '인용 오류 - 마크업',
 		hidden = false
  		},
+	err_archive_date_missing_url = {
+		message = '<code class="cs1-code">&#124;보존날짜=</code>는 <code class="cs1-code">&#124;보존url=</code>을 필요로 함',
+		anchor = 'archive_date_missing_url',
+		category = '인용 오류 - 보존url',
+		hidden = false
+		},
+	err_archive_date_url_ts_mismatch = {
+		message = '<code class="cs1-code">&#124;보존날짜=</code> / <code class="cs1-code">&#124;보존url=</code> 타임스탬프 불일치 (추천: $1)',
+		anchor = 'archive_date_url_ts_mismatch',
+		category = '인용 오류 - 보존url',
+		hidden = false
+		},
 	err_archive_missing_date = {
 		message = '<code class="cs1-code">&#124;보존url=</code>은 <code class="cs1-code">&#124;보존날짜=</code>를 필요로 함',
 		anchor = 'archive_missing_date',
@@ -1155,7 +2196,7 @@ local error_conditions = {
 		hidden = false
 		},
 	err_asintld_missing_asin = {
-		message = '<code class="cs1-code">&#124;$1=</code> 변수는 <code class="cs1-code">&#124;asin=</code>을 필요로 함',	-- $1 is parameter name
+		message = '<code class="cs1-code">&#124;$1=</code>는 <code class="cs1-code">&#124;asin=</code>를 필요로 함',	-- $1 is parameter name
 		anchor = 'asintld_missing_asin',
 		category = '인용 오류 - ASIN TLD',
 		hidden = false
@@ -1179,9 +2220,9 @@ local error_conditions = {
 		hidden = false
 		},
 	err_bad_bibcode = {
-		message = '<code class="cs1-code">&#124;bibcode=</code> 값 확인 필요',		-- $1 is error message detail
+		message = '<code class="cs1-code">&#124;bibcode=</code> $1 값 확인 필요',		-- $1 is error message detail
 		anchor = 'bad_bibcode',
-		category = '인용 오류 - bibcode',
+		category = '인용 오류 - Bibcode',
 		hidden = false
 		},
 	err_bad_biorxiv = {
@@ -1193,7 +2234,7 @@ local error_conditions = {
 	err_bad_citeseerx = {
 		message = '<code class="cs1-code">&#124;citeseerx=</code> 값 확인 필요',
 		anchor = 'bad_citeseerx',
-		category = '인용 오류 - citeseerx',
+		category = '인용 오류 - CiteSeerX',
 		hidden = false
 		},
 	err_bad_date = {
@@ -1206,6 +2247,18 @@ local error_conditions = {
 		message = '<code class="cs1-code">&#124;doi=</code> 값 확인 필요',
 		anchor = 'bad_doi',
 		category = '인용 오류 - DOI',
+		hidden = false
+		},
+	err_bad_eram = {															-- 로컬
+		message = '<code class="cs1-code">&#124;eram=</code> 값 확인 필요',
+		anchor = 'bad_eram',
+		category = '인용 오류 - ERAM',
+		hidden = false
+		},
+	err_bad_eudml = {															-- 로컬
+		message = '<code class="cs1-code">&#124;eudml=</code> 값 확인 필요',
+		anchor = 'bad_eudml',
+		category = '인용 오류 - EuDML',
 		hidden = false
 		},
 	err_bad_hdl = {
@@ -1250,16 +2303,40 @@ local error_conditions = {
 		category = '인용 오류 - LCCN',
 		hidden = false
 		},
+	err_bad_medrxiv = {
+		message = '<code class="cs1-code">&#124;medrxiv=</code> 값 확인 필요',
+		anchor = 'bad_medrxiv',
+		category = '인용 오류 - medRxiv',
+		hidden = false
+		},
 	err_bad_mr = {
 		message = '<code class="cs1-code">&#124;mr=</code> 값 확인 필요',
 		anchor = 'bad_mr',
 		category = '인용 오류 - MR',
 		hidden = false
 		},
+	err_bad_naid = {															-- 로컬
+		message = '<code class="cs1-code">&#124;naid=</code> 값 확인 필요',
+		anchor = 'bad_naid',
+		category = '인용 오류 - NAID',
+		hidden = false
+		},
+--	err_bad_ncid = {															-- 로컬
+--		message = '<code class="cs1-code">&#124;ncid=</code> 값 확인 필요',
+--		anchor = 'bad_ncid',
+--		category = '인용 오류 - NCID',
+--		hidden = false
+--		},
 	err_bad_oclc = {
 		message = '<code class="cs1-code">&#124;oclc=</code> 값 확인 필요',
 		anchor = 'bad_oclc',
 		category = '인용 오류 - OCLC',
+		hidden = false
+		},
+	err_bad_numdam = {															-- 로컬
+		message = '<code class="cs1-code">&#124;numdam=</code> 값 확인 필요',
+		anchor = 'bad_numdam',
+		category = '인용 오류 - Numdam',
 		hidden = false
 		},
 	err_bad_ol = {
@@ -1341,63 +2418,63 @@ local error_conditions = {
 		hidden = false
 		},
 	err_biorxiv_missing = {
-		message = '<code class="cs1-code">&#124;biorxiv=</code> 값 필요',
+		message = '<code class="cs1-code">&#124;biorxiv=</code>가 필요함',
 		anchor = 'biorxiv_missing',
 		category = '인용 오류 - bioRxiv',										-- same as bad bioRxiv
 		hidden = false
 		},
 	err_chapter_ignored = {
-		message = '<code class="cs1-code">&#124;$1=</code> 무시됨',			-- $1 is parameter name
+		message = '<code class="cs1-code">&#124;$1=</code>이(가) 무시됨',			-- $1 is parameter name
 		anchor = 'chapter_ignored',
 		category = '인용 오류 - 장이 무시됨',
 		hidden = false
 		},
 	err_citation_missing_title = {
-		message = '<code class="cs1-code">&#124;$1=</code> 변수가 없거나 비었음',	-- $1 is parameter name
+		message = '<code class="cs1-code">&#124;$1=</code>이(가) 없거나 비었음',	-- $1 is parameter name
 		anchor = 'citation_missing_title',
 		category = '인용 오류 - 제목이 없음',
 		hidden = false
 		},
 	err_citeseerx_missing = {
-		message = '<code class="cs1-code">&#124;citeseerx=</code> 값 필요',
+		message = '<code class="cs1-code">&#124;citeseerx=</code>가 필요함',
 		anchor = 'citeseerx_missing',
 		category = '인용 오류 - citeseerx',										-- same as bad citeseerx
 		hidden = false
 		},
 	err_cite_web_url = {														-- this error applies to cite web and to cite podcast
-		message = '<code class="cs1-code">&#124;url=</code> 변수가 없거나 비었음',
+		message = '<code class="cs1-code">&#124;url=</code>이 없거나 비었음',
 		anchor = 'cite_web_url',
 		category = '인용 오류 - URL이 없음',
 		hidden = false
 		},
 	err_class_ignored = {
-		message = '<code class="cs1-code">&#124;분류=</code> ignored',
+		message = '<code class="cs1-code">&#124;클래스=</code>가 무시됨',
 		anchor = 'class_ignored',
-		category = '인용 오류 - arXiv 분류',											-- 로컬: 현재 분류명 "인용 오류 - 클래스". category와 중복되는데 수정 필요?
+		category = '인용 오류 - 클래스',
 		hidden = false
 		},
 	err_contributor_ignored = {
-		message = '<code class="cs1-code">&#124;contributor=</code> 무시됨',
+		message = '<code class="cs1-code">&#124;기여자=</code>가 무시됨',
 		anchor = 'contributor_ignored',
-		category = '인용 오류 - contributor',
+		category = '인용 오류 - 기여자',
 		hidden = false
 		},
 	err_contributor_missing_required_param = {
-		message = '<code class="cs1-code">&#124;contributor=</code>는 <code class="cs1-code">&#124;$1=</code>를 필요로 함',	-- $1 is parameter name
+		message = '<code class="cs1-code">&#124;기여자=</code>는 <code class="cs1-code">&#124;$1=</code>를(을) 필요로 함',	-- $1 is parameter name
 		anchor = 'contributor_missing_required_param',
-		category = '인용 오류 - contributor',
+		category = '인용 오류 - 기여자',
 		hidden = false
 		},
 	err_deprecated_params = {
 		message = '더 이상 지원되지 않는 변수를 사용함: <code class="cs1-code">&#124;$1=</code>',	-- $1 is parameter name
 		anchor = 'deprecated_params',
-		category = '인용 오류 - 오래된 변수를 사용함',
+		category = '인용 오류 - 오래된 변수',
 		hidden = false
 		},
 	err_disp_name = {
 		message = '잘못된 <code class="cs1-code">&#124;$1=$2</code>',			-- $1 is parameter name; $2 is the assigned value
 		anchor = 'disp_name',
-		category = '인용 오류 - 저자표시',
+		category = '인용 오류 - 이름표시',
 		hidden = false,
 		},
 	err_doibroken_missing_doi = {
@@ -1415,43 +2492,43 @@ local error_conditions = {
 	err_empty_citation = {
 		message = '인용 틀이 비었음',
 		anchor = 'empty_citation',
-		category = '인용 오류 - 인용 틀이 비었음',
+		category = '인용 오류 - 빈 인용 틀',
 		hidden = false
 		},
 	err_etal = {
-		message = '<code class="cs1-code">&#124;$1=</code>에서 et al.을 직접 사용함',	-- $1 is parameter name
+		message = '다음 변수에서 et al.을 직접적으로 사용함: <code class="cs1-code">&#124;$1=</code>',	-- $1 is parameter name
 		anchor = 'explicit_et_al',
-		category = '인용 오류 - et al.',
+		category = '인용 오류 - et al.의 직접적인 사용',
 		hidden = false
 		},
 	err_extra_text_edition = {
-		message = '<code class="cs1-code">&#124;판=</code>에 불필요한 문구가 있음',
+		message = '<code class="cs1-code">&#124;판=</code>에 추가 문구가 있음',
 		anchor = 'extra_text_edition',
 		category = '인용 오류 - 추가 문구: 판',
 		hidden = false,
 		},
 	err_extra_text_issue = {
-		message = '<code class="cs1-code">&#124;$1=</code>에 불필요한 문구가 있음',		-- $1 is parameter name
+		message = '<code class="cs1-code">&#124;$1=</code>에 추가 문구가 있음',		-- $1 is parameter name
 		anchor = 'extra_text_issue',
 		category = '인용 오류 - 추가 문구: 호',
 		hidden = false,
 		},
 	err_extra_text_pages = {
-		message = '<code class="cs1-code">&#124;$1=</code>에 불필요한 문구가 있음',		-- $1 is parameter name
+		message = '<code class="cs1-code">&#124;$1=</code>에 추가 문구가 있음',		-- $1 is parameter name
 		anchor = 'extra_text_pages',
 		category = '인용 오류 - 추가 문구: 쪽',
 		hidden = false,
 		},
 	err_extra_text_volume = {
-		message = '<code class="cs1-code">&#124;$1=</code>에 불필요한 문구가 있음',		-- $1 is parameter name
+		message = '<code class="cs1-code">&#124;$1=</code>에 추가 문구가 있음',		-- $1 is parameter name
 		anchor = 'extra_text_volume',
 		category = '인용 오류 - 추가 문구: 권',
-		hidden = true,
+		hidden = false,
 		},
 	err_first_missing_last = {
-		message = '<code class="cs1-code">&#124;$1=</code>에 <code class="cs1-code">&#124;$2=</code>이(가) 없음',	-- $1 is first alias, $2 is matching last alias
+		message = '<code class="cs1-code">&#124;$1=</code>이(가) 있지만 <code class="cs1-code">&#124;$2=</code>이(가) 없음',	-- $1 is first alias, $2 is matching last alias
 		anchor = 'first_missing_last',
-		category = '인용 오류 - 이름이 없음', -- author, contributor, editor, interviewer, translator
+		category = '인용 오류 - 이름 없음',									-- author, contributor, editor, interviewer, translator
 		hidden = false
 		},
 	err_format_missing_url = {
@@ -1467,103 +2544,139 @@ local error_conditions = {
 		hidden = false,
 		},
 	err_generic_title = {
-		message = '일반적인 제목을 사용함',
+		message = '인용 틀이 일반적인 제목을 사용함',
 		anchor = 'generic_title',
 		category = '인용 오류 - 일반적인 제목',
 		hidden = false,
 		},
+	err_invalid_isbn_date = {
+		message = 'ISBN / 날짜 불일치',
+		anchor = 'invalid_isbn_date',
+		category = '인용 오류 - ISBN 날짜',
+		hidden = true
+		},
 	err_invalid_param_val = {
-		message = '잘못된 <code class="cs1-code">&#124;$1=$2</code> 값',			-- $1 is parameter name $2 is parameter value
+		message = '잘못된 <code class="cs1-code">&#124;$1=$2</code>',			-- $1 is parameter name $2 is parameter value
 		anchor = 'invalid_param_val',
 		category = '인용 오류 - 잘못된 변수 값',
-		hidden = false
+		hidden = true
 		},
 	err_invisible_char = {
-		message = '$2에 $1가 있음(위치 $3)',									-- $1 is invisible char $2 is parameter name $3 is position number
+		message = '$2의 $3번째 위치에 $1 문자가 있음',									-- $1 is invisible char $2 is parameter name $3 is position number
 		anchor = 'invisible_char',
 		category = '인용 오류 - 보이지 않는 문자',
 		hidden = false
 		},
+	err_medrxiv_missing = {
+		message = '<code class="cs1-code">&#124;medrxiv=</code>가 필요함',
+		anchor = 'medrxiv_missing',
+		category = '인용 오류 - medRxiv',										-- same as bad medRxiv
+		hidden = false
+		},
 	err_missing_name = {
-		message = '<code class="cs1-code">&#124;$1$2=</code> 값 없음',			-- $1 is modified NameList; $2 is enumerator
-		anchor = 'missing_name',												-- 로컬: '인용 오류 - 저자 또는 편집자 없음' 삭제 필요
-		category = '인용 오류 - 이름이 없음',									-- author, contributor, editor, interviewer, translator
+		message = '<code class="cs1-code">&#124;$1$2=</code>이(가) 없음',			-- $1 is modified NameList; $2 is enumerator
+		anchor = 'missing_name',
+		category = '인용 오류 - 이름 없음',									-- author, contributor, editor, interviewer, translator
 		hidden = false
 		},
 	err_missing_periodical = {
-		message = '$1 인용은 <code class="cs1-code">&#124;$2=</code> 변수를 필요로 함',	-- $1 is cs1 template name; $2 is canonical periodical parameter name for cite $1
+		message = '$1 인용 틀은 <code class="cs1-code">&#124;$2=</code>이(가) 필요함',	-- $1 is cs1 template name; $2 is canonical periodical parameter name for cite $1
 		anchor = 'missing_periodical',
-		category = '인용 오류 - 저널 이름 없음',
-		hidden = true
+		category = '인용 오류 - 작품 없음',
+		hidden = false
 		},
 	err_missing_pipe = {
-		message = '<code class="cs1-code">&#124;$1=</code> 값에 수직선이 없음',	-- $1 is parameter name
+		message = '<code class="cs1-code">&#124;$1=</code>에 수직선이 없음',	-- $1 is parameter name
 		anchor = 'missing_pipe',
 		category = '인용 오류 - 수직선 없음',
 		hidden = false
 		},
+	err_missing_publisher = {
+		message = '$1 인용 틀은 <code class="cs1-code">&#124;$2=</code>가 필요함',	-- $1 is cs1 template name; $2 is canonical publisher parameter name for cite $1
+		anchor = 'missing_publisher',
+		category = '인용 오류 - 출판사 없음',
+		hidden = false
+		},
+	err_numeric_names = {
+		message = '<code class="cs1-code">&#124;$1=</code>에 숫자로 된 이름이 있음',	-- $1 is parameter name',
+		anchor = 'numeric_names',
+		category = '인용 오류 - 숫자 이름',
+		hidden = false,
+		},
 	err_param_access_requires_param = {
-		message = '<code class="cs1-code">&#124;$1확인=</code>은 <code class="cs1-code">&#124;$1=</code>을(를) 필요로 함',	-- $1 is parameter name
+		message = '<code class="cs1-code">&#124;$1접근=</code>은 <code class="cs1-code">&#124;$1=</code>을(를) 필요로 함',	-- $1 is parameter name
 		anchor = 'param_access_requires_param',
-		category = '인용 오류 - 확인 변수가 없음',
+		category = '인용 오류 - 접근 변수',
 		hidden = false
 		},
 	err_param_has_ext_link = {
-		message = '<code class="cs1-code">$1</code>에 외부 링크가 있음',			-- $1 is parameter name
+		message = '<code class="cs1-code">$1</code>에 외부 링크가 존재함',			-- $1 is parameter name
 		anchor = 'param_has_ext_link',
 		category = '인용 오류 - 외부 링크',
 		hidden = false
 		},
+	err_param_has_twl_url = {
+		message = '<code class="cs1-code">$1</code>에 위키백과 도서관 링크가 존재함',	-- $1 is parameter name
+		anchor = 'param_has_twl_url',
+		category = '인용 오류 - URL',
+		hidden = false
+		},
 	err_parameter_ignored = {
-		message = '지원되지 않는 변수 무시됨: <code class="cs1-code">&#124;$1=</code>',	-- $1 is parameter name
+		message = '알 수 없는 <code class="cs1-code">&#124;$1=</code> 변수가 무시됨',	-- $1 is parameter name
 		anchor = 'parameter_ignored',
-		category = '인용 오류 - 지원되지 않는 변수 무시됨',
+		category = '인용 오류 - 지원되지 않는 변수',
 		hidden = false
 		},
 	err_parameter_ignored_suggest = {
-		message = '지원되지 않는 변수 무시됨: <code class="cs1-code">&#124;$1=</code> (추천: <code class="cs1-code">&#124;$2=</code>)',	-- $1 is unknown parameter $2 is suggested parameter name
+		message = '알 수 없는 <code class="cs1-code">&#124;$1=</code> 변수가 무시됨 (추천: <code class="cs1-code">&#124;$2=</code>)',	-- $1 is unknown parameter $2 is suggested parameter name
 		anchor = 'parameter_ignored_suggest',
-		category = '인용 오류 - 지원되지 않는 변수 무시됨',
+		category = '인용 오류 - 지원되지 않는 변수',
+		hidden = false
+		},
+	err_periodical_ignored = {
+		message = '<code class="cs1-code">&#124;$1=</code>이(가) 무시됨',			-- $1 is parameter name
+		anchor = 'periodical_ignored',
+		category = '인용 오류 - 작품 무시됨',
 		hidden = false
 		},
 	err_redundant_parameters = {
-		message = '필요 이상의 변수가 사용됨: $1',								-- $1 is error message detail
+		message = '하나 이상의 $1 변수가 지정됨',								-- $1 is error message detail
 		anchor = 'redundant_parameters',
-		category = '인용 오류 - 지원되지 않는 변수 무시됨',
+		category = '인용 오류 - 필요 이상의 변수',
 		hidden = false
 		},
 	err_script_parameter = {
 		message = '잘못된 <code class="cs1-code">&#124;$1=</code>: $2',		-- $1 is parameter name $2 is script language code or error detail
 		anchor = 'script_parameter',
-		category = '인용 오류 - 스크립트 변수',
+		category = '인용 오류 - 문자 변수',
 		hidden = false
 		},
 	err_ssrn_missing = {
-		message = '<code class="cs1-code">&#124;ssrn=</code> 값 필요',
+		message = '<code class="cs1-code">&#124;ssrn=</code>이 필요함',
 		anchor = 'ssrn_missing',
-		category = '인용 오류 - SSRN',											-- same as bad arxiv
+		category = '인용 오류 - SSRN',
 		hidden = false
 		},
 	err_text_ignored = {
-		message = '다음 글자 무시됨: "$1"',											-- $1 is ignored text
+		message = '문구 "$1" 무시됨',											-- $1 is ignored text
 		anchor = 'text_ignored',
-		category = '인용 오류 - 이름 없는 변수가 사용됨',
+		category = '인용 오류 - 이름 없는 변수',
 		hidden = false
 		},
 	err_trans_missing_title = {
-		message = '<code class="cs1-code">&#124;$1번역=</code>은 <code class="cs1-code">&#124;$1=</code> or <code class="cs1-code">&#124;script-$1=</code>를(을) 필요로 함',	-- $1 is base parameter name
+		message = '<code class="cs1-code">&#124;번역$1=</code>은(는) <code class="cs1-code">&#124;$1=</code> 또는 <code class="cs1-code">&#124;문자$1=</code>을(를) 필요로 함',	-- $1 is base parameter name
 		anchor = 'trans_missing_title',
 		category = '인용 오류 - 번역된 제목',
 		hidden = false
 		},
 	err_param_unknown_empty = {
-		message = '알 수 없는 빈 변수가 있음: $2',						-- $1 is 's' or empty space; $2 is emty unknown param list
+		message = '인용 틀에 비어 있는 알 수 없는 변수가 존재함: $2',						-- $1 is 's' or empty space; $2 is emty unknown param list
 		anchor = 'param_unknown_empty',
-		category = '인용 오류 - 알 수 없는 빈 변수',
+		category = '인용 오류 - 비어 있는 알 수 없는 변수',
 		hidden = false
 		},
 	err_vancouver = {
-		message = '밴쿠버 양식 오류: 이름 $2에 $1이(가) 있음',						-- $1 is error detail, $2 is the nth name
+		message = '밴쿠버 양식 오류: $2번째 이름에 $1이(가) 존재함',						-- $1 is error detail, $2 is the nth name
 		anchor = 'vancouver',
 		category = '인용 오류 - 밴쿠버 양식',
 		hidden = false
@@ -1583,28 +2696,40 @@ is the same as error messages
 
 ]]
 
+	maint_archive_origin = {
+		message = nil,
+		anchor = 'archive_origin',
+		category = 'CS1 관리 - 보존 서비스',
+		hidden = true,
+		},
 	maint_archived_copy = {
 		message = nil,
 		anchor = 'archived_copy',
-		category = 'CS1 관리 - 제목으로 archived copy를 사용함',
+		category = 'CS1 관리 - 제목으로 보존된 사용을 사용함',
 		hidden = true,
 		},
-	maint_authors = {
+	maint_bibcode = {
 		message = nil,
-		anchor = 'authors',
-		category = 'CS1 관리 - 인물 변수를 사용함',
+		anchor = 'bibcode',
+		category = 'CS1 관리 - bibcode',
+		hidden = true,
+		},
+	maint_location_no_publisher = {												-- cite book, conference, encyclopedia; citation as book cite or encyclopedia cite
+		message = nil,
+		anchor = 'location_no_publisher',
+		category = 'CS1 관리 - 출판사 없는 위치',
 		hidden = true,
 		},
 	maint_bot_unknown = {
 		message = nil,
 		anchor = 'bot:_unknown',
-		category = 'CS1 관리 - 봇: 원본 URL 상태를 알 수 없음',
+		category = 'CS1 관리 - 봇: 원본 URL 상태 알 수 없음',
 		hidden = true,
 		},
 	maint_date_auto_xlated = {													-- date auto-translation not supported by en.wiki
 		message = nil,
 		anchor = 'date_auto_xlated',
-		category = 'CS1 관리 - 자동 번역된 날짜',
+		category = 'CS1 관리 - 자동으로 번역된 날짜',
 		hidden = true,
 		},
 	maint_date_format = {
@@ -1616,7 +2741,13 @@ is the same as error messages
 	maint_date_year = {
 		message = nil,
 		anchor = 'date_year',
-		category = 'CS1 관리 - 날짜 형식',
+		category = 'CS1 관리 - 날짜와 연도',
+		hidden = true,
+		},
+	maint_deprecated_archive = {
+		message = nil,
+		anchor = 'deprecated_archive',
+		category = 'CS1 관리 - 사용하지 않는 보존 서비스',
 		hidden = true,
 		},
 	maint_doi_ignore = {
@@ -1628,19 +2759,31 @@ is the same as error messages
 	maint_doi_inactive = {
 		message = nil,
 		anchor = 'doi_inactive',
-		category = 'CS1 관리 - 비활성화된 DOI',
+		category = 'CS1 관리 - 사용할 수 없는 DOI',
 		hidden = true,
 		},
 	maint_doi_inactive_dated = {
 		message = nil,
 		anchor = 'doi_inactive_dated',
-		category = 'CS1 관리 - 비활성화된 DOI',						-- $1 is year, $2 is month-name or empty string, $3 is space or empty string
+		category = 'CS1 관리 - 사용할 수 없는 DOI',						-- $1 is year, $2 is month-name or empty string, $3 is space or empty string / DOI inactive as of $2$3$1
+		hidden = true,
+		},
+	maint_doi_unflagged_free = {
+		message = nil,
+		anchor = 'doi_unflagged_free',
+		category = 'CS1 관리 - 플래그 없는 자유 DOI',
 		hidden = true,
 		},
 	maint_extra_punct = {
 		message = nil,
 		anchor = 'extra_punct',
 		category = 'CS1 관리 - 추가 구두점',
+		hidden = true,
+		},
+	maint_id_limit_load_fail = {												-- applies to all cs1|2 templates on a page; 
+		message = nil,															-- maint message (category link) never emitted
+		anchor = 'id_limit_load_fail',
+		category = 'CS1 관리 - ID 최댓값 로딩 실패',
 		hidden = true,
 		},
 	maint_isbn_ignore = {
@@ -1652,7 +2795,7 @@ is the same as error messages
 	maint_issn_ignore = {
 		message = nil,
 		anchor = 'ignore_issn',
-		category = 'CS1 관리 - ISBN 오류 무시',
+		category = 'CS1 관리 - ISSN 오류 무시',
 		hidden = true,
 		},
 	maint_jfm_format = {
@@ -1666,23 +2809,29 @@ is the same as error messages
 		anchor = 'location',
 		category = 'CS1 관리 - 위치',
 		hidden = true,
-	},
+		},
+	maint_missing_class = {
+		message = nil,
+		anchor = 'missing_class',
+		category = 'CS1 관리 - 클래스 없음',
+		hidden = true,
+		},
 	maint_mr_format = {
 		message = nil,
 		anchor = 'mr_format',
 		category = 'CS1 관리 - MR 형식',
 		hidden = true,
-	},
+		},
 	maint_mult_names = {
 		message = nil,
 		anchor = 'mult_names',
-		category = 'CS1 관리 - 여러 이름',								-- $1 is '<name>s list'; gets value from special_case_translation table
+		category = 'CS1 관리 - 여러 이름: $1',								-- $1 is '<name>s list'; gets value from special_case_translation table
 		hidden = true,
 		},
 	maint_numeric_names = {
 		message = nil,
 		anchor = 'numeric_names',
-		category = 'CS1 관리 - 숫자 이름',								-- $1 is '<name>s list'; gets value from special_case_translation table
+		category = 'CS1 관리 - 여러 이름: $1',								-- $1 is '<name>s list'; gets value from special_case_translation table
 		hidden = true,
 		},
 	maint_others = {
@@ -1694,9 +2843,21 @@ is the same as error messages
 	maint_others_avm = {
 		message = nil,
 		anchor = 'others_avm',
-		category = 'CS1 관리 - 기타',
+		category = 'CS1 관리 - 영상 인용 및 영상 설명 인용에서의 기타',
 		hidden = true,
-	},
+		},
+	maint_overridden_setting = {
+		message = nil,
+		anchor = 'overridden',
+		category = 'CS1 관리 - 무시된 설정',
+		hidden = true,
+		},
+	maint_page_art_num = {
+		message = nil,
+		anchor = 'page_art_num',
+		category = 'CS1 관리 - article number as page number',
+		hidden = true,
+		},
 	maint_pmc_embargo = {
 		message = nil,
 		anchor = 'embargo',
@@ -1715,18 +2876,24 @@ is the same as error messages
 		category = 'CS1 관리 - 추신',
 		hidden = true,
 	},
+	maint_publisher_location = {
+		message = nil,
+		anchor = 'publisher_location',
+		category = 'CS1 관리 - 출판사 위치',
+		hidden = true,
+	},
 	maint_ref_duplicates_default = {
 		message = nil,
 		anchor = 'ref_default',
-		category = 'CS1 관리 - ref가 기본값과 중복됨',
+		category = 'CS1 관리 - 기본값과 중복된 ref',
 		hidden = true,
 	},
-	maint_unfit = {
+	maint_shortened_archive_url = {
 		message = nil,
-		anchor = 'unfit',
-		category = 'CS1 관리 - 부적합한 url',
+		anchor = 'shortened_archive_url',
+		category = 'CS1 관리 - 단축된 보존url',
 		hidden = true,
-		},
+	},
 	maint_unknown_lang = {
 		message = nil,
 		anchor = 'unknown_lang',
@@ -1736,7 +2903,7 @@ is the same as error messages
 	maint_untitled = {
 		message = nil,
 		anchor = 'untitled',
-		category = 'CS1 관리 - 이름 없는 작품',
+		category = 'CS1 관리 - 제목 없는 작품',
 		hidden = true,
 		},
 	maint_url_status = {
@@ -1745,13 +2912,65 @@ is the same as error messages
 		category = 'CS1 관리 - url상태',
 		hidden = true,
 		},
+	maint_work_isbn = {
+		message = nil,
+		anchor = 'work_isbn',
+		category = 'CS1 관리 - ISBN과 함께 사용한 작품 변수',
+		hidden = true,
+		},
+	maint_year= {
+		message = nil,
+		anchor = 'year',
+		category = 'CS1 관리 - 연도',
+		hidden = true,
+		},
 	maint_zbl = {
 		message = nil,
 		anchor = 'zbl',
-		category = 'CS1 관리 -  Zbl',
+		category = 'CS1 관리 - Zbl',
 		hidden = true,
 		},
 	}
+
+
+--[[--------------------------< I D _ L I M I T S _ D A T A _ T >----------------------------------------------
+
+fetch id limits for certain identifiers from c:Data:CS1/Identifier limits.tab.  This source is a json tabular 
+data file maintained at wikipedia commons.  Convert the json format to a table of k/v pairs.
+
+The values from <id_limits_data_t> are used to set handle.id_limit.
+
+From 2025-02-21, MediaWiki is broken.  Use this link to edit the tablular data file:
+	https://commons.wikimedia.org/w/index.php?title=Data:CS1/Identifier_limits.tab&action=edit
+See Phab:T389105
+
+]]
+
+local id_limits_data_t = {};
+
+local use_commons_data = true;													-- set to false if your wiki does not have access to mediawiki commons; then,
+if false == use_commons_data then												-- update this table from https://commons.wikimedia.org/wiki/Data:CS1/Identifier_limits.tab; last update: 2025-02-21
+	id_limits_data_t = {['OCLC'] = 10450000000, ['OSTI'] = 23010000, ['PMC'] = 11900000, ['PMID'] = 40400000, ['RFC'] = 9300, ['SSRN'] = 5200000, ['S2CID'] = 276000000};	-- this table must be maintained locally
+
+else																			-- here for wikis that do have access to mediawiki commons
+	local load_fail_limit = 99999999999;										-- very high number to avoid error messages on load failure
+	id_limits_data_t = {['OCLC'] = load_fail_limit, ['OSTI'] = load_fail_limit, ['PMC'] = load_fail_limit, ['PMID'] = load_fail_limit, ['RFC'] = load_fail_limit, ['SSRN'] = load_fail_limit, ['S2CID'] = load_fail_limit};
+
+	local id_limits_data_load_fail = false;										-- flag; assume that we will be successful when loading json id limit tabular data
+
+	if mw.ext.data == nil then
+		id_limits_data_load_fail = true;										-- safeguard against Lua errors if mw.ext.data is not available for some reason
+	else
+		local tab_data_t = mw.ext.data.get ('CS1/Identifier limits.tab');		-- attempt to load the tabular data from commons into <tab_data_t>
+		if false == tab_data_t then												-- undocumented 'feature': mw.ext.data.get() sometimes returns false
+			id_limits_data_load_fail = true;									-- set the flag so that Module:Citation/CS1 can create an unannotated maint category
+		else
+			for _, limit_t in ipairs (tab_data_t.data) do						-- overwrite default <load_fail_limit> values from the data table in the tabular data
+				id_limits_data_t[limit_t[1]] = limit_t[2];						-- <limit[1]> is identifier; <limit[2]> is upper limit for that identifier
+			end
+		end
+	end
+end
 
 
 --[[--------------------------< I D _ H A N D L E R S >--------------------------------------------------------
@@ -1762,9 +2981,9 @@ identifier in the citation.
 
 	parameters: a list of parameter aliases for this identifier; first in the list is the canonical form
 	link: Wikipedia article name
-	redirect: a local redirect to a local Wikipedia article name;  at en.wiki, 'ISBN (식별자)' is a redirect to 'International Standard Book Number'
+	redirect: a local redirect to a local Wikipedia article name;  at en.wiki, 'ISBN (identifier)' is a redirect to 'International Standard Book Number'
 	q: Wikidata q number for the identifier
-	label: the label preceeding the identifier; label is linked to a Wikipedia article (in this order):
+	label: the label preceding the identifier; label is linked to a Wikipedia article (in this order):
 		redirect from id_handlers['<id>'].redirect when use_identifier_redirects is true
 		Wikidata-supplied article name for the local wiki from id_handlers['<id>'].q
 		local article name from id_handlers['<id>'].link
@@ -1793,7 +3012,7 @@ local id_handlers = {
 		redirect = 'arXiv (식별자)',
 		q = 'Q118398',
 		label = 'arXiv',
-		prefix = '//arxiv.org/abs/', 											-- protocol-relative tested 2013-09-04
+		prefix = 'https://arxiv.org/abs/',
 		encode = false,
 		COinS = 'info:arxiv',
 		separator = ':',
@@ -1805,7 +3024,7 @@ local id_handlers = {
 		redirect = 'ASIN (식별자)',
 		q = 'Q1753278',
 		label = 'ASIN',
-		prefix = '//www.amazon.',
+		prefix = 'https://www.amazon.',
 		COinS = 'url',
 		separator = '&nbsp;',
 		encode = false;
@@ -1815,12 +3034,12 @@ local id_handlers = {
 		link = '비브코드',
 		redirect = '비브코드 (식별자)',
 		q = 'Q25754',
-		label = 'Bibcode',
+		label = '비브코드',
 		prefix = 'https://ui.adsabs.harvard.edu/abs/',
 		encode = false,
 		COinS = 'info:bibcode',
 		separator = ':',
-		custom_access = 'bibcode-access',
+		custom_access = {'bibcode-access', 'bibcode접근'},
 		},
 	['BIORXIV'] = {
 		parameters = {'biorxiv'},
@@ -1828,7 +3047,7 @@ local id_handlers = {
 		redirect = 'bioRxiv (식별자)',
 		q = 'Q19835482',
 		label = 'bioRxiv',
-		prefix = '//doi.org/',
+		prefix = 'https://doi.org/',
 		COinS = 'pre',															-- use prefix value
 		access = 'free',														-- free to read
 		encode = true,
@@ -1840,7 +3059,7 @@ local id_handlers = {
 		redirect = 'CiteSeerX (식별자)',
 		q = 'Q2715061',
 		label = 'CiteSeerX',
-		prefix = '//citeseerx.ist.psu.edu/viewdoc/summary?doi=',
+		prefix = 'https://citeseerx.ist.psu.edu/viewdoc/summary?doi=',
 		COinS =  'pre',															-- use prefix value
 		access = 'free',														-- free to read
 		encode = true,
@@ -1852,38 +3071,61 @@ local id_handlers = {
 		redirect = 'doi (식별자)',
 		q = 'Q25670',
 		label = 'doi',
-		prefix = '//doi.org/',
+		prefix = 'https://doi.org/',
 		COinS = 'info:doi',
 		separator = ':',
 		encode = true,
-		custom_access = 'doi-access',
+		custom_access = {'doi-access', 'doi접근'},
 		},
 	['EISSN'] = {
 		parameters = {'eissn', 'EISSN'},
-		link = '국제 표준 연속 간행물 번호',
+		link = '국제 표준 일련 번호',
 		redirect = 'eISSN (식별자)',
 		q = 'Q46339674',
 		label = 'eISSN',
-		prefix = '//www.worldcat.org/issn/',
+		prefix = 'https://search.worldcat.org/issn/',
 		COinS = 'rft.eissn',
 		encode = false,
 		separator = '&nbsp;',
 		},
+	['ERAM'] = {																-- 로컬
+		parameters = {'eram', 'ERAM'}, 
+		link = '첸트랄블라트 마트',
+		redirect = 'ERAM (식별자)',
+		q = 'Q137566314',
+		label = 'ERAM',
+		prefix = '//zbmath.org/?format=complete&q=an:',
+		COinS = 'pre',															-- use prefix value
+		encode = true,
+		separator = '&nbsp;',
+	},
+	['EUDML'] = {																-- 로컬
+		parameters = {'eudml', 'EUDML'}, 
+		link = '유럽 디지털 수학 도서관',
+		redirect = 'EUDML (식별자)',
+		q = 'Q30897186',
+		label = 'EuDML',
+		mode = 'manual',
+		prefix = '//eudml.org/doc/',
+		COinS = 'pre',															-- use prefix value
+		encode = true,
+		separator = '&nbsp;',
+	},
 	['HDL'] = {
 		parameters = { 'hdl', 'HDL' },
 		link = '핸들 시스템',
 		redirect = 'hdl (식별자)',
 		q = 'Q3126718',
 		label = 'hdl',
-		prefix = '//hdl.handle.net/',
+		prefix = 'https://hdl.handle.net/',
 		COinS = 'info:hdl',
 		separator = ':',
 		encode = true,
-		custom_access = 'hdl-access',
+		custom_access = {'hdl-access', 'hdl접근'},
 		},
 	['ISBN'] = {																-- Used by InternetArchiveBot
 		parameters = {'isbn', 'ISBN'},
-		link = '국제 표준 연속 간행물 번호',
+		link = '국제표준도서번호',
 		redirect = 'ISBN (식별자)',
 		q = 'Q33057',
 		label = 'ISBN',
@@ -1903,11 +3145,11 @@ local id_handlers = {
 		},
 	['ISSN'] = {
 		parameters = {'issn', 'ISSN'},
-		link = '국제 표준 연속 간행물 번호',
+		link = '국제 표준 일련 번호',
 		redirect = 'ISSN (식별자)',
 		q = 'Q131276',
 		label = 'ISSN',
-		prefix = '//www.worldcat.org/issn/',
+		prefix = 'https://search.worldcat.org/issn/',
 		COinS = 'rft.issn',
 		encode = false,
 		separator = '&nbsp;',
@@ -1918,7 +3160,7 @@ local id_handlers = {
 		redirect = 'JFM (식별자)',
 		q = '',
 		label = 'JFM',
-		prefix = '//zbmath.org/?format=complete&q=an:',
+		prefix = 'https://zbmath.org/?format=complete&q=an:',
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
@@ -1929,11 +3171,11 @@ local id_handlers = {
 		redirect = 'JSTOR (식별자)',
 		q = 'Q1420342',
 		label = 'JSTOR',
-		prefix = '//www.jstor.org/stable/', 									-- protocol-relative tested 2013-09-04
+		prefix = 'https://www.jstor.org/stable/',
 		COinS = 'pre',															-- use prefix value
 		encode = false,
 		separator = '&nbsp;',
-		custom_access = 'jstor-access',
+		custom_access = {'jstor-access', 'jstor접근'},
 		},
 	['LCCN'] = {
 		parameters = {'lccn', 'LCCN'},
@@ -1941,33 +3183,79 @@ local id_handlers = {
 		redirect = 'LCCN (식별자)',
 		q = 'Q620946',
 		label = 'LCCN',
-		prefix = '//lccn.loc.gov/', 											-- protocol-relative tested 2015-12-28
+		prefix = 'https://lccn.loc.gov/',
 		COinS = 'info:lccn',
+		encode = false,
+		separator = '&nbsp;',
+		},
+	['MEDRXIV'] = {
+		parameters = {'medrxiv'},
+		link = 'medRxiv',
+		redirect = 'medRxiv (식별자)',
+		q = 'Q58465838',
+		label = 'medRxiv',
+		prefix = 'https://www.medrxiv.org/content/',
+		COinS = 'pre',															-- use prefix value
+		access = 'free',														-- free to read
 		encode = false,
 		separator = '&nbsp;',
 		},
 	['MR'] = {
 		parameters = {'mr', 'MR'},
-		link = 'Mathematical Reviews',
+		link = '수학 리뷰',
 		redirect = 'MR (식별자)',
 		q = 'Q211172',
 		label = 'MR',
-		prefix = '//www.ams.org/mathscinet-getitem?mr=', 						-- protocol-relative tested 2013-09-04
+		prefix = 'https://mathscinet.ams.org/mathscinet-getitem?mr=',
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
 		},
+	['NAID'] = {																-- 로컬
+		parameters = {'naid', 'NAID'},
+		link = 'CiNii',
+		redirect = 'NAID (식별자)',
+		q = 'Q118976435',
+		label = 'NAID',
+		prefix = 'https://ci.nii.ac.jp/naid/',
+		COinS = 'pre',															-- use prefix value
+		encode = false,
+		separator = '&nbsp;',
+		},
+--	['NCID'] = {																-- 로컬
+--		parameters = {'ncid', 'NCID'},
+--		link = 'CiNii',
+--		redirect = 'NCID (식별자)',
+--		q = 'Q117190912',
+--		label = 'NCID',
+--		prefix = 'https://ci.nii.ac.jp/ncid/',
+--		COinS = 'info:ncid',													-- https://oclc-research.github.io/infoURI-Frozen/info-uri.info/ListRecords.html
+--		encode = false,
+--		separator = '&nbsp;',
+--		},
+	['NUMDAM'] = {																-- 로컬
+		parameters = {'numdam', 'NUMDAM'}, 
+		link = '뉨담',
+		redirect = 'Numdam (식별자)',
+		q = 'Q3346322',
+		label = 'Numdam',
+		mode = 'manual',
+		prefix = '//www.numdam.org/item/?id=',
+		COinS = 'pre',															-- use prefix value
+		encode = true,
+		separator = '&nbsp;',
+	},
 	['OCLC'] = {
 		parameters = {'oclc', 'OCLC'},
-		link = '온라인 컴퓨터 도서관 센터',
+		link = 'OCLC',
 		redirect = 'OCLC (식별자)',
 		q = 'Q190593',
 		label = 'OCLC',
-		prefix = '//www.worldcat.org/oclc/',
+		prefix = 'https://search.worldcat.org/oclc/',
 		COinS = 'info:oclcnum',
 		encode = true,
 		separator = '&nbsp;',
-		id_limit = 9999999999,													-- 10-digits
+		id_limit = id_limits_data_t.OCLC or 0,
 		},
 	['OL'] = {
 		parameters = { 'ol', 'OL' },
@@ -1975,11 +3263,11 @@ local id_handlers = {
 		redirect = 'OL (식별자)',
 		q = 'Q1201876',
 		label = 'OL',
-		prefix = '//openlibrary.org/',
+		prefix = 'https://openlibrary.org/',
 		COinS = 'url',
 		separator = '&nbsp;',
 		encode = true,
-		custom_access = 'ol-access',
+		custom_access = {'ol-access', 'ol접근'},
 		},
 	['OSTI'] = {
 		parameters = {'osti', 'OSTI'},
@@ -1987,12 +3275,12 @@ local id_handlers = {
 		redirect = 'OSTI (식별자)',
 		q = 'Q2015776',
 		label = 'OSTI',
-		prefix = '//www.osti.gov/biblio/',										-- protocol-relative tested 2018-09-12
+		prefix = 'https://www.osti.gov/biblio/',
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
-		id_limit = 46000000,													-- 로컬: 2022.05 기준 23000000
-		custom_access = 'osti-access',
+		id_limit = id_limits_data_t.OSTI or 0,
+		custom_access = {'osti-access', 'osti접근'},
 		},
 	['PMC'] = {
 		parameters = {'pmc', 'PMC'},
@@ -2000,12 +3288,12 @@ local id_handlers = {
 		redirect = 'PMC (식별자)',
 		q = 'Q229883',
 		label = 'PMC',
-		prefix = '//www.ncbi.nlm.nih.gov/pmc/articles/PMC',
+		prefix = 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC',
 		suffix = '',
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
-		id_limit = 18200000,													-- 로컬: 2022.05 기준 9100000
+		id_limit = id_limits_data_t.PMC or 0,
 		access = 'free',														-- free to read
 		},
 	['PMID'] = {
@@ -2014,11 +3302,11 @@ local id_handlers = {
 		redirect = 'PMID (식별자)',
 		q = 'Q2082879',
 		label = 'PMID',
-		prefix = '//pubmed.ncbi.nlm.nih.gov/',
+		prefix = 'https://pubmed.ncbi.nlm.nih.gov/',
 		COinS = 'info:pmid',
 		encode = false,
 		separator = '&nbsp;',
-		id_limit = 71800000,													-- 로컬: 2022.05 기준 35900000
+		id_limit = id_limits_data_t.PMID or 0,
 		},
 	['RFC'] = {
 		parameters = {'rfc', 'RFC'},
@@ -2026,19 +3314,19 @@ local id_handlers = {
 		redirect = 'RFC (식별자)',
 		q = 'Q212971',
 		label = 'RFC',
-		prefix = '//tools.ietf.org/html/rfc',
+		prefix = 'https://tools.ietf.org/html/rfc',
 		COinS = 'pre',															-- use prefix value
 		encode = false,
 		separator = '&nbsp;',
-		id_limit = 18600,														-- 로컬: 2022.05 기준 9300
+		id_limit = id_limits_data_t.RFC or 0,
 		access = 'free',														-- free to read
 		},
 	['SBN'] = {
 		parameters = {'sbn', 'SBN'},
-		link = '표준도서번호',											-- redirect to International_Standard_Book_Number#History
+		link = '국제표준도서번호',											-- redirect to International_Standard_Book_Number#History
 		redirect = 'SBN (식별자)',
 		label = 'SBN',
-		prefix = 'Special:BookSources/0-',										-- prefix has leading zero necessary to make 9-digit sbn a 10-digit isbn
+		prefix = '특수:책찾기/0-',										-- prefix has leading zero necessary to make 9-digit sbn a 10-digit isbn
 		COinS = nil,															-- nil because we can't use pre or rft or info:
 		separator = '&nbsp;',
 		},
@@ -2048,16 +3336,16 @@ local id_handlers = {
 		redirect = 'SSRN (식별자)',
 		q = 'Q7550801',
 		label = 'SSRN',
-		prefix = '//ssrn.com/abstract=', 										-- protocol-relative tested 2013-09-04
+		prefix = 'https://papers.ssrn.com/sol3/papers.cfm?abstract_id=',
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
-		id_limit = 8200000,														-- 로컬: 2022.05 기준 4100000
-		custom_access = 'ssrn-access',
+		id_limit = id_limits_data_t.SSRN or 0,
+		custom_access = {'ssrn-access', 'ssrn접근'},
 		},
 	['S2CID'] = {
 		parameters = {'s2cid', 'S2CID'},
-		link = '시맨틱 스콜라',
+		link = '시맨틱 스칼라',
 		redirect = 'S2CID (식별자)',
 		q = 'Q22908627',
 		label = 'S2CID',
@@ -2065,13 +3353,13 @@ local id_handlers = {
 		COinS = 'pre',															-- use prefix value
 		encode = false,
 		separator = '&nbsp;',
-		id_limit = 500000000,													-- 로컬: 2022.05 기준 250000000
-		custom_access = 's2cid-access',
+		id_limit = id_limits_data_t.S2CID or 0,
+		custom_access = {'s2cid-access', 's2cid접근'},
 		},
 	['USENETID'] = {
-		parameters = {'message-id'},
+		parameters = {'message-id', '메시지id'},
 		link = '유즈넷',
-		redirect = '유즈넷 (식별자)',
+		redirect = 'Usenet (식별자)',
 		q = 'Q193162',
 		label = 'Usenet:',
 		prefix = 'news:',
@@ -2085,7 +3373,7 @@ local id_handlers = {
 		redirect = 'Zbl (식별자)',
 		q = 'Q190269',
 		label = 'Zbl',
-		prefix = '//zbmath.org/?format=complete&q=an:',
+		prefix = 'https://zbmath.org/?format=complete&q=an:',
 		COinS = 'pre',															-- use prefix value
 		encode = true,
 		separator = '&nbsp;',
@@ -2097,15 +3385,25 @@ local id_handlers = {
 ]]
 
 return 	{
-	use_identifier_redirects = true,											-- when true use redirect name for identifier label links; always true at en.wiki
-	local_lang_cat_enable = false;												-- when true categorizes pages where |language=<local wiki's language>; always false at en.wiki
-	date_name_auto_xlate_enable = false;										-- when true translates English month-names to the local-wiki's language month names; always false at en.wiki
-	date_digit_auto_xlate_enable = false;										-- when true translates Western date digit to the local-wiki's language digits (date_names['local_digits']); always false at en.wiki
+	use_identifier_redirects = use_identifier_redirects,						-- booleans defined in the settings at the top of this module
+	local_lang_cat_enable = local_lang_cat_enable,
+	date_name_auto_xlate_enable = date_name_auto_xlate_enable,
+	date_digit_auto_xlate_enable = date_digit_auto_xlate_enable,
+	enable_sort_keys = enable_sort_keys,
+	suppress_archive_today_urls = suppress_archive_today_urls,
 	
-	global_df = get_date_format (),												-- tables and variables created when this module is loaded
+																				-- tables and variables created when this module is loaded
+	dependencies_t = dependencies_t,											-- used to suppress parameters dependent on url-holding parameters holding archive.today urls
+	enum_needs_xlation = '1' ~= date_names.xlate_digits['1'],					-- to avoid unnecessary enumerator translation
+	global_df = 'ko-all',														-- this line can be replaced with "global_df = 'dmy-all'," to have all dates auto translated to dmy format. -- 로컬. 기본 df 설정을 ko-all로.
+	global_cs1_config_t = global_cs1_config_t,									-- global settings from {{cs1 config}}
+	id_limits_data_load_fail = id_limits_data_load_fail,						-- true when commons tabular identifier-limit data fails to load
+	known_free_doi_registrants_t = build_free_doi_registrants_table(),
 	punct_skip = build_skip_table (punct_skip, punct_meta_params),
 	url_skip = build_skip_table (url_skip, url_meta_params),
 
+	archive_today_tlds_t = {['today'] = true, ['ph'] = true, ['is'] = true, ['md'] = true, ['li'] = true, ['fo'] = true, ['vn'] = true};	-- used by is_archive_today_url()
+	name_space_sort_keys = name_space_sort_keys,
 	aliases = aliases,
 	special_case_translation = special_case_translation,
 	date_names = date_names,
@@ -2113,33 +3411,38 @@ return 	{
 	error_conditions = error_conditions,
 	editor_markup_patterns = editor_markup_patterns,
 	et_al_patterns = et_al_patterns,
+	extended_registrants_t = extended_registrants_t,
 	id_handlers = id_handlers,
 	keywords_lists = keywords_lists,
 	keywords_xlate = keywords_xlate,
-	stripmarkers=stripmarkers,
+	stripmarkers = stripmarkers,
 	invisible_chars = invisible_chars,
 	invisible_defs = invisible_defs,
 	indic_script = indic_script,
-	emoji = emoji,
-	local_lang_cat_enable = local_lang_cat_enable,
+	emoji_t = emoji_t,
 	maint_cats = maint_cats,
 	messages = messages,
 	presentation = presentation,
 	prop_cats = prop_cats,
 	script_lang_codes = script_lang_codes,
-	lang_code_remap = lang_code_remap,
+	lang_tag_remap = lang_tag_remap,
 	lang_name_remap = lang_name_remap,
 	this_wiki_code = this_wiki_code,
 	title_types = title_types,
-	uncategorized_namespaces = uncategorized_namespaces,
+	uncategorized_namespaces = uncategorized_namespaces_t,
 	uncategorized_subpages = uncategorized_subpages,
 	templates_using_volume = templates_using_volume,
 	templates_using_issue = templates_using_issue,
 	templates_not_using_page = templates_not_using_page,
 	vol_iss_pg_patterns = vol_iss_pg_patterns,
+	single_letter_2nd_lvl_domains_t = single_letter_2nd_lvl_domains_t,
+	url_access_map_t = url_access_map_t,
 	
 	inter_wiki_map = inter_wiki_map,
 	mw_languages_by_tag_t = mw_languages_by_tag_t,
 	mw_languages_by_name_t = mw_languages_by_name_t,
 	citation_class_map_t = citation_class_map_t,
+
+	citation_issue_t = citation_issue_t,
+	citation_no_volume_t = citation_no_volume_t,
 	}
