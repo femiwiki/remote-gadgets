@@ -9,6 +9,7 @@ local root
 local empty_row_categories = {}
 local category_in_empty_row_pattern = '%[%[%s*[Cc][Aa][Tt][Ee][Gg][Oo][Rr][Yy]%s*:[^]]*]]'
 local has_rows = false
+local yesno = require("Module:@en/Yesno")
 local lists = {
 	plainlist_t = {
 		patterns = {
@@ -168,7 +169,7 @@ local function addRow(rowArgs)
 					:cssText(args.headerstyle)
 					:cssText(rowArgs.rowcellstyle)
 					:wikitext(fixChildBoxes(rowArgs.header, 'th'))
-		if rowArgs.data then
+		if rowArgs.data and not yesno(args.decat) then
 			root:wikitext(
 				'[[Category:Pages using infobox templates with ignored data cells]]'
 			)
@@ -433,7 +434,7 @@ end
 
 -- Render tracking categories. args.decat == turns off tracking categories.
 local function renderTrackingCategories()
-	if args.decat == 'yes' then return end
+	if yesno(args.decat) then return end
 	if args.child == 'yes' then
 		if args.title then
 			root:wikitext(

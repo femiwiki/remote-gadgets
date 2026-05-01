@@ -6,7 +6,7 @@ This module was originally on https://en.wikipedia.org/wiki/Module:Error and for
 
 local p = {}
 
-local function _error(args)
+function p._error(args)
     local tag = mw.ustring.lower(tostring(args.tag))
 
     -- Work out what html tag we should use.
@@ -17,6 +17,7 @@ local function _error(args)
     -- Generate the html.
     return tostring(mw.html.create(tag)
         :addClass('error')
+        :cssText(args.style)
         :wikitext(tostring(args.message or args[1] or error('no message specified', 2)))
     )
 end
@@ -37,7 +38,7 @@ function p.error(frame)
     if args.message == "" then
         args.message = nil
     end
-    return _error(args)
+    return p._error(args)
 end
 
 return p

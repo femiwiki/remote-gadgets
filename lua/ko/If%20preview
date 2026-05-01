@@ -3,7 +3,8 @@ This module was originally on https://ko.wikipedia.org/wiki/Module:If_preview an
 (https://github.com/femiwiki/legunto).
 ]]
 local p = {}
-
+local getArgs = require("Module:@ko/Arguments").getArgs
+local yn = require("Module:@ko/Yesno")
 local cfg = mw.loadData('Module:@ko/If preview/configuration')
 
 --[[
@@ -14,10 +15,11 @@ this module, depending on whether the page is being previewed.
 
 ]]
 function p.main(frame)
+	local args = getArgs(frame)
 	if cfg.preview then
-		return frame.args[1] or ''
+		return args[1] or ''
 	else
-		return frame.args[2] or ''
+		return args[2] or ''
 	end
 end
 
@@ -32,7 +34,6 @@ is being previewed.
 function p.pmain(frame)
 	return p.main(frame:getParent())
 end
-
 
 local function warning_text(warning)
 	return mw.ustring.format(
@@ -51,6 +52,7 @@ function p._warning(args)
 	
 	if not cfg.preview then return '' end
 	
+	if yn(args['consolewarning']) then mw.addWarning(args[1] or cfg.missing_warning) end
 	return warning_text(warning)
 end
 
@@ -60,18 +62,37 @@ warning
 This function returns a "preview warning", which is the first argument marked
 up with HTML and some supporting text, depending on whether the page is being previewed.
 
-disabled since we'll implement the template version in general
-
 ]]
---function p.warning(frame)
---	return p._warning(frame.args)
---end
+-- function p.warning(frame)
+-- 	mw.addWarning(frame.args[1] or cfg.missing_warning)
+-- 	return p._warning(frame.args)
+-- end
 
 --[[
 warning, but for pass-through templates like {{preview warning}}
 ]]
 function p.pwarning(frame)
-	return p._warning(frame:getParent().args)
+	local args = getArgs(frame)
+	return p._warning(args)
+end
+
+--[[
+Does both mw.addWarning and preview warning
+]]
+
+function p.warn(text)
+	if text == nil or text == "" then return "" end
+	mw.addWarning(text)
+	return p._warning({text})
+end
+
+--[[
+Console warning
+]]
+function p.consoleWarning(frame)
+	local args = getArgs(frame)
+	mw.addWarning(args[1] or cfg.missing_warning)
+	return ''
 end
 
 return p

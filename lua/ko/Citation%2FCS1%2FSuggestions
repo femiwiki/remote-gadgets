@@ -1,5 +1,5 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Citation/CS1/Suggestions and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Citation/CS1/Suggestions and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
 --Please insert new suggestions in alphabetical order
@@ -131,6 +131,8 @@ suggestions = {
 	['꺽쇠표없음'] = '이탤릭체',
 	['꺾쇠표없음'] = '이탤릭체',
 	['작품명'] = '작품',
+	['포맷'] = '형식',
+	['in'] = '언어',
 }
 
 
