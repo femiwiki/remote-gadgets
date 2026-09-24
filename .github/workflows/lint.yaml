@@ -1,0 +1,31 @@
+---
+name: Lint
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions: {}
+jobs:
+  taplo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+        with:
+          persist-credentials: false
+
+      - env:
+          VERSION: 0.10.0
+          SHA256: 8fe196b894ccf9072f98d4e1013a180306e17d244830b03986ee5e8eabeb6156
+        run: |
+          base=https://github.com/tamasfe/taplo/releases/download
+          curl -fsSL -o taplo.gz "$base/${VERSION}/taplo-linux-x86_64.gz"
+          echo "${SHA256}  taplo.gz" | sha256sum -c -
+          gunzip taplo.gz
+          chmod +x taplo
+
+      - run: ./taplo fmt --check
+
+      - run: ./taplo lint
