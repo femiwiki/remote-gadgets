@@ -130,10 +130,11 @@ def edit_pages_on_wiki(targets, wiki):
 
 def get_all_files():
     ROOT = Path('.')
-    glob = sum([
-        list(ROOT.glob(f'{d}/**/*'))
+    glob = [
+        p
         for d in TARGET_DIRECTORIES
-    ], [])
+        for p in ROOT.glob(f'{d}/**/*')
+    ]
     return [
         str(p)
         for p
