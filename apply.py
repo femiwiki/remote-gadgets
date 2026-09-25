@@ -71,7 +71,7 @@ def get_modified_files(wiki):
         GIT_COMMAND,
         capture_output=True,
         check=True,
-        universal_newlines=True
+        text=True
     )
 
     return result.stdout.split('\n')
