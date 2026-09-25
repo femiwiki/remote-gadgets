@@ -7,7 +7,7 @@ updates:
     reviewers:
       - 'femiwiki/reviewer'
 
-  - package-ecosystem: 'pip'
+  - package-ecosystem: 'uv'
     directory: '/'
     schedule:
       interval: monthly
