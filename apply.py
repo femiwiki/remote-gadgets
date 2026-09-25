@@ -13,6 +13,7 @@ import subprocess
 import mwclient
 
 logging.basicConfig(stream=stdout, level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 TARGET_DIRECTORIES = [
     'pages',
@@ -64,7 +65,7 @@ def get_modified_files(wiki):
         latest_commit,
     ]
 
-    logging.info(f'git command: {GIT_COMMAND}')
+    logger.info(f'git command: {GIT_COMMAND}')
 
     result = subprocess.run(
         GIT_COMMAND,
@@ -87,7 +88,7 @@ def validate_files(arr):
 
 
 def edit_pages_on_wiki(targets, wiki):
-    logging.info('target files:' + ' / '.join(targets))
+    logger.info('target files:' + ' / '.join(targets))
 
     SUMMARY = "Github @" + environ['GITHUB_ACTOR'] + "의 " + \
         "https://github.com/" + environ['GITHUB_REPOSITORY'] + "/commit/" + \
@@ -109,21 +110,21 @@ def edit_pages_on_wiki(targets, wiki):
         page = wiki.pages[title]
         try:
             with open(FILE, "r") as f:
-                logging.debug('Saving: '+title+'...')
+                logger.debug('Saving: '+title+'...')
                 page.save(f.read(), SUMMARY)
-                logging.debug('Saved: '+title)
+                logger.debug('Saved: '+title)
         except FileNotFoundError:
-            logging.debug('Deleting: '+title+'...')
+            logger.debug('Deleting: '+title+'...')
             try:
                 # Danger task
                 # page.delete(SUMMARY)
-                # logging.debug('Deleted: '+title)
-                logging.debug('Deleting is skipped: '+title)
+                # logger.debug('Deleted: '+title)
+                logger.debug('Deleting is skipped: '+title)
             except mwclient.errors.APIError as e:
-                logging.info('APIError: '+str(e.info))
+                logger.info('APIError: '+str(e.info))
 
         time_to_sleep = log(i+1)
-        logging.debug('Sleep '+str(time_to_sleep)+' seconds...')
+        logger.debug('Sleep '+str(time_to_sleep)+' seconds...')
         sleep(time_to_sleep)
 
 
@@ -152,8 +153,8 @@ def main():
     try:
         MODIFIED = validate_files(get_modified_files(FEMIWIKI))
     except subprocess.SubprocessError:
-        logging.info('Failed to load the last applied commit')
-        logging.info('Trying to apply all files...')
+        logger.info('Failed to load the last applied commit')
+        logger.info('Trying to apply all files...')
         MODIFIED = get_all_files()
 
     edit_pages_on_wiki(MODIFIED, FEMIWIKI)
