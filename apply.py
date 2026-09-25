@@ -1,15 +1,16 @@
 #!/usr/bin/python
 
+import logging
+import subprocess
 from math import log
 from ntpath import basename
 from os import environ, path
 from pathlib import Path
-from urllib.parse import unquote
-from sys import argv, stdout, exit
-from time import sleep
 from re import search
-import logging
-import subprocess
+from sys import argv, exit, stdout
+from time import sleep
+from urllib.parse import unquote
+
 import mwclient
 
 logging.basicConfig(stream=stdout, level=logging.DEBUG)
