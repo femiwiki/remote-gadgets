@@ -39,7 +39,7 @@ jobs:
       # prettier --check, then the page and module file name checks
       - run: npm run lint
 
-  flake8:
+  ruff:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -51,4 +51,4 @@ jobs:
 
       - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
 
-      - run: uv run --locked --only-group dev flake8
+      - run: uv run --locked --only-group dev ruff check
