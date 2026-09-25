@@ -109,10 +109,10 @@ def edit_pages_on_wiki(targets, wiki):
             title = basename(unquote(FILE))
         page = wiki.pages[title]
         try:
-            f = open(FILE, "r")
-            logging.debug('Saving: '+title+'...')
-            page.save(f.read(), SUMMARY)
-            logging.debug('Saved: '+title)
+            with open(FILE, "r") as f:
+                logging.debug('Saving: '+title+'...')
+                page.save(f.read(), SUMMARY)
+                logging.debug('Saved: '+title)
         except FileNotFoundError:
             logging.debug('Deleting: '+title+'...')
             try:
