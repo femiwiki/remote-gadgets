@@ -5,4 +5,12 @@ requires-python = ">=3.12"
 dependencies = ["mwclient==0.11.0"]
 
 [dependency-groups]
-dev = ["flake8==7.2.0", "pytest==8.3.5"]
+dev = ["pytest==8.3.5", "ruff==0.16.5"]
+
+[tool.ruff]
+# flake8's default, which the code was written to
+line-length = 79
+
+[tool.ruff.lint]
+# flake8 ran all of pycodestyle, which ruff leaves off by default.
+extend-select = ["E", "W"]
