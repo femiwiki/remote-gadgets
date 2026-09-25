@@ -1,15 +1,16 @@
 #!/usr/bin/python
 
+import logging
+import subprocess
 from math import log
 from ntpath import basename
 from os import environ, path
 from pathlib import Path
-from urllib.parse import unquote
-from sys import argv, stdout, exit
-from time import sleep
 from re import search
-import logging
-import subprocess
+from sys import argv, exit, stdout
+from time import sleep
+from urllib.parse import unquote
+
 import mwclient
 
 logging.basicConfig(stream=stdout, level=logging.DEBUG)
@@ -71,7 +72,7 @@ def get_modified_files(wiki):
         GIT_COMMAND,
         capture_output=True,
         check=True,
-        universal_newlines=True
+        text=True
     )
 
     return result.stdout.split('\n')
@@ -130,10 +131,11 @@ def edit_pages_on_wiki(targets, wiki):
 
 def get_all_files():
     ROOT = Path('.')
-    glob = sum([
-        list(ROOT.glob(f'{d}/**/*'))
+    glob = [
+        p
         for d in TARGET_DIRECTORIES
-    ], [])
+        for p in ROOT.glob(f'{d}/**/*')
+    ]
     return [
         str(p)
         for p
