@@ -49,6 +49,10 @@ end
 
 mw.wikibase.getLabelByLang = function( id, languageCode )
   local entity = mw.ext.UnlinkedWikibase.getEntity( id )
+  -- UnlinkedWikibase returns nil for an entity it has not fetched yet.
+  if entity == nil then
+    return nil
+  end
   local labels = entity.labels
   if labels == nil then
     return nil
