@@ -1,6 +1,7 @@
 *.py
 *.md
 *.yml
+*.yaml
 
 # Legunto
 scribunto.json
