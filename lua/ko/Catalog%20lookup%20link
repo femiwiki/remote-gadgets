@@ -130,8 +130,11 @@ this module, |allowed-icons= is typically set, if needed, in the {{#invoke:}}.
 
 ]]
 
-local function main (frame)
-	local args = getArgs (frame);
+local function _main (args, frame)
+	if not frame then
+		frame = mw.getCurrentFrame();
+	end
+	
 	local out_text = '';
 
 	if is_set(args[1]) then
@@ -214,4 +217,9 @@ local function main (frame)
 	return out_text
 end
 
-return {main = main};
+local function main (frame)
+	local args = getArgs (frame);
+	return _main (args, frame)
+end
+
+return {main = main, _main = _main};

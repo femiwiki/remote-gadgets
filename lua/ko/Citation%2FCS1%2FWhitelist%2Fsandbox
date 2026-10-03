@@ -12,7 +12,7 @@ Because a steady-state signal conveys no useful information, whitelist.basic_arg
 	
 ]]
 
-local basic_arguments = {
+local basic_arguments_t = {
 	['accessdate'] = true,
 	['access-date'] = true,
 	['agency'] = true,
@@ -23,6 +23,7 @@ local basic_arguments = {
 	['archive-url'] = true,
 	['article'] = true,
 	['article-format'] = true,
+	['article-number'] = true,													-- {{cite journal}}, {{cite conference}}; {{citation}} when |journal= has a value
 	['article-url'] = true,
 	['article-url-access'] = true,
 	['arxiv'] = true,															-- cite arxiv; here because allowed in cite ... as identifier
@@ -38,7 +39,6 @@ local basic_arguments = {
 	['authorlink'] = true,
 	['author-link'] = true,
 	['author-mask'] = true,
-	['authors'] = true,
 	['bibcode'] = true,
 	['bibcode-access'] = true,
 	['biorxiv'] = true,															-- cite biorxiv; here because allowed in cite ... as identifier
@@ -90,6 +90,10 @@ local basic_arguments = {
 	['entry-url'] = true,
 	['entry-url-access'] = true,
 	['eprint'] = true,															-- cite arxiv; here because allowed in cite ... as identifier
+	['eram'] = true,															-- 로컬
+	['ERAM'] = true,															-- 로컬
+	['eudml'] = true,															-- 로컬
+	['EUDML'] = true,															-- 로컬
 	['first'] = true,
 	['format'] = true,
 	['given'] = true,
@@ -123,15 +127,12 @@ local basic_arguments = {
 	['lang'] = true,
 	['language'] = true,
 	['last'] = true,
-	['lay-date'] = false,
-	['lay-format'] = false,
-	['lay-source'] = false,
-	['lay-url'] = false,
 	['lccn'] = true,
 	['LCCN'] = true,
 	['location'] = true,
 	['magazine'] = true,
 	['medium'] = true,
+	['medrxiv'] = true,															-- cite medrxiv; here because allowed in cite ... as identifier
 	['minutes'] = true,															-- constrain to cite AV media and podcast?
 	['mode'] = true,
 	['mr'] = true,
@@ -141,6 +142,8 @@ local basic_arguments = {
 	['no-pp'] = true,
 	['no-tracking'] = true,
 	['number'] = true,
+	['numdam'] = true,															-- 로컬
+	['NUMDAM'] = true,															-- 로컬
 	['oclc'] = true,
 	['OCLC'] = true,
 	['ol'] = true,
@@ -156,7 +159,6 @@ local basic_arguments = {
 	['p'] = true,
 	['page'] = true,
 	['pages'] = true,
-	['people'] = true,
 	['periodical'] = true,
 	['place'] = true,
 	['pmc'] = true,
@@ -182,6 +184,8 @@ local basic_arguments = {
 	['script-article'] = true,
 	['script-chapter'] = true,
 	['script-contribution'] = true,
+	['script-encyclopaedia'] = true,
+	['script-encyclopedia'] = true,
 	['script-entry'] = true,
 	['script-journal'] = true,
 	['script-magazine'] = true,
@@ -201,8 +205,12 @@ local basic_arguments = {
 	['SSRN'] = true,
 	['ssrn-access'] = true,
 	['subject'] = true,
+	['subject-first'] = true,
+	['subject-given'] = true,
+	['subject-last'] = true,
 	['subject-link'] = true,
 	['subject-mask'] = true,
+	['subject-surname'] = true,
 	['surname'] = true,
 	['s2cid'] = true,
 	['S2CID'] = true,
@@ -212,6 +220,7 @@ local basic_arguments = {
 	['time-caption'] = true,													-- constrain to cite av media and podcast?
 	['title'] = true,
 	['title-link'] = true,
+	['title-note'] = true,
 	['translator'] = true,
 	['translator-first'] = true,
 	['translator-given'] = true,
@@ -222,6 +231,8 @@ local basic_arguments = {
 	['trans-article'] = true,
 	['trans-chapter'] = true,
 	['trans-contribution'] = true,
+	['trans-encyclopaedia'] = true,
+	['trans-encyclopedia'] = true,
 	['trans-entry'] = true,
 	['trans-journal'] = true,
 	['trans-magazine'] = true,
@@ -247,46 +258,95 @@ local basic_arguments = {
 	['year'] = true,
 	['zbl'] = true,
 	['ZBL'] = true,
+	['bibcode접근'] = true,
 	['doi깨진날짜'] = true,
+	['doi접근'] = true,
+	['hdl접근'] = true,
+	['jstor접근'] = true,
+	['ol접근'] = true,
+	['osti접근'] = true,
 	['pmc엠바고날짜'] = true,
+	['s2cid접근'] = true,
+	['ssrn접근'] = true,
 	['url상태'] = true,
-	['url확인'] = true,
+	['url접근'] = true,
 	['경유'] = true,
+	['구역'] = true,
 	['권'] = true,
 	['기관'] = true,
+	['기여'] = true,
+	['기여url'] = true,
+	['기여url접근'] = true,
+	['기여자'] = true,
+	['기여자-링크'] = true,
+	['기여자-성'] = true,
+	['기여자-숨김'] = true,
+	['기여자-이름'] = true,
+	['기여자링크'] = true,
+	['기여자성'] = true,
+	['기여자숨김'] = true,
+	['기여자이름'] = true,
+	['기여자표시'] = true,
+	['기여형식'] = true,
 	['기타'] = true,
+	['난'] = true,
 	['날짜'] = true,
 	['네트워크'] = true,
 	['년'] = true,
 	['년도'] = true,
+	['논문번호'] = true,
 	['뉴스'] = true,
 	['뉴스그룹'] = true,
-	['대본'] = true,
-	['대본url'] = true,
 	['대상'] = true,
 	['대상-링크'] = true,
-	['대상링크'] = true,
+	['대상-성'] = true,
 	['대상-숨김'] = true,
+	['대상-이름'] = true,
+	['대상링크'] = true,
+	['대상성'] = true,
+	['대상성'] = true,
 	['대상숨김'] = true,
+	['대상이름'] = true,
+	['란'] = true,
 	['매체'] = true,
+	['메시지id'] = true,
 	['메일링리스트'] = true,
 	['면'] = true,
+	['모드'] = true,
+	['문자기여'] = true,
+	['문자뉴스'] = true,
+	['문자백과사전'] = true,
+	['문자신문'] = true,
+	['문자웹사이트'] = true,
+	['문자인용'] = true,
+	['문자인용문'] = true,
+	['문자작품'] = true,
+	['문자잡지'] = true,
+	['문자장'] = true,
+	['문자저널'] = true,
+	['문자제목'] = true,
+	['문자항목'] = true,
 	['방송국'] = true,
 	['방송날짜'] = true,
+	['방송일자'] = true,
 	['방영날짜'] = true,
+	['방영일자'] = true,
 	['백과사전'] = true,
+	['번역기여'] = true,
 	['번역뉴스'] = true,
+	['번역백과사전'] = true,
 	['번역신문'] = true,
 	['번역웹사이트'] = true,
 	['번역인용'] = true,
+	['번역인용문'] = true,
 	['번역자'] = true,
-	['번역자링크'] = true,
 	['번역자-링크'] = true,
 	['번역자-성'] = true,
-	['번역자성'] = true,
-	['번역자숨김'] = true,
 	['번역자-숨김'] = true,
 	['번역자-이름'] = true,
+	['번역자링크'] = true,
+	['번역자성'] = true,
+	['번역자숨김'] = true,
 	['번역자이름'] = true,
 	['번역자표시'] = true,
 	['번역작품'] = true,
@@ -294,12 +354,18 @@ local basic_arguments = {
 	['번역장'] = true,
 	['번역저널'] = true,
 	['번역제목'] = true,
+	['번역지도'] = true,
+	['번역항목'] = true,
+	['번호'] = true,
 	['보존url'] = true,
 	['보존날짜'] = true,
+	['보존일자'] = true,
+	['보존형식'] = true,
 	['분'] = true,
-	['분류'] = true,
 	['분류없음'] = true,
-	['삽도'] = true,
+	['사전'] = true,
+	['삽화'] = true,
+	['서적제목'] = true,
 	['성'] = true,
 	['시간'] = true,
 	['시간설명'] = true,
@@ -308,90 +374,108 @@ local basic_arguments = {
 	['시리즈번호'] = true,
 	['시즌'] = true,
 	['신문'] = true,
-	['애피소드링크'] = true,
 	['언어'] = true,
 	['에피소드'] = true,
+	['에피소드링크'] = true,
+	['연'] = true,
 	['연도'] = true,
-	['연도'] = true,
+	['원본날짜'] = true,
 	['원본연도'] = true,
 	['웹사이트'] = true,
 	['위치'] = true,
 	['이름'] = true,
-	['이름목록형식'] = true,
+	['이름목록양식'] = true,
 	['인물'] = true,
 	['인용'] = true,
 	['인용문'] = true,
+	['인용문쪽'] = true,
 	['인용쪽'] = true,
 	['인터뷰어'] = true,
-	['인터뷰어링크'] = true,
 	['인터뷰어-링크'] = true,
 	['인터뷰어-성'] = true,
-	['인터뷰어성'] = true,
 	['인터뷰어-숨김'] = true,
-	['인터뷰어숨김'] = true,
 	['인터뷰어-이름'] = true,
+	['인터뷰어링크'] = true,
+	['인터뷰어성'] = true,
+	['인터뷰어숨김'] = true,
 	['인터뷰어이름'] = true,
 	['인터뷰어표시'] = true,
+	['일자'] = true,
 	['작품'] = true,
 	['잡지'] = true,
 	['장'] = true,
 	['장url'] = true,
-	['장url확인'] = true,
+	['장url접근'] = true,
 	['장소'] = true,
+	['장형식'] = true,
 	['저널'] = true,
 	['저자'] = true,
 	['저자-링크'] = true,
+	['저자-숨김'] = true,
 	['저자링크'] = true,
 	['저자숨김'] = true,
-	['저자-숨김'] = true,
 	['저자표시'] = true,
+	['전사본'] = true,
+	['전사본url'] = true,
+	['전사본형식'] = true,
+	['전자문서'] = true,
 	['제목'] = true,
 	['제목링크'] = true,
 	['제작진'] = true,
 	['종류'] = true,
 	['지도'] = true,
 	['지도url'] = true,
-	['지도url확인'] = true,
+	['지도url접근'] = true,
 	['지도제작'] = true,
+	['지도형식'] = true,
 	['쪽'] = true,
 	['쪽기타'] = true,
 	['쪽숨김'] = true,
-	['초판연도'] = true,
 	['총서'] = true,
 	['추신'] = true,
 	['축척'] = true,
 	['출판날짜'] = true,
 	['출판사'] = true,
 	['출판위치'] = true,
+	['출판일자'] = true,
 	['출판장소'] = true,
 	['컨퍼런스'] = true,
 	['컨퍼런스url'] = true,
+	['컨퍼런스형식'] = true,
 	['콘퍼런스'] = true,
 	['콘퍼런스url'] = true,
+	['콘퍼런스형식'] = true,
+	['클래스'] = true,
 	['통신사'] = true,
 	['판'] = true,
 	['페이지'] = true,
 	['편집자'] = true,
 	['편집자-링크'] = true,
-	['편집자링크'] = true,
-	['편집자성'] = true,
 	['편집자-성'] = true,
-	['편집자숨김'] = true,
 	['편집자-숨김'] = true,
 	['편집자-이름'] = true,
+	['편집자링크'] = true,
+	['편집자성'] = true,
+	['편집자숨김'] = true,
 	['편집자이름'] = true,
 	['편집자표시'] = true,
-	['포맷'] = true,
+	['편집자표시'] = true,
 	['학위'] = true,
 	['항목'] = true,
+	['항목url'] = true,
+	['항목url접근'] = true,
+	['항목형식'] = true,
+	['행사'] = true,
+	['협업'] = true,
 	['형식'] = true,
 	['호'] = true,
 	['화'] = true,
 	['확인날짜'] = true,
+	['확인일자'] = true,
 	['회'] = true,
 	}
 
-local numbered_arguments = {
+local numbered_arguments_t = {
 	['author#'] = true,
 	['author-first#'] = true,
 	['author#-first'] = true,
@@ -451,10 +535,18 @@ local numbered_arguments = {
 	['interviewer#-mask'] = true,
 	['last#'] = true,
 	['subject#'] = true,
+	['subject-first#'] = true,
+	['subject#-first'] = true,
+	['subject-given#'] = true,
+	['subject#-given'] = true,
+	['subject-last#'] = true,
+	['subject#-last'] = true,
 	['subject-link#'] = true,
 	['subject#-link'] = true,
 	['subject-mask#'] = true,
 	['subject#-mask'] = true,
+	['subject-surname#'] = true,
+	['subject#-surname'] = true,
 	['surname#'] = true,
 	['translator#'] = true,
 	['translator-first#'] = true,
@@ -469,87 +561,123 @@ local numbered_arguments = {
 	['translator#-link'] = true,
 	['translator-mask#'] = true,
 	['translator#-mask'] = true,
+	['기여자#'] = true,
+	['기여자#-링크'] = true,
+	['기여자#-성'] = true,
+	['기여자#-숨김'] = true,
+	['기여자#-이름'] = true,
+	['기여자#링크'] = true,
+	['기여자#성'] = true,
+	['기여자#숨김'] = true,
+	['기여자#이름'] = true,
+	['기여자-링크#'] = true,
+	['기여자-성#'] = true,
+	['기여자-숨김#'] = true,
+	['기여자-이름#'] = true,
+	['기여자링크#'] = true,
+	['기여자성#'] = true,
+	['기여자숨김#'] = true,
+	['기여자이름#'] = true,
+	['대상#'] = true,
 	['대상#-링크'] = true,
+	['대상#-성'] = true,
+	['대상#-숨김'] = true,
+	['대상#-이름'] = true,
 	['대상#링크'] = true,
+	['대상#성'] = true,
+	['대상#숨김'] = true,
+	['대상#이름'] = true,
 	['대상-링크#'] = true,
+	['대상-성#'] = true,
+	['대상-숨김#'] = true,
+	['대상-이름#'] = true,
 	['대상링크#'] = true,
+	['대상성#'] = true,
+	['대상숨김#'] = true,
+	['대상이름#'] = true,
 	['번역자#'] = true,
 	['번역자#-링크'] = true,
-	['번역자#링크'] = true,
 	['번역자#-성'] = true,
-	['번역자#성'] = true,
-	['번역자#숨김'] = true,
 	['번역자#-숨김'] = true,
 	['번역자#-이름'] = true,
+	['번역자#링크'] = true,
+	['번역자#성'] = true,
+	['번역자#숨김'] = true,
 	['번역자#이름'] = true,
 	['번역자-링크#'] = true,
-	['번역자링크#'] = true,
-	['번역자성#'] = true,
 	['번역자-성#'] = true,
-	['번역자숨김#'] = true,
 	['번역자-숨김#'] = true,
 	['번역자-이름#'] = true,
+	['번역자링크#'] = true,
+	['번역자성#'] = true,
+	['번역자숨김#'] = true,
 	['번역자이름#'] = true,
+	['성#'] = true,
+	['이름#'] = true,
 	['인터뷰어#'] = true,
-	['인터뷰어#링크'] = true,
 	['인터뷰어#-링크'] = true,
 	['인터뷰어#-성'] = true,
-	['인터뷰어#성'] = true,
 	['인터뷰어#-숨김'] = true,
+	['인터뷰어#-이름'] = true,
+	['인터뷰어#링크'] = true,
+	['인터뷰어#성'] = true,
 	['인터뷰어#숨김'] = true,
 	['인터뷰어#이름'] = true,
-	['인터뷰어#-이름'] = true,
 	['인터뷰어-링크#'] = true,
-	['인터뷰어링크#'] = true,
-	['인터뷰어성#'] = true,
 	['인터뷰어-성#'] = true,
 	['인터뷰어-숨김#'] = true,
-	['인터뷰어숨김#'] = true,
 	['인터뷰어-이름#'] = true,
+	['인터뷰어링크#'] = true,
+	['인터뷰어성#'] = true,
+	['인터뷰어숨김#'] = true,
 	['인터뷰어이름#'] = true,
+	['저자#'] = true,
 	['저자#-링크'] = true,
+	['저자#-숨김'] = true,
 	['저자#링크'] = true,
 	['저자#숨김'] = true,
-	['저자#-숨김'] = true,
 	['저자-링크#'] = true,
 	['저자-숨김#'] = true,
+	['저자링크#'] = true,
 	['저자숨김#'] = true,
 	['편집자#'] = true,
-	['편집자#링크'] = true,
 	['편집자#-링크'] = true,
-	['편집자#성'] = true,
 	['편집자#-성'] = true,
 	['편집자#-숨김'] = true,
+	['편집자#-이름'] = true,
+	['편집자#링크'] = true,
+	['편집자#성'] = true,
 	['편집자#숨김'] = true,
 	['편집자#이름'] = true,
-	['편집자#-이름'] = true,
 	['편집자-링크#'] = true,
-	['편집자링크#'] = true,
 	['편집자-성#'] = true,
+	['편집자-숨김#'] = true,
+	['편집자-이름#'] = true,
+	['편집자링크#'] = true,
 	['편집자성#'] = true,
 	['편집자숨김#'] = true,
-	['편집자-숨김#'] = true,
 	['편집자이름#'] = true,
-	['편집자-이름#'] = true,
 	}
 
 
 --[[--------------------------< P R E P R I N T   S U P P O R T E D   P A R A M E T E R S >--------------------
 
-Cite arXiv, cite biorxiv, cite citeseerx, and cite ssrn are preprint templates that use the limited set of parameters
-defined in the limited_basic_arguments and limited_numbered_arguments tables.  Those lists are supplemented with a
-template-specific list of parameters that are required by the particular template and may be exclusive to one of the
-preprint templates.  Some of these parameters may also be available to the general cs1|2 templates.
+Cite arXiv, cite biorxiv, cite citeseerx, cite medrxiv, and cite ssrn are preprint templates that use the limited
+set of parameters defined in the limited_basic_arguments and limited_numbered_arguments tables.  Those lists are
+supplemented with a template-specific list of parameters that are required by the particular template and may be
+exclusive to one of the preprint templates.  Some of these parameters may also be available to the general cs1|2
+templates.
 
 Same conventions for true/false/tracked/nil as above.
 
 ]]
 
-local preprint_arguments = {
+local preprint_arguments_t = {
 	arxiv = {
 		['arxiv'] = true,														-- cite arxiv and arxiv identifiers
 		['class'] = true,
 		['eprint'] = true,														-- cite arxiv and arxiv identifiers
+		['전자문서'] = true,														-- cite arxiv and arxiv identifiers
 		},
 	biorxiv = {
 		['biorxiv'] = true,
@@ -557,24 +685,31 @@ local preprint_arguments = {
 	citeseerx = {
 		['citeseerx'] = true,
 		},
+	medrxiv = {
+		['medrxiv'] = true,
+		},
 	ssrn = {
 		['ssrn'] = true,
 		['SSRN'] = true,
 		['ssrn-access'] = true,
+		['ssrn접근'] = true,
 		},
 	}
 
 
 --[[--------------------------< L I M I T E D   S U P P O R T E D   P A R A M E T E R S >----------------------
 
-cite arxiv, cite biorxiv, cite citeseerx, and cite ssrn templates are preprint templates so are allowed only a
-limited subset of parameters allowed to all other cs1|2 templates.  The limited subset is defined here.
+cite arxiv, cite biorxiv, cite citeseerx, cite medrxiv, and cite ssrn templates are preprint templates so are
+allowed only a limited subset of parameters allowed to all other cs1|2 templates.  The limited subset is defined
+here.
+
+This list of parameters also used by {{cite document}}
 
 Same conventions for true/false/tracked/nil as above.
 	
 ]]
 
-local limited_basic_arguments = {
+local limited_basic_arguments_t = {
 	['at'] = true,
 	['author'] = true,
 	['author-first'] = true,
@@ -584,7 +719,6 @@ local limited_basic_arguments = {
 	['author-link'] = true,
 	['authorlink'] = true,
 	['author-mask'] = true,
-	['authors'] = true,
 	['collaboration'] = true,
 	['date'] = true,
 	['df'] = true,
@@ -610,9 +744,34 @@ local limited_basic_arguments = {
 	['trans-title'] = true,
 	['vauthors'] = true,
 	['year'] = true,
+	['날짜'] = true,
+	['년'] = true,
+	['년도'] = true,
+	['모드'] = true,
+	['번역제목'] = true,
+	['분류없음'] = true,
+	['성'] = true,
+	['언어'] = true,
+	['연'] = true,
+	['연도'] = true,
+	['이름'] = true,
+	['인용'] = true,
+	['인용문'] = true,
+	['일자'] = true,
+	['저자'] = true,
+	['저자-링크'] = true,
+	['저자-숨김'] = true,
+	['저자링크'] = true,
+	['저자숨김'] = true,
+	['저자표시'] = true,
+	['제목'] = true,
+	['쪽'] = true,
+	['쪽기타'] = true,
+	['추신'] = true,
+	['협업'] = true,
 	}
 
-local limited_numbered_arguments = {
+local limited_numbered_arguments_t = {
 	['author#'] = true,
 	['author-first#'] = true,
 	['author#-first'] = true,
@@ -632,6 +791,34 @@ local limited_numbered_arguments = {
 	['given#'] = true,
 	['last#'] = true,
 	['surname#'] = true,
+	['대상#'] = true,
+	['대상#-링크'] = true,
+	['대상#-성'] = true,
+	['대상#-숨김'] = true,
+	['대상#-이름'] = true,
+	['대상#링크'] = true,
+	['대상#성'] = true,
+	['대상#숨김'] = true,
+	['대상#이름'] = true,
+	['대상-링크#'] = true,
+	['대상-성#'] = true,
+	['대상-숨김#'] = true,
+	['대상-이름#'] = true,
+	['대상링크#'] = true,
+	['대상성#'] = true,
+	['대상숨김#'] = true,
+	['대상이름#'] = true,
+	['성#'] = true,
+	['이름#'] = true,
+	['저자#'] = true,
+	['저자#-링크'] = true,
+	['저자#-숨김'] = true,
+	['저자#링크'] = true,
+	['저자#숨김'] = true,
+	['저자-링크#'] = true,
+	['저자-숨김#'] = true,
+	['저자링크#'] = true,
+	['저자숨김#'] = true,
 	}
 
 
@@ -644,11 +831,16 @@ Same conventions for true/false/tracked/nil as above.
 
 ]]
 
-local unique_arguments = {
+local unique_arguments_t = {
 	['audio-visual'] = {
+		['people'] = true,
 		['transcript'] = true,
 		['transcript-format'] = true,
 		['transcript-url'] = true,
+		['인물'] = true,
+		['전사본'] = true,
+		['전사본형식'] = true,
+		['전사본url'] = true,
 		},
 	conference = {
 		['book-title'] = true,
@@ -656,6 +848,14 @@ local unique_arguments = {
 		['conference-format'] = true,
 		['conference-url'] = true,
 		['event'] = true,
+		['서적제목'] = true,
+		['콘퍼런스'] = true,
+		['컨퍼런스'] = true,
+		['콘퍼런스형식'] = true,
+		['컨퍼런스형식'] = true,
+		['콘퍼런스url'] = true,
+		['컨퍼런스url'] = true,
+		['행사'] = true,
 		},
 	episode = {
 		['airdate'] = true,
@@ -663,6 +863,7 @@ local unique_arguments = {
 		['credits'] = true,
 		['episode-link'] = true,												-- alias of |title-link=
 		['network'] = true,
+		['people'] = true,
 		['season'] = true,
 		['series-link'] = true,
 		['series-no'] = true,
@@ -670,11 +871,26 @@ local unique_arguments = {
 		['station'] = true,
 		['transcript'] = true,
 		['transcript-format'] = true,
-		['transcripturl'] = false,
 		['transcript-url'] = true,
+		['네트워크'] = true,
+		['방송국'] = true,
+		['방송날짜'] = true,
+		['방송일자'] = true,
+		['방영날짜'] = true,
+		['방영일자'] = true,
+		['시리즈링크'] = true,
+		['시리즈번호'] = true,
+		['시즌'] = true,
+		['에피소드링크'] = true,
+		['인물'] = true,
+		['전사본'] = true,
+		['전사본url'] = true,
+		['전사본형식'] = true,
+		['제작진'] = true,
 		},
 	mailinglist = {
 		['mailing-list'] = true,
+		['메일링리스트'] = true,
 		},
 	map = {
 		['cartography'] = true,
@@ -688,10 +904,21 @@ local unique_arguments = {
 		['sheet'] = true,
 		['sheets'] = true,
 		['trans-map'] = true,
+		['구역'] = true,
+		['도엽'] = true,
+		['번역지도'] = true,
+		['삽화'] = true,
+		['지도'] = true,
+		['지도url'] = true,
+		['지도url접근'] = true,
+		['지도제작'] = true,
+		['지도형식'] = true,
 		},
 	newsgroup = {
 		['message-id'] = true,
 		['newsgroup'] = true,
+		['메시지id'] = true,
+		['뉴스그룹'] = true,
 		},
 	report = {
 		['docket'] = true,
@@ -703,20 +930,182 @@ local unique_arguments = {
 		['episode'] = true,														-- cite serial only TODO: make available to cite episode?
 		['episode-link'] = true,												-- alias of |title-link=
 		['network'] = true,
+		['people'] = true,
 		['series-link'] = true,
 		['station'] = true,
+		['네트워크'] = true,
+		['방송국'] = true,
+		['방송날짜'] = true,
+		['방송일자'] = true,
+		['방영날짜'] = true,
+		['방영일자'] = true,
+		['시리즈링크'] = true,
+		['에피소드'] = true,
+		['에피소드링크'] = true,
+		['인물'] = true,
+		['제작진'] = true,
 		},
 	speech = {
 		['conference'] = true,
 		['conference-format'] = true,
 		['conference-url'] = true,
 		['event'] = true,
+		['컨퍼런스'] = true,
+		['컨퍼런스url'] = true,
+		['컨퍼런스형식'] = true,
+		['콘퍼런스'] = true,
+		['콘퍼런스url'] = true,
+		['콘퍼런스형식'] = true,
+		['행사'] = true,
+
 		},
 	thesis = {
 		['degree'] = true,
 		['docket'] = true,
+		['학위'] = true,
 		},
 	}
+
+
+--[[--------------------------< C I T E _ D O C U M E N T >----------------------------------------------------
+
+Special case for cite document.  This template takes the limited basic and limited enumerated parameters plus
+others that are apply only to standalone published sources that cannot be cited any other way; no url, book,
+periodical, etc parameters; limited support for name lists and named identifiers.
+
+when validating parameters in {{cite document}} templates, the basic and 
+
+]]
+
+local document_arguments_t = {
+	['bibcode'] = true,
+	['bibcode-access'] = true,
+	['doi'] = true,
+	['DOI'] = true,
+	['doi-access'] = true,
+	['doi-broken-date'] = true,
+	['hdl'] = true,
+	['HDL'] = true,
+	['hdl-access'] = true,
+	['id'] = true,
+	['ID'] = true,
+	['jfm'] = true,
+	['JFM'] = true,
+	['lang'] = true,
+	['location'] = true,
+	['mr'] = true,
+	['MR'] = true,
+	['naid'] = true,															-- 로컬
+	['NAID'] = true,															-- 로컬
+--	['ncid'] = true,															-- 로컬
+--	['NCID'] = true,															-- 로컬
+	['no-pp'] = true,
+	['orig-date'] = true,
+	['origyear'] = true,
+	['orig-year'] = true,
+	['osti'] = true,
+	['OSTI'] = true,
+	['osti-access'] = true,
+	['place'] = true,
+	['publisher'] = true,
+	['quote-page'] = true,
+	['quote-pages'] = true,
+	['script-quote'] = true,
+	['script-title'] = true,
+	['title-link'] = true,
+	['translator'] = true,
+	['translator-first'] = true,
+	['translator-given'] = true,
+	['translator-last'] = true,
+	['translator-surname'] = true,
+	['translator-link'] = true,
+	['translator-mask'] = true,
+	['trans-quote'] = true,
+	['type'] = true,
+	['zbl'] = true,
+	['ZBL'] = true,
+	['bibcode접근'] = true,
+	['doi깨진날짜'] = true,
+	['doi접근'] = true,
+	['hdl접근'] = true,
+	['osti접근'] = true,
+	['문자인용'] = true,
+	['문자인용문'] = true,
+	['문자제목'] = true,
+	['번역인용'] = true,
+	['번역인용문'] = true,
+	['번역자'] = true,
+	['번역자-링크'] = true,
+	['번역자-성'] = true,
+	['번역자-숨김'] = true,
+	['번역자-이름'] = true,
+	['번역자링크'] = true,
+	['번역자성'] = true,
+	['번역자숨김'] = true,
+	['번역자이름'] = true,
+	['언어'] = true,
+	['원본날짜'] = true,
+	['원본연도'] = true,
+	['위치'] = true,
+	['인용문쪽'] = true,
+	['인용쪽'] = true,
+	['장소'] = true,
+	['제목링크'] = true,
+	['종류'] = true,
+	['쪽숨김'] = true,
+	['출판사'] = true,
+	}
+
+local document_numbered_arguments_t = {
+	['translator#'] = true,
+	['translator-first#'] = true,
+	['translator#-first'] = true,
+	['translator-given#'] = true,
+	['translator#-given'] = true,
+	['translator-last#'] = true,
+	['translator#-last'] = true,
+	['translator-surname#'] = true,
+	['translator#-surname'] = true,
+	['translator-link#'] = true,
+	['translator#-link'] = true,
+	['translator-mask#'] = true,
+	['translator#-mask'] = true,
+	['번역자#'] = true,
+	['번역자#-링크'] = true,
+	['번역자#-성'] = true,
+	['번역자#-숨김'] = true,
+	['번역자#-이름'] = true,
+	['번역자#링크'] = true,
+	['번역자#성'] = true,
+	['번역자#숨김'] = true,
+	['번역자#이름'] = true,
+	['번역자-링크#'] = true,
+	['번역자-성#'] = true,
+	['번역자-숨김#'] = true,
+	['번역자-이름#'] = true,
+	['번역자링크#'] = true,
+	['번역자성#'] = true,
+	['번역자숨김#'] = true,
+	['번역자이름#'] = true,
+	}
+
+
+--[[--------------------------< L I S T _ C O M B I N E >------------------------------------------------------
+
+makes one table from a list of tables.  <lists_t> is a sequence of tables to be combined
+
+]]
+
+local function list_combine (lists_t)
+	local out_t = {};
+
+	for _, list_t in ipairs (lists_t) do										-- for each list in <lists_t>
+		for k, v in pairs (list_t) do											-- extract each k/v pair
+			out_t[k] = v;														-- add to <out_t>
+		end
+	end
+	return out_t;																-- and done
+end
 
 
 --[[--------------------------< T E M P L A T E _ L I S T _ G E T >--------------------------------------------
@@ -726,11 +1115,11 @@ gets a list of the templates from table t
 ]]
 
 local function template_list_get (t)
-	local out = {};																-- a table for output
+	local out_t = {};															-- a table for output
 	for k, _ in pairs (t) do													-- spin through the table and collect the keys
-		table.insert (out, k)													-- add each key to the output table
+		table.insert (out_t, k)													-- add each key to the output table
 	end
-	return out;																	-- and done
+	return out_t;																-- and done
 end
 
 
@@ -738,13 +1127,12 @@ end
 ]]
 
 return {
-	basic_arguments = basic_arguments,
-	numbered_arguments = numbered_arguments,
-	limited_basic_arguments = limited_basic_arguments,
-	limited_numbered_arguments = limited_numbered_arguments,
-
-	preprint_arguments = preprint_arguments,
-	preprint_template_list = template_list_get (preprint_arguments),			-- make a template list from preprint_arguments{} table
-	unique_arguments = unique_arguments,
-	unique_param_template_list = template_list_get (unique_arguments),			-- make a template list from unique_arguments{} table
+	preprint_arguments_t = preprint_arguments_t,
+	preprint_template_list_t = template_list_get (preprint_arguments_t),		-- make a template list from preprint_arguments{} table
+	unique_arguments_t = unique_arguments_t,
+	unique_param_template_list_t = template_list_get (unique_arguments_t),		-- make a template list from unique_arguments{} table
+	
+	document_parameters_t = list_combine ({limited_basic_arguments_t, limited_numbered_arguments_t, document_arguments_t, document_numbered_arguments_t});
+	common_parameters_t = list_combine ({basic_arguments_t, numbered_arguments_t});
+	limited_parameters_t = list_combine ({limited_basic_arguments_t, limited_numbered_arguments_t});
 	};

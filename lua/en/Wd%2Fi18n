@@ -8,7 +8,7 @@ local p = {}
 
 function p.init(aliasesP)
 	p = {
-		["version"] = "7",  -- increment this each time the below parameters are changed to avoid reference conflict errors
+		["version"] = "8",  -- increment this each time the below parameters are changed to avoid reference conflict errors
 		["errors"] = {
 			["unknown-data-type"]          = "Unknown or unsupported datatype '%s'.",
 			["missing-required-parameter"] = "No required parameters defined, needing at least one",
@@ -73,8 +73,10 @@ function p.init(aliasesP)
 					[aliasesP.statedIn]                = "website",
 					[aliasesP.referenceURL]            = "url",
 					[aliasesP.publicationDate]         = "date",
+					[aliasesP.lastUpdate]              = "date",
 					[aliasesP.retrieved]               = "access-date",
 					[aliasesP.title]                   = "title",
+					[aliasesP.subjectNamedAs]          = "title",
 					[aliasesP.archiveURL]              = "archive-url",
 					[aliasesP.archiveDate]             = "archive-date",
 					[aliasesP.language]                = "language",
@@ -97,6 +99,7 @@ function p.init(aliasesP)
 					["external-id"]                    = "id",  -- used for any type of database property ID
 					[aliasesP.title]                   = "title",
 					[aliasesP.publicationDate]         = "date",
+					[aliasesP.lastUpdate]              = "date",
 					[aliasesP.retrieved]               = "access-date"
 				}
 			},
@@ -106,16 +109,27 @@ function p.init(aliasesP)
 				--     - numbered-params: citation params accepting an arbitrary number of values by numbering the params (e.g. author1, author2)
 				--     - raw-value-params: params taking a raw value (which means the property is rendered with getValue with raw=true)
 				--     - mandatory-params: params that are required be in the template call (after potentially appending numbers to params listed in numbered-params)
+				--     - prioritization: table associating a list of properties, in the order in which they are preferred, to template parameters;
+				--                       properties not mentioned here have the lowest priority;
+				--                       prioritization of properties handled through additionalProcessedProperties is unsupported;
+				--                       no key of this table can be from numbered-params 
 				-- Leaving out the "template" field causes the output type to be ignored.
 				["web"] = {
 					["template"] = "Cite web",
 					["numbered-params"] = {"author"},
-					["mandatory-params"] = {"url"}
+					["mandatory-params"] = {"url"},
+					["prioritization"] = {
+						["date"] = {aliasesP.lastUpdate, aliasesP.publicationDate},
+						["title"] = {aliasesP.title, aliasesP.subjectNamedAs}
+					}
 				},
 				["q"] = {
 					["template"] = "Cite Q",
 					["raw-value-params"] = {"1"},  -- the first, unnamed parameter of CiteQ takes a QID, not the name of the item cited
-					["mandatory-params"] = {"1"}
+					["mandatory-params"] = {"1"},
+					["prioritization"] = {
+						["date"] = {aliasesP.lastUpdate, aliasesP.publicationDate}
+					}
 				}
 			}
 		}

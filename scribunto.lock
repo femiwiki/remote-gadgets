@@ -7,7 +7,7 @@
     },
     "@en/Error": {
       "pageid": 38948927,
-      "revid": 750709040,
+      "revid": 1310775052,
       "title": "Module:Error"
     },
     "@en/Exponential search": {
@@ -46,11 +46,12 @@
     },
     "@en/Infobox": {
       "pageid": 38808424,
-      "revid": 1129941009,
+      "revid": 1327161879,
       "title": "Module:Infobox",
       "dependencies": [
         "@en/Italic title",
-        "@en/Navbar"
+        "@en/Navbar",
+        "@en/Yesno"
       ]
     },
     "@en/Italic title": {
@@ -79,7 +80,7 @@
     },
     "@en/String": {
       "pageid": 38569505,
-      "revid": 1243840019,
+      "revid": 1305419441,
       "title": "Module:String",
       "dependencies": [
         "@en/String"
@@ -95,12 +96,12 @@
     },
     "@en/Wd": {
       "pageid": 51376229,
-      "revid": 1258646059,
+      "revid": 1301986908,
       "title": "Module:Wd"
     },
     "@en/Wd/i18n": {
       "pageid": 54004752,
-      "revid": 1249550506,
+      "revid": 1301986825,
       "title": "Module:Wd/i18n"
     },
     "@en/Yesno": {
@@ -115,7 +116,7 @@
     },
     "@ko/Catalog lookup link": {
       "pageid": 2580206,
-      "revid": 38456313,
+      "revid": 41711651,
       "title": "\ubaa8\ub4c8:Catalog lookup link",
       "dependencies": [
         "@ko/Arguments"
@@ -123,7 +124,7 @@
     },
     "@ko/Check for unknown parameters": {
       "pageid": 1305515,
-      "revid": 33547260,
+      "revid": 40956670,
       "title": "\ubaa8\ub4c8:Check for unknown parameters",
       "dependencies": [
         "@ko/If preview"
@@ -131,12 +132,12 @@
     },
     "@ko/Check isxn": {
       "pageid": 1789415,
-      "revid": 18902181,
+      "revid": 41476705,
       "title": "\ubaa8\ub4c8:Check isxn"
     },
     "@ko/Citation/CS1": {
       "pageid": 950941,
-      "revid": 39402745,
+      "revid": 40662290,
       "title": "\ubaa8\ub4c8:Citation/CS1",
       "dependencies": [
         "@ko/Citation/CS1/COinS",
@@ -164,12 +165,12 @@
     },
     "@ko/Citation/CS1/COinS/sandbox": {
       "pageid": 1478850,
-      "revid": 32592748,
+      "revid": 40568844,
       "title": "\ubaa8\ub4c8:Citation/CS1/COinS/sandbox"
     },
     "@ko/Citation/CS1/Configuration": {
       "pageid": 950942,
-      "revid": 39404010,
+      "revid": 41687804,
       "title": "\ubaa8\ub4c8:Citation/CS1/Configuration",
       "dependencies": [
         "@ko/Langname/data"
@@ -177,57 +178,57 @@
     },
     "@ko/Citation/CS1/Configuration/sandbox": {
       "pageid": 1245454,
-      "revid": 32607644,
+      "revid": 41694442,
       "title": "\ubaa8\ub4c8:Citation/CS1/Configuration/sandbox"
     },
     "@ko/Citation/CS1/Date_validation": {
       "pageid": 1169882,
-      "revid": 16293235,
+      "revid": 40659229,
       "title": "\ubaa8\ub4c8:Citation/CS1/Date validation"
     },
     "@ko/Citation/CS1/Date_validation/sandbox": {
       "pageid": 1245452,
-      "revid": 32583082,
+      "revid": 41547967,
       "title": "\ubaa8\ub4c8:Citation/CS1/Date validation/sandbox"
     },
     "@ko/Citation/CS1/Identifiers": {
       "pageid": 1481764,
-      "revid": 38826332,
+      "revid": 41468250,
       "title": "\ubaa8\ub4c8:Citation/CS1/Identifiers"
     },
     "@ko/Citation/CS1/Identifiers/sandbox": {
       "pageid": 1478847,
-      "revid": 32592735,
+      "revid": 41467510,
       "title": "\ubaa8\ub4c8:Citation/CS1/Identifiers/sandbox"
     },
     "@ko/Citation/CS1/Suggestions": {
       "pageid": 1170018,
-      "revid": 16293237,
+      "revid": 40659245,
       "title": "\ubaa8\ub4c8:Citation/CS1/Suggestions"
     },
     "@ko/Citation/CS1/Suggestions/sandbox": {
       "pageid": 1392708,
-      "revid": 32583090,
+      "revid": 41640691,
       "title": "\ubaa8\ub4c8:Citation/CS1/Suggestions/sandbox"
     },
     "@ko/Citation/CS1/Utilities": {
       "pageid": 1481765,
-      "revid": 33298728,
+      "revid": 40659239,
       "title": "\ubaa8\ub4c8:Citation/CS1/Utilities"
     },
     "@ko/Citation/CS1/Utilities/sandbox": {
       "pageid": 1478848,
-      "revid": 32583084,
+      "revid": 41467534,
       "title": "\ubaa8\ub4c8:Citation/CS1/Utilities/sandbox"
     },
     "@ko/Citation/CS1/Whitelist": {
       "pageid": 950943,
-      "revid": 38721809,
+      "revid": 41692880,
       "title": "\ubaa8\ub4c8:Citation/CS1/Whitelist"
     },
     "@ko/Citation/CS1/Whitelist/sandbox": {
       "pageid": 1245455,
-      "revid": 32607666,
+      "revid": 41694443,
       "title": "\ubaa8\ub4c8:Citation/CS1/Whitelist/sandbox"
     },
     "@ko/Color contrast": {
@@ -245,7 +246,7 @@
     },
     "@ko/Date2": {
       "pageid": 1258818,
-      "revid": 16290489,
+      "revid": 40956708,
       "title": "\ubaa8\ub4c8:Date2",
       "dependencies": [
         "@ko/Fallback",
@@ -253,35 +254,10 @@
         "@ko/Yesno"
       ]
     },
-    "@ko/Footnotes/anchor id list/data": {
-      "pageid": 3086599,
-      "revid": 33641687,
-      "title": "\ubaa8\ub4c8:Footnotes/anchor id list/data"
-    },
-    "@ko/Footnotes/anchor_id_list": {
-      "pageid": 3086600,
-      "revid": 33641682,
-      "title": "\ubaa8\ub4c8:Footnotes/anchor id list",
-      "dependencies": [
-        "@ko/Footnotes/anchor id list/data",
-        "@ko/Footnotes/whitelist"
-      ]
-    },
-    "@ko/Footnotes/whitelist": {
-      "pageid": 3201154,
-      "revid": 33300335,
-      "title": "\ubaa8\ub4c8:Footnotes/whitelist"
-    },
-    "@ko/Footnotes2": {
-      "pageid": 1181297,
-      "revid": 34877826,
-      "title": "\ubaa8\ub4c8:Footnotes2",
-      "dependencies": [
-        "@ko/Arguments",
-        "@ko/Citation/CS1/Utilities",
-        "@ko/Footnotes/anchor_id_list",
-        "@ko/Footnotes/whitelist"
-      ]
+    "@ko/Exponential search": {
+      "pageid": 3317313,
+      "revid": 38585784,
+      "title": "\ubaa8\ub4c8:Exponential search"
     },
     "@ko/Hangul": {
       "pageid": 933341,
@@ -298,7 +274,7 @@
     },
     "@ko/ISOdate": {
       "pageid": 1258807,
-      "revid": 35215067,
+      "revid": 40956712,
       "title": "\ubaa8\ub4c8:ISOdate",
       "dependencies": [
         "@ko/Date2"
@@ -306,10 +282,12 @@
     },
     "@ko/If preview": {
       "pageid": 1894773,
-      "revid": 32596723,
+      "revid": 41438369,
       "title": "\ubaa8\ub4c8:If preview",
       "dependencies": [
-        "@ko/If preview/configuration"
+        "@ko/Arguments",
+        "@ko/If preview/configuration",
+        "@ko/Yesno"
       ]
     },
     "@ko/If preview/configuration": {
@@ -319,12 +297,12 @@
     },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 39178813,
+      "revid": 41251596,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {
       "pageid": 930485,
-      "revid": 36480637,
+      "revid": 40956663,
       "title": "\ubaa8\ub4c8:Navbar",
       "dependencies": [
         "@ko/Arguments",
@@ -334,12 +312,12 @@
     },
     "@ko/Navbar/configuration": {
       "pageid": 3310704,
-      "revid": 36480634,
+      "revid": 40956660,
       "title": "\ubaa8\ub4c8:Navbar/configuration"
     },
     "@ko/Navbox": {
       "pageid": 930488,
-      "revid": 36480767,
+      "revid": 40956668,
       "title": "\ubaa8\ub4c8:Navbox",
       "dependencies": [
         "@ko/Arguments",
@@ -350,7 +328,7 @@
     },
     "@ko/Navbox/configuration": {
       "pageid": 3767719,
-      "revid": 37950715,
+      "revid": 40956665,
       "title": "\ubaa8\ub4c8:Navbox/configuration"
     },
     "@ko/Official website": {
@@ -379,8 +357,11 @@
     },
     "@ko/TableTools": {
       "pageid": 1103423,
-      "revid": 25041102,
-      "title": "\ubaa8\ub4c8:TableTools"
+      "revid": 40574994,
+      "title": "\ubaa8\ub4c8:TableTools",
+      "dependencies": [
+        "@ko/Exponential search"
+      ]
     },
     "@ko/URL": {
       "pageid": 947620,

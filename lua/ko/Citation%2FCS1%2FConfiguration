@@ -39,11 +39,11 @@ local messages = {
 	['archived'] = '보존된 문서',
 	['by'] = 'By',																-- contributions to authored works: introduction, foreword, afterword
 	['cartography'] = '$1 제작',
-	['editor'] = '편집.',
-	['editors'] = '편집.', 
+	['editor'] = '편집',
+	['editors'] = '편집', 
 	['edition'] = '($1판)', 
-	['episode'] = '제 $1회',
-	['et al'] = '외.', 
+	['episode'] = '제$1 회',
+	['et al'] = '외', 
 	['in'] = '',																-- edited works
 	['inactive'] = '년 이후로 접속 불가',
 	['inset'] = '$1 inset',
@@ -238,7 +238,7 @@ local aliases = {
 	['ArchiveDate'] = {'archive-date', 'archivedate', '보존날짜', '보존일자'},
 	['ArchiveFormat'] = 'archive-format',
 	['ArchiveURL'] = {'archive-url', 'archiveurl', '보존url'},
-	['ASINTLD'] = {'ASIN-TLD', 'asin-tld'},
+	['ASINTLD'] = 'asin-tld',
 	['At'] = {'at', '쪽기타'},
 	['Authors'] = {'authors', 'people', 'host', 'credits', '인물', '제작진'},
 	['BookTitle'] = {'book-title', 'booktitle'},
@@ -247,9 +247,9 @@ local aliases = {
 	['Chapter'] = {'chapter', 'contribution', 'entry', 'article', 'section', '장', '항목'},
 	['ChapterFormat'] = {'chapter-format', 'contribution-format', 'section-format'};
 	['ChapterURL'] = {'chapter-url', 'chapterurl', 'contribution-url', 'contributionurl', 'section-url', 'sectionurl', '장url'},
-	['ChapterUrlAccess'] = {'chapter-url-access', 'contribution-url-access', 'entry-url-access', 'article-url-access', 'section-url-access'},
+	['ChapterUrlAccess'] = {'chapter-url-access', 'contribution-url-access', 'entry-url-access', 'article-url-access', 'section-url-access', '장url접근', '항목url접근', '기여url접근'},
 	['City'] = {'city', '도시'},												-- cite interview -- DEPRECATED
-	['Class'] = {'class', '분류'},												-- cite arxiv and arxiv identifiers
+	['Class'] = {'class', '클래스'},												-- cite arxiv and arxiv identifiers
 	['Coauthors'] = {'coauthors', 'coauthor', '공저자'},						-- coauthor and coauthors are deprecated; remove after 1 January 2015? -- DEPRECATED
 	['Collaboration'] = 'collaboration',
 	['Conference'] = {'conference', 'event', '콘퍼런스', '컨퍼런스', '행사'},
@@ -266,18 +266,18 @@ local aliases = {
 	['DisplayInterviewers'] = 'display-interviewers',
 	['DisplayTranslators'] = 'display-translators',
 	['Docket'] = 'docket',
-	['DoiBroken'] = {'doi-broken', 'doi-broken-date', 'doi-inactive-date', 'doi_brokendate', 'doi_inactivedate', 'doi_깨진날짜', 'doi깨진날짜'},
+	['DoiBroken'] = {'doi-broken', 'doi-broken-date', 'doi-inactive-date', 'doi_brokendate', 'doi_inactivedate', 'doi깨진날짜'},
 	['Edition'] = {'edition', '판'},
 	['Editors'] = 'editors',
-	['Embargo'] = {'embargo', '엠바고'},
+	['Embargo'] = 'pmc엠바고날짜',
 	['Encyclopedia'] = {'encyclopedia', 'encyclopaedia', '백과사전'},			-- this one only used by citation
 	['Episode'] = {'episode', '에피소드'},										-- cite serial only TODO: make available to cite episode? 수정 필요?
-	['Format'] = {'format', '형식', '포맷'},
+	['Format'] = {'format', '형식'},
 	['ID'] = {'id', 'ID'},
 	['IgnoreISBN'] = {'ignore-isbn-error', 'ignoreisbnerror', 'isbn오류무시'},
 	['Inset'] = {'inset', '삽화'},
 	['Issue'] = {'issue', 'number', '호', '회', '화'},
-	['Language'] = {'language', 'in', '언어'},									-- 언어고리, 언어링크 제거 필요
+	['Language'] = {'language', '언어'},									-- 언어고리, 언어링크 제거 필요
 	['LastAuthorAmp'] = {'last-author-amp', 'lastauthoramp', '저자앰퍼샌드'},
 	['LayDate'] = {'lay-date', 'laydate', '요약문날짜'},
 	['LayFormat'] = 'lay-format',
@@ -292,13 +292,13 @@ local aliases = {
 	['Minutes'] = {'minutes', '분'},
 	['Mode'] = {'mode', '모드'},
 	['Month'] = {'month', '월', '달', '작성월', '발행월'},						-- 임시 -- DEPRECATED
-	['NameListFormat'] = {'name-list-format', '이름목록형식'},
+	['NameListFormat'] = {'name-list-format', '이름목록형식', 'name-list-style', '이름목록양식'},
 	['Network'] = {'network', '네트워크'},
 	['NoPP'] = {'no-pp', 'nopp', '쪽숨김'},
 	['NoTracking'] = {'template-doc-demo', 'template doc demo', 'no-cat', 'nocat', 
 		'no-tracking', 'notracking', '분류없음'},
 	['Number'] = 'number', -- this case only for cite techreport
-	['OrigYear'] = {'orig-year', 'origyear', '원본연도', '초판연도'},
+	['OrigYear'] = {'orig-year', 'origyear', '원본연도'},
 	['Others'] = {'others', 'interviewer', 'interviewers', '기타', '인터뷰어'},
 	['Page'] = {'p', 'page', '쪽', '페이지', '면'},
 	['Pages'] = {'pp', 'pages'},
@@ -335,7 +335,7 @@ local aliases = {
 	['Title'] = {'title', '제목'},
 	['TitleLink'] = {'title-link', 'episode-link', 'titlelink', 'episodelink', '제목링크', '제목고리'},
 	['NoBracket'] = {'이탤릭체'},												-- 임의로 추가함
-	['TitleNote'] = 'department',												-- 번역 필요
+	['TitleNote'] = {'department','란'},
 	['TitleType'] = {'type', 'medium', '종류', '매체'},
 	['TransChapter'] = {'trans-chapter', 'trans_chapter', '번역장'},
 	['TransMap'] = 'trans-map',													-- cite map only
@@ -345,7 +345,7 @@ local aliases = {
 	['TranscriptURL'] = {'transcript-url', 'transcripturl', '대본url'},
 	['TransTitle'] = {'trans-title', 'trans_title', '번역제목'},
 	['URL'] = {'url', 'URL'},
-	['UrlAccess'] = {'url-access'},
+	['UrlAccess'] = {'url-access', 'url접근'},
 	['UrlStatus'] = {'url-status', 'dead-url', 'deadurl', 'url상태'},						-- TODO: remove 'dead-url', 'deadurl'
 	['Vauthors'] = 'vauthors',
 	['Veditors'] = 'veditors',
@@ -398,6 +398,7 @@ builds a table of parameter names that the extraneous terminal punctuation check
 ]]
 
 local punct_skip = {};
+local url_skip = {};
 
 local meta_params = {															-- table of aliases[] keys (meta parameters); each key has a table of parameter names for a value
 	'BookTitle', 'Chapter', 'ScriptChapter', 'ScriptTitle', 'Title', 'TransChapter', 'Transcript', 'TransMap',	'TransTitle',	-- title-holding parameters
@@ -569,8 +570,8 @@ local keywords = {
 --	['date-format'] = {'dmy', 'dmy-all', 'mdy', 'mdy-all', 'ymd', 'ymd-all', 'yMd', 'yMd-all'},	-- not supported at en.wiki
 	['url-access'] = {'subscription', 'limited', 'registration', '구독', '제한', '등록'},				-- access level of a URL (subscription required, limited access, registration required); free to read by default
 	['url-status'] = {'dead', 'unfit', 'usurped', 'bot: unknown', '깨짐', '죽음', '부적절'},		-- replacement for |dead-url=
-	['live'] = {'live', '라이브'},	
-	['id-access'] = {'free', '자유'},													-- access level of an identifier (free to read); not free-to-read  by default
+	['live'] = {'live', '정상', '라이브'},	
+	['id-access'] = {'free', '자유', '무료'},													-- access level of an identifier (free to read); not free-to-read  by default
 }
 
 
@@ -793,14 +794,14 @@ local maint_cats = {
 	['embargo'] = 'CS1 관리 - PMC 엠바고 만료',
 --	['english'] = 'CS1 관리 - 한국어 인용 (ko)',								-- 실제로 안 쓰이고 있어서 숨김
 	['etal'] = 'CS1 관리 - et al.의 직접적인 사용',                             -- DEPRECATED
-	['eudml'] = 'CS1 관리 - EuDML',                                             -- 2025년 1월 27일 추가. en.wiki에는 없음
+	['eudml'] = 'CS1 관리 - EuDML',                                             -- 로컬 (2025-01-27)
 	['extra_punct'] = 'CS1 관리 - 추가 구두점',
 	['extra_text'] = 'CS1 관리 - 추가 문구',
 	['extra_text_names'] = 'CS1 관리 - 추가 문구: $1',							-- $1 is <name>s list; gets value from special_case_translation table
 	['ignore_isbn_err'] = 'CS1 관리 - ISBN 오류 무시',							-- $1 is authors or editors
 	['missing_pipe'] = 'CS1 관리 - 수직선 없음',                        -- DEPRECATED
 	['mult_names'] = 'CS1 관리 - 여러 이름',							-- $1 is authors or editors -- 수정 필요
-	['numdam'] = 'CS1 관리 - Numdam',                                           -- 2025년 1월 27일 추가. en.wiki에는 없음
+	['numdam'] = 'CS1 관리 - Numdam',                                           -- 로컬 (2025-01-27)
 	['others'] = 'CS1 관리 - 기타',
 	['pmc_format'] = 'CS1 관리 - PMC 형식',
 	['unfit'] = 'CS1 관리 - 부적합한 url',
@@ -931,7 +932,13 @@ local error_conditions = {
 		anchor = 'bad_doi',
 		category = '인용 오류 - DOI',
 		hidden = false },
-	bad_eudml = {																-- 2025년 1월 27일 추가. en.wiki에는 없음.
+	bad_eram = {																-- 로컬 (2025-12-24)
+		message = '<code class="cs1-code">&#124;eram=</code> 값 확인 필요',
+		anchor = 'bad_eram',
+		category = '인용 오류 - ERAM',
+		hidden = false
+		},
+	bad_eudml = {																-- 로컬 (2025-01-27)
 		message = '<code class="cs1-code">&#124;eudml=</code> 값 확인 필요',
 		anchor = 'bad_eudml',
 		category = '인용 오류 - EuDML',
@@ -991,7 +998,7 @@ local error_conditions = {
 		category = '인용 오류 - NAID',
 		hidden = false
 		},
-	bad_numdam = {																-- 2025년 1월 27일 추가. en.wiki에는 없음.
+	bad_numdam = {																-- 로컬 (2025-01-27)
 		message = '<code class="cs1-code">&#124;numdam=</code> 값 확인 필요',
 		anchor = 'bad_numdam',
 		category = '인용 오류 - Numdam',
@@ -1305,6 +1312,16 @@ local id_handlers = {
 		encode = false,
 		separator = '&nbsp;',
 	},
+	['ERAM'] = {																-- 로컬
+		parameters = {'eram', 'ERAM'}, 
+		link = '수학 연구 전자 보존',
+		label = 'ERAM',
+		mode = 'manual',
+		prefix = '//zbmath.org/?format=complete&q=an:',
+		COinS = 'pre',															-- use prefix value
+		encode = true,
+		separator = '&nbsp;',
+	},
 	['EUDML'] = {																-- 2025sus 1월 27일 추가. 문제 시 되돌려 주세요.
 		parameters = {'eudml', 'EUDML'}, 
 		link = '유럽 디지털 수학 도서관',
@@ -1355,7 +1372,7 @@ local id_handlers = {
 	},
 	['JFM'] = {
 		parameters = {'jfm', 'JFM'}, 
-		link = '첸트랄블라트 마트',
+		link = '수학 진보 연감',
 		label = 'JFM',
 		mode = 'external',
 		prefix = '//zbmath.org/?format=complete&q=an:',
@@ -1403,7 +1420,7 @@ local id_handlers = {
 		encode = false,
 		separator = '&nbsp;',
 	},
-	['NUMDAM'] = {																-- 2025sus 1월 27일 추가
+	['NUMDAM'] = {																-- 로컬 (2025-01-27)
 		parameters = {'numdam', 'NUMDAM'}, 
 		link = '뉨담',
 		label = 'Numdam',
@@ -1536,6 +1553,7 @@ return 	{
 	presentation = presentation,
 	prop_cats = prop_cats,
 	punct_skip = punct_skip,
+	url_skip = url_skip,
 	script_lang_codes = script_lang_codes,
 	lang_code_remap = lang_code_remap,
 	lang_name_remap = lang_name_remap,
