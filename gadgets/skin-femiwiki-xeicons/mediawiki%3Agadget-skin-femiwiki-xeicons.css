@@ -116,9 +116,11 @@
   content: '\eb39';
 }
 /* https://github.com/femiwiki/FemiwikiSkin/issues/645 */
-#pt-userpage a {
+#pt-userpage a,
+#pt-userpage-2 a {
   padding-left: 0;
 }
-#pt-userpage a:before {
+#pt-userpage a:before,
+#pt-userpage-2 a:before {
   content: '\e900';
 }
