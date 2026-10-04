@@ -81,6 +81,21 @@ def validate_files(arr):
     return [f for f in arr if is_target(f)]
 
 
+def file_to_title(file):
+    if search(r"^lua/.+/.+", file):
+        # Lua modules fetched by Legunto
+        _, prefix, title = file.split("/")
+        title = unquote(title)
+        return f"module:@{prefix}/{title}"
+    elif file.startswith("lua/"):
+        # Lua modules
+        return "module:" + unquote(basename(file))
+    elif "mediawiki%3Agadgets%2F" in file:
+        return "mediawiki:gadgets/" + basename(unquote(file))
+    else:
+        return basename(unquote(file))
+
+
 def edit_pages_on_wiki(targets, wiki):
     logger.info("target files:" + " / ".join(targets))
 
@@ -95,18 +110,7 @@ def edit_pages_on_wiki(targets, wiki):
     )
 
     for i, FILE in enumerate(targets):
-        if search(r"^lua/.+/.+", FILE):
-            # Lua modules fetched by Legunto
-            _, prefix, title = FILE.split("/")
-            title = unquote(title)
-            title = f"module:@{prefix}/{title}"
-        elif FILE.startswith("lua/"):
-            # Lua modules
-            title = "module:" + unquote(basename(FILE))
-        elif "mediawiki%3Agadgets%2F" in FILE:
-            title = "mediawiki:gadgets/" + basename(unquote(FILE))
-        else:
-            title = basename(unquote(FILE))
+        title = file_to_title(FILE)
         page = wiki.pages[title]
         try:
             with open(FILE, "r") as f:
