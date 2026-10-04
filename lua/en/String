@@ -515,6 +515,43 @@ function str.join(frame)
 	return table.concat( args, sep or '' )
 end
 
+-- findpagetext returns the position of a piece of text in a page
+-- First positional parameter or |text is the search text
+-- Optional parameter |title is the page title, defaults to current page
+-- Optional parameter |plain is either true for plain search (default) or false for Lua pattern search
+-- Optional parameter |nomatch is the return value when no match is found; default is nil
+function str._findpagetext(args)
+	-- process parameters
+	local nomatch = args.nomatch or ""
+	if nomatch == "" then nomatch = nil end
+	--
+	local text = mw.text.trim(args[1] or args.text or "")
+	if text == "" then return nil end
+	--
+	local title = args.title or ""
+	local titleobj
+	if title == "" then
+		titleobj = mw.title.getCurrentTitle()
+	else
+		titleobj = mw.title.new(title)
+	end
+	--
+	local plain = args.plain or ""
+	if plain:sub(1, 1) == "f" then plain = false else plain = true end
+	-- get the page content and look for 'text' - return position or nomatch
+	local content = titleobj and titleobj:getContent()
+	return content and mw.ustring.find(content, text, 1, plain) or nomatch
+end
+function str.findpagetext(frame)
+	local args = frame.args
+	local pargs = frame:getParent().args
+	for k, v in pairs(pargs) do
+		args[k] = v
+	end
+	if not (args[1] or args.text) then return nil end
+	-- just the first value
+	return (str._findpagetext(args))
+end
 --[[
 Helper function that populates the argument list given that user may need to use a mix of
 named and unnamed parameters.  This is relevant because named parameters are not

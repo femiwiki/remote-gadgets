@@ -28,9 +28,10 @@ local auto_link_urls = {};														-- holds identifier URLs for those ident
 
 as an aid to internationalizing identifier-label wikilinks, gets identifier article names from Wikidata.
 
-returns :<lang code>:<article title> when <q> has an <article title> for <lang code>; nil else
+returns w:<lang code>:<article title> when <q> has an <article title> for <lang code>; nil else. 'w:<lang code>'
+ensures that sister project (like wiktionary) will link to the <lang code>.wikipedia article.
 
-for identifiers that do not have q, returns nil
+for identifiers that do not have <q>, returns nil
 
 for wikis that do not have mw.wikibase installed, returns nil
 
@@ -47,25 +48,25 @@ local function wikidata_article_name_get (q)
 	wd_article = mw.wikibase.getSitelink (q, this_wiki_code .. 'wiki');			-- fetch article title from WD; nil when no title available at this wiki
 
 	if wd_article then
-		wd_article = table.concat ({':', this_wiki_code, ':', wd_article});		-- interwiki-style link without brackets if taken from WD; leading colon required
+		wd_article = table.concat ({'w:', this_wiki_code, ':', wd_article});	-- interwiki-style link without brackets if taken from WD; leading 'w:' required
 	end
 
 	return wd_article;															-- article title from WD; nil else
 end
 
 
---[[--------------------------< L I N K _ L A B E L _ M A K E >------------------------------------------------
+--[[--------------------------< L A B E L _ L I N K _ M A K E >------------------------------------------------
 
-common function to create identifier link label from handler table or from Wikidata
+common function to create a link for an identifier label from handler table or from Wikidata
 
-returns the first available of
+returns the first available of:
 	1. redirect from local wiki's handler table (if enabled)
-	2. Wikidata (if there is a Wikidata entry for this identifier in the local wiki's language)
-	3. label specified in the local wiki's handler table
+	2. Wikidata sitelink to the local language wikipedia article (if there is a Wikidata entry for this identifier in the local language)
+	3. link to wikipedia article specified in the local wiki's handler table
 	
 ]]
 
-local function link_label_make (handler)
+local function label_link_make (handler)
 	local wd_article;
 	
 	if not (cfg.use_identifier_redirects and is_set (handler.redirect)) then	-- redirect has priority so if enabled and available don't fetch from Wikidata because expensive
@@ -102,7 +103,7 @@ local function external_link_id (options)
 	end
 
 	return table.concat	({
-		make_wikilink (link_label_make (options), options.label),				-- redirect, Wikidata link, or locally specified link (in that order)
+		make_wikilink (label_link_make (options), options.label),				-- redirect, Wikidata link, or locally specified link (in that order)
 		options.separator or '&nbsp;',
 		ext_link
 		});
@@ -124,7 +125,7 @@ local function internal_link_id (options)
 
 	return table.concat (
 		{
-		make_wikilink (link_label_make (options), options.label),				-- wiki-link the identifier label
+		make_wikilink (label_link_make (options), options.label),				-- wiki-link the identifier label
 		options.separator or '&nbsp;',											-- add the separator
 		make_wikilink (
 			table.concat (
@@ -167,43 +168,54 @@ local function is_embargoed (embargo)
 end
 
 
---[=[-------------------------< I S _ V A L I D _ B I O R X I V _ D A T E >------------------------------------
+--[=[-------------------------< I S _ V A L I D _ R X I V _ D A T E >------------------------------------------
 
-returns true if:
+for biorxiv, returns true if:
 	2019-12-11T00:00Z <= biorxiv_date < today + 2 days
+for medrxiv, returns true if:
+	2020-01-01T00:00Z <= medrxiv_date < today + 2 days
 	
 The dated form of biorxiv identifier has a start date of 2019-12-11.  The Unix timestamp for that date is {{#time:U|2019-12-11}} = 1576022400
+The medrxiv identifier has a start date of 2020-01-01.  The Unix timestamp for that date is {{#time:U|2020-01-01}} = 1577836800
 
-biorxiv_date is the date provided in those |biorxiv= parameter values that are dated at time 00:00:00 UTC
-today is the current date at time 00:00:00 UTC plus 48 hours
-	if today is 2015-01-01T00:00:00 then
-		adding 24 hours gives 2015-01-02T00:00:00 – one second more than today
-		adding 24 hours gives 2015-01-03T00:00:00 – one second more than tomorrow
+<rxiv_date> is the date provided in those |biorxiv= parameter values that are dated and in |medrxiv= parameter values at time 00:00:00 UTC
+<today> is the current date at time 00:00:00 UTC plus 48 hours
+	if today's date is 2023-01-01T00:00:00 then
+		adding 24 hours gives 2023-01-02T00:00:00 – one second more than today
+		adding 24 hours gives 2023-01-03T00:00:00 – one second more than tomorrow
 
-This function does not work if it is fed month names for languages other than English.  Wikimedia #time: parser
-apparently doesn't understand non-English date month names. This function will always return false when the date
-contains a non-English month name because good1 is false after the call to lang_object.formatDate().  To get
-around that call this function with date parts and create a YYYY-MM-DD format date.
+inputs:
+	<y>, <m>, <d> – year, month, day parts of the date from the birxiv or medrxiv identifier
+	<select> 'b' for biorxiv, 'm' for medrxiv; defaults to 'b'
 
 ]=]
 
-local function is_valid_biorxiv_date (y, m, d)
-	local biorxiv_date = table.concat ({y, m, d}, '-');							-- make ymd date
+local function is_valid_rxiv_date (y, m, d, select)
+	if 0 == tonumber (m) and 12 < tonumber (m) then								-- <m> must be a number 1–12
+		return false;
+	end
+	if 0 == tonumber (d) and 31 < tonumber (d) then								-- <d> must be a number 1–31; TODO: account for month length and leap yer?
+		return false;
+	end
+	
+	local rxiv_date = table.concat ({y, m, d}, '-');							-- make ymd date string
 	local good1, good2;
-	local biorxiv_ts, tomorrow_ts;												-- to hold Unix timestamps representing the dates
+	local rxiv_ts, tomorrow_ts;													-- to hold Unix timestamps representing the dates
 	local lang_object = mw.getContentLanguage();
 
-	good1, biorxiv_ts = pcall (lang_object.formatDate, lang_object, 'U', biorxiv_date);		-- convert biorxiv_date value to Unix timestamp 
+	good1, rxiv_ts = pcall (lang_object.formatDate, lang_object, 'U', rxiv_date);		-- convert rxiv_date value to Unix timestamp 
 	good2, tomorrow_ts = pcall (lang_object.formatDate, lang_object, 'U', 'today + 2 days' );	-- today midnight + 2 days is one second more than all day tomorrow
 	
 	if good1 and good2 then														-- lang.formatDate() returns a timestamp in the local script which tonumber() may not understand
-		biorxiv_ts = tonumber (biorxiv_ts) or lang_object:parseFormattedNumber (biorxiv_ts);	-- convert to numbers for the comparison;
+		rxiv_ts = tonumber (rxiv_ts) or lang_object:parseFormattedNumber (rxiv_ts);	-- convert to numbers for the comparison;
 		tomorrow_ts = tonumber (tomorrow_ts) or lang_object:parseFormattedNumber (tomorrow_ts);
 	else
 		return false;															-- one or both failed to convert to Unix timestamp
 	end
 
-	return ((1576022400 <= biorxiv_ts) and (biorxiv_ts < tomorrow_ts))			-- 2012-12-11T00:00Z <= biorxiv_date < tomorrow's date
+	local limit_ts = ((select and ('m' == select)) and 1577836800) or 1576022400;	-- choose the appropriate limit timesatmp
+
+	return ((limit_ts <= rxiv_ts) and (rxiv_ts < tomorrow_ts))					-- limit_ts <= rxiv_date < tomorrow's date
 end
 
 
@@ -253,7 +265,7 @@ end
 
 --[[--------------------------< N O R M A L I Z E _ L C C N >--------------------------------------------------
 
-LCCN normalization (http://www.loc.gov/marc/lccn-namespace.html#normalization)
+LCCN normalization (https://www.loc.gov/marc/lccn-namespace.html#normalization)
 1. Remove all blanks.
 2. If there is a forward slash (/) in the string, remove it, and remove all characters to the right of the forward slash.
 3. If there is a hyphen in the string:
@@ -283,14 +295,14 @@ local function normalize_lccn (lccn)
 	end
 	
 	return lccn;
-	end
+end
 
 
 --============================<< I D E N T I F I E R   F U N C T I O N S >>====================================
 
 --[[--------------------------< A R X I V >--------------------------------------------------------------------
 
-See: http://arxiv.org/help/arxiv_identifier
+See: https://arxiv.org/help/arxiv_identifier
 
 format and error check arXiv identifier.  There are three valid forms of the identifier:
 the first form, valid only between date codes 9107 and 0703, is:
@@ -370,9 +382,13 @@ local function arxiv (options)
 
 	if is_set (class) then
 		if id:match ('^%d+') then
-			text = table.concat ({text, ' [[//arxiv.org/archive/', class, ' ', class, ']]'});	-- external link within square brackets, not wikilink
+			text = table.concat ({text, ' [[https://arxiv.org/archive/', class, ' ', class, ']]'});	-- external link within square brackets, not wikilink
 		else
 			set_message ('err_class_ignored');
+		end
+	else																		-- class not set
+		if id:match ('^%d+') and options.CitationClass == 'arxiv' then			-- new (post 2007) format; {{cite arxiv}} only
+			set_message ('maint_missing_class');								-- add maint cat
 		end
 	end
 
@@ -384,7 +400,7 @@ end
 
 Validates (sort of) and formats a bibcode ID.
 
-Format for bibcodes is specified here: http://adsabs.harvard.edu/abs_doc/help_pages/data.html#bibcodes
+Format for bibcodes is specified here: https://adsabs.harvard.edu/abs_doc/help_pages/data.html#bibcodes
 
 But, this: 2015arXiv151206696F is apparently valid so apparently, the only things that really matter are length, 19 characters
 and first four digits must be a year.  This function makes these tests:
@@ -402,6 +418,7 @@ local function bibcode (options)
 	local id = options.id;
 	local access = options.access;
 	local handler = options.handler;
+	local ignore_invalid = options.accept;
 	local err_type;
 	local err_msg = '';
 	local year;
@@ -425,13 +442,15 @@ local function bibcode (options)
 			if id:find('&%.') then
 				err_type = cfg.err_msg_supl.journal;							-- journal abbreviation must not have '&.' (if it does it's missing a letter)
 			end
+			if id:match ('.........%.tmp%.') then								-- temporary bibcodes when positions 10–14 are '.tmp.'
+				set_message ('maint_bibcode');
+			end
 		end
 	end
 
-	if is_set (err_type) then													-- if there was an error detected
+	if is_set (err_type) and not ignore_invalid then							-- if there was an error detected and accept-as-written markup not used
 		set_message ('err_bad_bibcode', {err_type});
 		options.coins_list_t['BIBCODE'] = nil;									-- when error, unset so not included in COinS
-
 	end
 
 	return text;
@@ -443,6 +462,9 @@ end
 Format bioRxiv ID and do simple error checking.  Before 2019-12-11, biorXiv IDs were 10.1101/ followed by exactly
 6 digits.  After 2019-12-11, biorXiv IDs retained the six-digit identifier but prefixed that with a yyyy.mm.dd. 
 date and suffixed with an optional version identifier.
+
+From December 2025 biorxiv added a new 'doi' prefix: 10.64898:
+	10.64898/2025.12.10.693067
 
 The bioRxiv ID is the string of characters:
 	https://doi.org/10.1101/078733 -> 10.1101/078733
@@ -459,9 +481,11 @@ local function biorxiv (options)
 	local err_msg = true;														-- flag; assume that there will be an error
 	
 	local patterns = {
-		'^10.1101/%d%d%d%d%d%d$',												-- simple 6-digit identifier (before 2019-12-11)
-		'^10.1101/(20[1-9]%d)%.([01]%d)%.([0-3]%d)%.%d%d%d%d%d%dv%d+$',			-- y.m.d. date + 6-digit identifier + version (after 2019-12-11)
-		'^10.1101/(20[1-9]%d)%.([01]%d)%.([0-3]%d)%.%d%d%d%d%d%d$',				-- y.m.d. date + 6-digit identifier (after 2019-12-11)
+		'^10%.1101/%d%d%d%d%d%d$',												-- simple 6-digit identifier (before 2019-12-11)
+		'^10%.1101/(20%d%d)%.(%d%d)%.(%d%d)%.%d%d%d%d%d%dv%d+$',				-- y.m.d. date + 6-digit identifier + version (after 2019-12-11)
+		'^10%.1101/(20%d%d)%.(%d%d)%.(%d%d)%.%d%d%d%d%d%d$',					-- y.m.d. date + 6-digit identifier (after 2019-12-11)
+		'^10%.64898/(20%d%d)%.(%d%d)%.(%d%d)%.%d%d%d%d%d%dv%d+$',				-- y.m.d. date + 6-digit identifier + version (from December 2025)
+		'^10%.64898/(20%d%d)%.(%d%d)%.(%d%d)%.%d%d%d%d%d%d$',					-- y.m.d. date + 6-digit identifier (from December 2025)
 		}
 	
 	for _, pattern in ipairs (patterns) do										-- spin through the patterns looking for a match
@@ -469,7 +493,7 @@ local function biorxiv (options)
 			local y, m, d = id:match (pattern);									-- found a match, attempt to get year, month and date from the identifier
 
 			if m then															-- m is nil when id is the six-digit form
-				if not is_valid_biorxiv_date (y, m, d) then						-- validate the encoded date; TODO: don't ignore leap-year and actual month lengths ({{#time:}} is a poor date validator)
+				if not is_valid_rxiv_date (y, m, d, 'b') then					-- validate the encoded date; 'b' for biorxiv limit
 					break;														-- date fail; break out early so we don't unset the error message
 				end
 			end
@@ -531,6 +555,9 @@ DOI names are case-insensitive and can incorporate any printable Unicode charact
 and terminal punctuation may not be technically correct but it appears, that in practice these characters are rarely
 if ever used in DOI names.
 
+https://www.doi.org/doi_handbook/2_Numbering.html				-- 2.2 Syntax of a DOI name
+https://www.doi.org/doi_handbook/2_Numbering.html#2.2.2			-- 2.2.2 DOI prefix
+
 ]]
 
 local function doi (options)
@@ -541,9 +568,20 @@ local function doi (options)
 	local handler = options.handler;
 	local err_flag;
 
+	local function is_extended_free (registrant, suffix)						-- local function to check those few registrants that are mixed; identifiable by the doi suffix <incipit>
+		suffix = suffix:lower();												-- ascii [a-z] same as [A-Z] in doi names; see §3.4.4 Case Insensitivity of the Doi Name
+		if cfg.extended_registrants_t[registrant] then							-- if this registrant has known free-to-read extentions
+			for _, incipit in ipairs (cfg.extended_registrants_t[registrant]) do	-- loop through the registrant's incipits
+				if mw.ustring.find (suffix, '^' .. incipit:lower()) then		-- ascii [a-z] same as [A-Z] in doi names
+					return true;												-- if foundm done
+				end
+			end
+		end
+	end
+
 	local text;
 	if is_set (inactive) then
-		local inactive_year = inactive:match("%d%d%d%d") or '';					-- try to get the year portion from the inactive date
+		local inactive_year = inactive:match("%d%d%d%d");						-- try to get the year portion from the inactive date
 		local inactive_month, good;
 
 		if is_set (inactive_year) then
@@ -554,9 +592,7 @@ local function doi (options)
 					inactive_month = nil;										-- something went wrong so make sure this is unset
 				end
 			end
-		else
-			inactive_year = nil;												-- |doi-broken-date= has something but it isn't a date
-		end
+		end																		-- otherwise, |doi-broken-date= has something but it isn't a date
 		
 		if is_set (inactive_year) and is_set (inactive_month) then
 			set_message ('maint_doi_inactive_dated', {inactive_year, inactive_month, ' '});
@@ -565,18 +601,20 @@ local function doi (options)
 		else
 			set_message ('maint_doi_inactive');
 		end
-		inactive = " (" .. cfg.messages['inactive'] .. ' ' .. inactive .. ')';
+		inactive = substitute (cfg.messages['inactive'], inactive );
 	end
 
-	local registrant = mw.ustring.match (id, '^10%.([^/]+)/[^%s–]-[^%.,]$');	-- registrant set when DOI has the proper basic form
+	local suffix;
+	local registrant, suffix = mw.ustring.match (id, '^10%.([^/]+)/([^%s–]-[^%.,])$');	-- registrant and suffix set when DOI has the proper basic form; both nil else
 
 	local registrant_err_patterns = {											-- these patterns are for code ranges that are not supported 
-		'^[^1-3]%d%d%d%d%.%d%d*$',												-- 5 digits with subcode (0xxxx, 40000+); accepts: 10000–39999
-		'^[^1-5]%d%d%d%d$',														-- 5 digits without subcode (0xxxx, 60000+); accepts: 10000–59999
-		'^[^1-9]%d%d%d%.%d%d*$',												-- 4 digits with subcode (0xxx); accepts: 1000–9999
-		'^[^1-9]%d%d%d$',														-- 4 digits without subcode (0xxx); accepts: 1000–9999
+		'^[^1-3]%d%d%d%d%.%d+$',												-- 5 digits with subcode (reject 0xxxx, 40000+); accepts: 10000–39999
+		'^[^1-8]%d%d%d%d$',														-- 5 digits without subcode (reject 0xxxx, 90000+); accepts: 10000–89999
+		'^[^1-9]%d%d%d%.%d+$',													-- 4 digits with subcode (reject 0xxx); accepts: 1000–9999
+		'^[^1-9]%d%d%d$',														-- 4 digits without subcode (reject 0xxx); accepts: 1000–9999
 		'^%d%d%d%d%d%d+',														-- 6 or more digits
-		'^%d%d?%d?$',															-- less than 4 digits without subcode (with subcode is legitimate)
+		'^%d%d?%d?$',															-- less than 4 digits without subcode (3 digits with subcode is legitimate)
+		'^%d%d?%.[%d%.]+',														-- 1 or 2 digits with subcode
 		'^5555$',																-- test registrant will never resolve
 		'[^%d%.]',																-- any character that isn't a digit or a dot
 		}
@@ -598,6 +636,11 @@ local function doi (options)
 
 	if err_flag then
 		options.coins_list_t['DOI'] = nil;										-- when error, unset so not included in COinS
+	else																		-- here when doi has no errors or has been wrapped in accept-as-written markup
+		suffix = mw.ustring.match (id, '^10%.[^/]+/(.+)');						-- refetch suffix because doi may have been wrapped in accept-as-written markup
+		if not access and (cfg.known_free_doi_registrants_t[registrant] or is_extended_free (registrant, suffix)) then		-- |doi-access=free not set and <registrant> is known to be free
+			set_message ('maint_doi_unflagged_free');							-- set a maint cat
+		end
 	end
 	
 	text = external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
@@ -606,6 +649,44 @@ local function doi (options)
 		}) .. (inactive or '');
 
 	return text;
+end
+
+
+--[[--------------------------< E R A M >----------------------------------------------------------------------
+
+로컬. ERAM 데이터베이스 식별자. 예: 001.0031cj.
+
+]]
+
+local function eram(id)
+	local handler = cfg.id_handlers['ERAM'];
+	local err_cat = '';
+
+	if not id:match('^%d%d%d%.%d%d%d%dcj$') then								-- not temporary, is it normal format?
+		err_cat = ' ' .. set_error('err_bad_eram');								-- no, set an error message
+	end
+	
+	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
+		prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
+end
+
+
+--[[--------------------------< E u D M L >--------------------------------------------------------------------
+
+로컬. 다섯 자리 이상의 숫자열로 구성됨.
+
+]]
+
+local function eudml(id)
+	local handler = cfg.id_handlers['EUDML'];
+	local err_cat = '';
+	
+	if not id:match('^%d%d%d%d%d+$') then
+		err_cat = ' ' .. set_error( 'err_bad_eudml' );
+	end
+	
+	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
+		prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
 end
 
 
@@ -624,7 +705,7 @@ HDL names are case-insensitive and can incorporate any printable Unicode charact
 terminal punctuation may not be technically correct but it appears, that in practice these characters are rarely
 if ever used in HDLs.
 
-Query string parameters are named here: http://www.handle.net/proxy_servlet.html.  query strings are not displayed
+Query string parameters are named here: https://www.handle.net/proxy_servlet.html.  query strings are not displayed
 but since '?' is an allowed character in an HDL, '?' followed by one of the query parameters is the only way we
 have to detect the query string so that it isn't URL-encoded with the rest of the identifier.
 
@@ -634,7 +715,7 @@ local function hdl (options)
 	local id = options.id;
 	local access = options.access;
 	local handler = options.handler;
-	local query_params = {														-- list of known query parameters from http://www.handle.net/proxy_servlet.html
+	local query_params = {														-- list of known query parameters from https://www.handle.net/proxy_servlet.html
 		'noredirect',
 		'ignore_aliases',
 		'auth',
@@ -682,10 +763,11 @@ Determines whether an ISBN string is valid
 
 ]]
 
-local function isbn (options)
-	local isbn_str = options.id;
-	local ignore_invalid = options.accept;
-	local handler = options.handler;
+local function isbn (options_t)
+	local isbn_str = options_t.id;
+	local ignore_invalid = options_t.accept;
+	local handler = options_t.handler;
+	local year = options_t.Year;												-- when set, valid anchor_year; may have a disambiguator which must be removed
 
 	local function return_result (check, err_type)								-- local function to handle the various returns
 		local ISBN = internal_link_id ({link = handler.link, label = handler.label, redirect = handler.redirect,
@@ -694,12 +776,21 @@ local function isbn (options)
 			set_message ('maint_isbn_ignore');									-- add a maint category even when there is no error
 		else																	-- here when not ignoring
 			if not check then													-- and there is an error
-				options.coins_list_t['ISBN'] = nil;								-- when error, unset so not included in COinS
+				options_t.coins_list_t['ISBN'] = nil;								-- when error, unset so not included in COinS
 				set_message ('err_bad_isbn', err_type);							-- set an error message
 				return ISBN;										 			-- return id text
 			end
 		end
 		return ISBN;															-- return id text
+	end
+
+	if year and not ignore_invalid then											-- 
+		year = year:match ('%d%d%d%d?');										-- strip disambiguator if present
+		if year and (1965 > tonumber(year)) then								-- <year> will be nil here when |year=n.d. or |year=nd
+			set_message ('err_invalid_isbn_date');								-- set an error message
+			return internal_link_id ({link = handler.link, label = handler.label, redirect = handler.redirect,
+					prefix = handler.prefix, id = isbn_str, separator = handler.separator});
+		end
 	end
 
 	if nil ~= isbn_str:match ('[^%s-0-9X]') then
@@ -803,7 +894,7 @@ end
 --[[--------------------------< I S M N >----------------------------------------------------------------------
 
 Determines whether an ISMN string is valid.  Similar to ISBN-13, ISMN is 13 digits beginning 979-0-... and uses the
-same check digit calculations.  See http://www.ismn-international.org/download/Web_ISMN_Users_Manual_2008-6.pdf
+same check digit calculations.  See https://www.ismn-international.org/download/Web_ISMN_Users_Manual_2008-6.pdf
 section 2, pages 9–12.
 
 ismn value not made part of COinS metadata because we don't have a url or isn't a COinS-defined identifier (rft.xxx)
@@ -832,7 +923,7 @@ local function ismn (options)
 
 	text = table.concat (														-- because no place to link to yet
 		{
-		make_wikilink (link_label_make (handler), handler.label),
+		make_wikilink (label_link_make (handler), handler.label),
 		handler.separator,
 		id_copy
 		});
@@ -852,7 +943,7 @@ Validate and format an ISSN.  This code fixes the case where an editor has inclu
 has separated the two groups of four digits with a space.  When that condition occurred, the resulting link looked
 like this:
 
-	|issn=0819 4327 gives: [http://www.worldcat.org/issn/0819 4327 0819 4327]	-- can't have spaces in an external link
+	|issn=0819 4327 gives: [https://www.worldcat.org/issn/0819 4327 0819 4327]	-- can't have spaces in an external link
 	
 This code now prevents that by inserting a hyphen at the ISSN midpoint.  It also validates the ISSN for length
 and makes sure that the checkdigit agrees with the calculated value.  Incorrect length (8 digits), characters
@@ -956,7 +1047,7 @@ end
 
 Format LCCN link and do simple error checking.  LCCN is a character string 8-12 characters long. The length of
 the LCCN dictates the character type of the first 1-3 characters; the rightmost eight are always digits.
-http://info-uri.info/registry/OAIHandler?verb=GetRecord&metadataPrefix=reg&identifier=info:lccn/
+https://oclc-research.github.io/infoURI-Frozen/info-uri.info/info:lccn/reg.html
 
 length = 8 then all digits
 length = 9 then lccn[1] is lowercase alpha
@@ -1014,6 +1105,54 @@ local function lccn (options)
 end
 
 
+--[[--------------------------< M E D R X I V >-----------------------------------------------------------------
+
+Format medRxiv ID and do simple error checking.  Similar to later bioRxiv IDs, medRxiv IDs are prefixed with a
+yyyy.mm.dd. date and suffixed with an optional version identifier.  Ealiest date accepted is 2020.01.01
+
+The medRxiv ID is a date followed by an eight-digit number followed by an optional version indicator 'v' and one or more digits:
+	https://www.medrxiv.org/content/10.1101/2020.11.16.20232009v2 -> 10.1101/2020.11.16.20232009v2
+
+]]
+
+local function medrxiv (options)
+	local id = options.id;
+	local handler = options.handler;
+	local err_msg_flag = true;													-- flag; assume that there will be an error
+
+	local patterns = {
+		'^%d%d%d%d%d%d%d%d$',													-- simple 8-digit identifier; these should be relatively rare
+		'^10%.1101/(20%d%d)%.(%d%d)%.(%d%d)%.%d%d%d%d%d%d%d%dv%d+$',			-- y.m.d. date + 8-digit identifier + version (2020-01-01 and later)
+		'^10%.1101/(20%d%d)%.(%d%d)%.(%d%d)%.%d%d%d%d%d%d%d%d$',				-- y.m.d. date + 8-digit identifier (2020-01-01 and later)
+		'^10%.64898/(20%d%d)%.(%d%d)%.(%d%d)%.%d%d%d%d%d%d%d%dv%d+$',			-- y.m.d. date + 8-digit identifier + version (2025-12-01 and later)
+		'^10%.64898/(20%d%d)%.(%d%d)%.(%d%d)%.%d%d%d%d%d%d%d%d$',				-- y.m.d. date + 8-digit identifier (2025-12-01 and later)
+		}
+	
+	for _, pattern in ipairs (patterns) do										-- spin through the patterns looking for a match
+		if id:match (pattern) then
+			local y, m, d = id:match (pattern);									-- found a match, attempt to get year, month and date from the identifier
+
+			if m then															-- m is nil when id is the 8-digit form
+				if not is_valid_rxiv_date (y, m, d, 'b') then					-- validate the encoded date; 'b' for medrxiv limit
+					break;														-- date fail; break out early so we don't unset the error message
+				end
+			end
+			err_msg_flag = nil;													-- we found a match so unset the error message
+			break;																-- and done
+		end
+	end																			-- <err_msg_flag> remains set here when no match
+
+	if err_msg_flag then
+		options.coins_list_t['MEDRXIV'] = nil;									-- when error, unset so not included in COinS
+		set_message ('err_bad_medrxiv');										-- and set the error message
+	end
+	
+	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
+			prefix = handler.prefix, id = id, separator = handler.separator,
+			encode = handler.encode, access = handler.access});
+end
+
+
 --[[--------------------------< M R >--------------------------------------------------------------------------
 
 A seven digit number; if not seven digits, zero-fill leading digits to make seven digits.
@@ -1047,6 +1186,88 @@ local function mr (options)
 end
 
 
+--[[--------------------------< N A I D >----------------------------------------------------------------------
+
+NAID must be eleven or twelve digits starts with non-zero.
+
+]]
+
+local function naid(options)
+	local id = options.id;
+	local handler = options.handler;
+
+	if not id:match ("^[1-9]%d%d%d%d%d%d%d%d%d%d%d?$") then
+		set_message ('err_bad_naid');											-- set an error message
+		options.coins_list_t['NAID'] = nil;										-- when error, unset so not included in COinS
+	end
+
+	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
+		prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
+end
+
+
+--[[--------------------------< N C I D >----------------------------------------------------------------------
+
+로컬. NCID must be two uppercase alphabets + seven digits + X or a digit.
+検査方法については https://catill.bitbucket.io/CM/furoku2_1.html の「ID及びBHNT(前後誌データID)」の項を参照
+
+
+
+local function ncid(options)
+	local id = options.id;
+	local handler = options.handler;
+	local err_flag;
+
+	if not id:match('^[AB][A-DN]%d%d%d%d%d%d%d[%dX]$') then
+		err_flag = true;
+	else
+		local c1, c2 = id:byte(1, 2);											-- 最初の2文字を文字コードに変換
+		if c1 == 65 and (c2 == 67 or c2 == 68) then
+			err_flag = true;													-- 'AC'もしくは'AD'で始まるidは無効
+		else
+			local work = (c1 - 64) % 10 * 9 + (c2 - 64) % 10 * 8;				-- 規則に従って最初の2文字を数値に変換し、作業用変数に加算する
+			for i= 3, 9 do
+				work = work + tonumber(id:sub(i, i)) * (10 - i);				-- 3文字目から9文字目までを数値に変換し、規則に従って作業用変数に加算する
+			end
+			local c = id:sub(10, 10);											-- 末尾の文字（チェックディジット）
+			if work % 11 ~= (c == 'X' and 10 or tonumber(c)) then
+				err_flag = true;												-- チェックディジットが合わなければエラー
+			end
+		end
+	end
+	
+	if err_flag then
+		set_message ('err_bad_ncid');											-- set an error message
+		options.coins_list_t['NCID'] = nil;										-- when error, unset so not included in COinS
+	end
+
+	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
+		prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
+end
+]]
+
+
+--[[--------------------------< N U M D A M >-----------------------------------------------------------------------
+
+로컬. Numdam 식별자는 하나의 대문자 자모 문자열과 빈 문자열일 수 있는 다섯 개의 숫자 및 하이픈 문자열로 구성되며, 밑줄로 분리됨.
+
+]]
+
+local function numdam(id)
+	local handler = cfg.id_handlers['NUMDAM'];
+	local err_cat = '';
+	
+	if id:match('^%u+_[%d-]*_[^_]*_[%d-]*_[%d-]*_[%d-]*_0$') then
+		add_maint_cat ('numdam');
+	else
+		err_cat = ' ' .. set_error( 'err_bad_numdam' );
+	end
+	
+	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
+		prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
+end
+
+
 --[[--------------------------< O C L C >----------------------------------------------------------------------
 
 Validate and format an OCLC ID.  https://www.oclc.org/batchload/controlnumber.en.html {{dead link}}
@@ -1072,8 +1293,8 @@ local function oclc (options)
 		end
 	elseif id:match('^%d+$') then												-- no prefix
 		number = id;															-- get the number
-		if 10 < number:len() then
-			number = nil;														-- constrain to 1 to 10 digits; change this when OCLC issues 11-digit numbers
+		if tonumber (id) > handler.id_limit then
+			number = nil;														-- unset when id value exceeds the limit
 		end
 	end
 
@@ -1205,7 +1426,7 @@ local function pmc (options)
 	if is_set (embargo) and is_set (is_embargoed (embargo)) then				-- is PMC is still embargoed?
 		text = table.concat (													-- still embargoed so no external link
 			{
-			make_wikilink (link_label_make (handler), handler.label),
+			make_wikilink (label_link_make (handler), handler.label),
 			handler.separator,
 			id,
 			});
@@ -1534,6 +1755,7 @@ local function build_id_list (ID_list_coins_t, options_t, access_levels_t)
 		['JFM'] = jfm,
 		['JSTOR'] = jstor,
 		['LCCN'] = lccn,
+		['MEDRXIV'] = medrxiv,
 		['MR'] = mr,
 		['OCLC'] = oclc,
 		['OL'] = openlibrary,

@@ -13,6 +13,7 @@ local lang_name = langdata.lang_name
 ]]
 
 local dates, year_date_check, reformat_dates									-- functions in Module:Citation/CS1/Date_validation
+local validation;																-- functions in Module:Citation/CS1/Date_validation
 
 local is_set, in_array, substitute, error_comment, set_error, select_one,		-- functions in Module:Citation/CS1/Utilities
 	add_maint_cat, wrap_style, safe_for_italics, remove_wiki_link;
@@ -21,11 +22,28 @@ local utilities;																-- functions in Module:Citation/CS1/Utilities
 local z ={};																	-- table of tables in Module:Citation/CS1/Utilities
 
 local extract_ids, build_id_list, is_embargoed;									-- functions in Module:Citation/CS1/Identifiers
+local identifiers;																-- functions and tables in Module:Citation/CS1/Identifiers
 
 local make_coins_title, get_coins_pages, COinS;									-- functions in Module:Citation/CS1/COinS
+local metadata;																	-- functions in Module:Citation/CS1/COinS
 
 local cfg = {};																	-- table of configuration tables that are defined in Module:Citation/CS1/Configuration
 local whitelist = {};															-- table of tables listing valid template parameter names; defined in Module:Citation/CS1/Whitelist
+
+--[[------------------< P A G E   S C O P E   V A R I A B L E S >---------------
+
+declare variables here that have page-wide scope that are not brought in from
+other modules; that are created here and used here
+
+]]
+
+local added_deprecated_cat;														-- Boolean flag so that the category is added only once
+local added_vanc_errs;															-- Boolean flag so we only emit one Vancouver error / category
+local added_generic_name_errs;													-- Boolean flag so we only emit one generic name error / category and stop testing names once an error is encountered
+local added_numeric_name_errs;													-- Boolean flag so we only emit one numeric name error / category and stop testing names once an error is encountered
+local added_numeric_name_maint;													-- Boolean flag so we only emit one numeric name maint category and stop testing names once a category has been emitted
+local is_preview_mode;															-- true when article is in preview mode; false when using 'Preview page with this template' (previewing the module)
+local is_sandbox;																-- true when using sandbox modules to render citation
 
 --[[--------------------------< F I R S T _ S E T >------------------------------------------------------------
 
@@ -201,13 +219,19 @@ local function split_url (url_str)
 	
 	url_str = url_str:gsub ('([%a%d])%.?[/%?#].*$', '%1');						-- strip FQDN terminator and path(/), query(?), fragment (#) (the capture prevents false replacement of '//')
 
-	if url_str:match ('^//%S*') then											-- if there is what appears to be a protocol relative url
+	if url_str:match ('^//%S*') then											-- if there is what appears to be a protocol-relative URL
 		domain = url_str:match ('^//(%S*)')
 	elseif url_str:match ('%S-:/*%S+') then										-- if there is what appears to be a scheme, optional authority indicator, and domain name
 		scheme, authority, domain = url_str:match ('(%S-:)(/*)(%S+)');			-- extract the scheme, authority indicator, and domain portions
-		authority = authority:gsub ('//', '', 1);								-- replace place 1 pair of '/' with nothing;
-		if is_set(authority) then												-- if anything left (1 or 3+ '/' where authority should be) then
-			return scheme;														-- return scheme only making domain nil which will cause an error message
+		if utilities.is_set (authority) then
+			authority = authority:gsub ('//', '', 1);							-- replace place 1 pair of '/' with nothing;
+			if utilities.is_set(authority) then									-- if anything left (1 or 3+ '/' where authority should be) then
+				return scheme;													-- return scheme only making domain nil which will cause an error message
+			end
+		else
+			if not scheme:match ('^news:') then									-- except for news:..., MediaWiki won't link URLs that do not have authority indicator; TODO: a better way to do this test?
+				return scheme;													-- return scheme only making domain nil which will cause an error message
+			end
 		end
 		domain = domain:gsub ('(%a):%d+', '%1');								-- strip port number if present
 	end
@@ -351,18 +375,18 @@ local error_message = '';
 end
 
 -- 로컬 시작
-function yearcheck( str )
+local function yearcheck( str )
 	return str:gsub( '년', '' );
 end
 
-function monthcheck( str )
+local function monthcheck( str )
 	return str:gsub( '월', '' )
 			  :gsub( "January", "1" ):gsub( "February", "2" ):gsub( "March", "3" ):gsub( "April", "4" )
 			  :gsub( "May", "5" ):gsub( "June", "6" ):gsub( "July", "7" ):gsub( "August", "8" )
 			  :gsub( "September", "9" ):gsub( "October", "10" ):gsub( "November", "11" ):gsub( "December", "12" );
 end
 
-function editioncheck( str )
+local function editioncheck( str )
 	return str:gsub( " 판", "" ):gsub( " [Ee]dition", "" ):gsub( " [Ee]d%.?", "" ):gsub( " st", "" ):gsub( " nd", "" ):gsub( " rd", "" ):gsub( " th", "" )
 			  :gsub( "판", "" ):gsub( "[Ee]dition", "" ):gsub( "[Ee]d%.?", "" ):gsub( "st", "" ):gsub( "nd", "" ):gsub( "rd", "" ):gsub( "th", "" );
 end
@@ -609,6 +633,120 @@ local function has_invisible_chars (param, v)
 			end
 		end
 		i=i+1;																	-- bump our index
+	end
+end
+
+
+--[=[-------------------------< I N T E R _ W I K I _ C H E C K >----------------------------------------------
+
+check <value> for inter-language interwiki-link markup.  <prefix> must be a MediaWiki-recognized language
+code.  when these values have the form (without leading colon):
+	[[<prefix>:link|label]] return label as plain-text
+	[[<prefix>:link]] return <prefix>:link as plain-text
+
+return value as is else
+
+]=]
+
+local function inter_wiki_check (parameter, value)
+	local prefix = value:match ('%[%[(%a+):');									-- get an interwiki prefix if one exists
+	local _;
+	
+	if prefix and cfg.inter_wiki_map[prefix:lower()] then						-- if prefix is in the map, needs preceding colon so
+		utilities.set_message ('err_bad_paramlink', parameter);					-- emit an error message
+		_, value, _ = utilities.is_wikilink (value);							-- extract label portion from wikilink
+	end
+	return value;
+end
+
+
+--[[--------------------------< M I S S I N G _ P I P E _ C H E C K >------------------------------------------
+
+Look at the contents of a parameter. If the content has a string of characters and digits followed by an equal
+sign, compare the alphanumeric string to the list of cs1|2 parameters.  If found, then the string is possibly a
+parameter that is missing its pipe.  There are two tests made:
+	{{cite ... |title=Title access-date=2016-03-17}}	-- the first parameter has a value and whitespace separates that value from the missing pipe parameter name
+	{{cite ... |title=access-date=2016-03-17}}			-- the first parameter has no value (whitespace after the first = is trimmed by MediaWiki)
+cs1|2 shares some parameter names with XML/HTML attributes: class=, title=, etc.  To prevent false positives XML/HTML
+tags are removed before the search.
+
+If a missing pipe is detected, this function adds the missing pipe maintenance category.
+
+]]
+
+local function missing_pipe_check (parameter, value)
+	local capture;
+	value = value:gsub ('%b<>', '');											-- remove XML/HTML tags because attributes: class=, title=, etc.
+
+	capture = value:match ('%s+(%a[%w%-]+)%s*=') or value:match ('^(%a[%w%-]+)%s*=');	-- find and categorize parameters with possible missing pipes
+	if capture and validate (capture) then										-- if the capture is a valid parameter name
+		utilities.set_message ('err_missing_pipe', parameter);
+	end
+end
+
+
+--[[--------------------------< H A S _ E X T R A N E O U S _ P U N C T >--------------------------------------
+
+look for extraneous terminal punctuation in most parameter values; parameters listed in skip table are not checked
+
+]]
+
+local function has_extraneous_punc (param, value)
+	if 'number' == type (param) then
+		return;
+	end
+	
+	param = param:gsub ('%d+', '#');											-- enumerated name-list mask params allow terminal punct; normalize 
+	if cfg.punct_skip[param] then
+		return;																	-- parameter name found in the skip table so done
+	end
+	
+	if value:match ('[,;:]$') then
+		utilities.set_message ('maint_extra_punct');							-- has extraneous punctuation; add maint cat
+	end
+	if value:match ('^=') then													-- sometimes an extraneous '=' character appears ...
+		utilities.set_message ('maint_extra_punct');							-- has extraneous punctuation; add maint cat
+	end
+end
+
+--[[--------------------------< H A S _ T W L _ U R L >--------------------------------------------------------
+
+look for The Wikipedia Library urls in url-holding parameters.  TWL urls are accessible for readers who are not
+active extended confirmed Wikipedia editors.  This function emits an error message when such urls are discovered.
+
+looks for: '.wikipedialibrary.idm.oclc.org'
+
+]]
+
+local function has_twl_url (url_params_t)
+	local url_error_t = {};														-- sequence of url-holding parameters that have a TWL url
+	
+	for param, value in pairs (url_params_t) do
+		if value:find ('%.wikipedialibrary%.idm%.oclc%.org') then				-- has the TWL base url?
+			table.insert (url_error_t, utilities.wrap_style ('parameter', param));	-- add parameter name to the list
+		end
+	end
+	if 0 ~= #url_error_t then													-- non-zero when there are errors
+		table.sort (url_error_t);
+		utilities.set_message ('err_param_has_twl_url', {utilities.make_sep_list (#url_error_t, url_error_t)});	-- add this error message
+		return true;
+	end
+end
+
+
+--[[--------------------------< H A S _ E X T R A N E O U S _ U R L >------------------------------------------
+
+look for extraneous url parameter values; parameters listed in skip table are not checked
+
+]]
+
+local function has_extraneous_url (non_url_param_t)
+	local url_error_t = {};
+	
+	check_for_url (non_url_param_t, url_error_t);								-- extraneous url check
+	if 0 ~= #url_error_t then													-- non-zero when there are errors
+		table.sort (url_error_t);
+		utilities.set_message ('err_param_has_ext_link', {utilities.make_sep_list (#url_error_t, url_error_t)});	-- add this error message
 	end
 end
 
@@ -957,7 +1095,8 @@ local function list_people(control, people, etal)
 	
 	local result = table.concat(text)											-- construct list
 	if etal and is_set (result) then											-- etal may be set by |display-authors=etal but we might not have a last-first list
-		result = result .. sep .. ' ' .. cfg.messages['et al'];					-- we've go a last-first list and etal so add et al.
+		result = result .. ' ' .. cfg.messages['et al'];						-- we've go a last-first list and etal so add et al.
+																				-- 로컬: '외' 앞 구분자 지움
 	end
 	
 	return result, count
@@ -2493,6 +2632,9 @@ Date validation supporting code is in Module:Citation/CS1/Date_validation
 
 			if is_set (Editors) then
 				if editor_etal then
+					if ';' == Editors:sub(-1) or ',' == Editors:sub(-1) then
+						Editors = Editors:sub(1,-2);							-- 로컬: '외' 앞 구분자 지움
+					end
 					Editors = Editors .. ' ' .. cfg.messages['et al'];			-- add et al. to editors parameter beause |display-editors=etal
 					EditorCount = 2;											-- with et al., |editors= is multiple names; spoof to display (eds.) annotation
 				else
@@ -2527,6 +2669,9 @@ Date validation supporting code is in Module:Citation/CS1/Date_validation
 			if is_set (Authors) then
 				Authors, author_etal = name_has_etal (Authors, author_etal, false);	-- find and remove variations on et al.
 				if author_etal then
+					if ';' == Authors:sub(-1) or ',' == Authors:sub(-1)then
+						Authors = Authors:sub(1,-2);							-- 로컬: '외' 앞 구분자 지움
+					end
 					Authors = Authors .. ' ' .. cfg.messages['et al'];			-- add et al. to authors parameter
 				end
 			else
@@ -2627,10 +2772,7 @@ Date validation supporting code is in Module:Citation/CS1/Date_validation
 		Chapter = format_chapter_title (ScriptChapter, Chapter, TransChapter, ChapterURL, ChapterURLorigin, no_quotes);		-- Contribution is also in Chapter
 		if is_set (Chapter) then
 			Chapter = Chapter .. ChapterFormat ;
-			if 'map' == config.CitationClass and is_set (TitleType) then
-				Chapter = Chapter .. ' ' .. TitleType;							-- map annotation here; not after title
-			end
-			Chapter = Chapter.. sepc .. ' ';
+			-- 로컬: 지움, 지도의 경우는 여기 대신 밑에서 처리
 		elseif is_set (ChapterFormat) then										-- |chapter= not set but |chapter-format= is so ...
 			Chapter = ChapterFormat .. sepc .. ' ';								-- ... ChapterFormat has error message, we want to see it
 		end
@@ -2980,35 +3122,51 @@ the annotation directly follows the |title= parameter value in the citation rath
 
 	local tcommon;
 	local tcommon2;																-- used for book cite when |contributor= is set
+	local chcommon;																-- 로컬 (2025-09-13)
 	
-	if in_array(config.CitationClass, {"journal","citation"}) and is_set(Periodical) then
+	if in_array(config.CitationClass, {"journal","citation"}) and is_set(Periodical) then		-- 로컬 시작 (2025-09-13)
 		if is_set(Others) then Others = Others .. sepc .. " " end
-		tcommon = safe_join( {Others, Title, TitleNote, Conference, Periodical, Format, TitleType, Series, 
-			Language, Edition, Publisher, Agency, Volume}, sepc );
+		tcommon = safe_join( {Title, Format, Edition, Language, TitleType, Others, Conference, TitleNote, Periodical, Series, 
+			Publisher, Agency, Volume}, sepc );
+		chcommon = safe_join({Chapter},sepc);
 		
 	elseif in_array(config.CitationClass, {"book","citation"}) and not is_set(Periodical) then		-- special cases for book cites
 		if is_set (Contributors) then											-- when we are citing foreword, preface, introduction, etc
-			tcommon = safe_join( {Title, TitleNote}, sepc );					-- author and other stuff will come after this and before tcommon2
-			tcommon2 = safe_join( {Conference, Periodical, Format, TitleType, Series, Language, Volume, Others, Edition, Publisher, Agency}, sepc );
+			tcommon = safe_join( {Title, Format, Edition, Language, TitleType}, sepc );		-- author and other stuff will come after this and before tcommon2
+			tcommon2 = safe_join( {TitleNote, Conference, Periodical, Series, Volume, Publisher, Agency}, sepc );
+			chcommon = safe_join({Chapter, sepc .. ' '}, sepc);
+		elseif is_set(Chapter) then
+			tcommon = safe_join( {Title, Format, TitleNote, Conference, Periodical, Series, Volume, Publisher, Agency}, sepc );
+			chcommon = safe_join({Chapter, Edition, Language, TitleType, Others, sepc .. ' '}, sepc);
 		else
-			tcommon = safe_join( {Title, TitleNote, Conference, Periodical, Format, TitleType, Series, Language, Volume, Others, Edition, Publisher, Agency}, sepc );
+			tcommon = safe_join( {Title, Format, Edition, Language, TitleType, Others, TitleNote, Conference, Periodical, Series, Volume, Publisher, Agency}, sepc );
+			chcommon = safe_join({Chapter},sepc);
 		end
 
 	elseif 'map' == config.CitationClass then									-- special cases for cite map
 		if is_set (Chapter) then												-- map in a book; TitleType is part of Chapter
-			tcommon = safe_join( {Title, Format, Edition, Scale, Series, Language, Cartography, Others, Publisher, Volume}, sepc );
+			tcommon = safe_join( {Title, Format, Series, Volume, Publisher}, sepc );
+			chcommon = safe_join({Chapter, Edition, Language, TitleType, Scale, Cartography, Others, sepc .. ' '}, sepc);
 		elseif is_set (Periodical) then											-- map in a periodical
-			tcommon = safe_join( {Title, TitleType, Format, Periodical, Scale, Series, Language, Cartography, Others, Publisher, Volume}, sepc );
+			tcommon = safe_join( {Title, Format, Edition, Language, TitleType, Scale, Cartography, Others, TitleNote, Periodical, Series, Publisher, Volume}, sepc );
+			chcommon = safe_join({Chapter},sepc);
 		else																	-- a sheet or stand-alone map
-			tcommon = safe_join( {Title, TitleType, Format, Edition, Scale, Series, Language, Cartography, Others, Publisher}, sepc );
+			tcommon = safe_join( {Title, Format, Edition, Language, TitleType, Scale, Series, Cartography, Others, Publisher}, sepc );
+			chcommon = safe_join({Chapter},sepc);
 		end
 		
 	elseif 'episode' == config.CitationClass then								-- special case for cite episode
-		tcommon = safe_join( {Title, TitleNote, TitleType, Series, Transcript, Language, Edition, Publisher}, sepc );
+		tcommon = safe_join( {Title, Format, Transcript, Edition, Language, TitleType, TitleNote, Series, Publisher}, sepc );
+		chcommon = safe_join({Chapter},sepc);
 	else																		-- all other CS1 templates
-		tcommon = safe_join( {Title, TitleNote, Conference, Periodical, Format, TitleType, Series, Language, 
-			Volume, Others, Edition, Publisher, Agency}, sepc );
-	end
+		if is_set(Chapter) then
+			tcommon = safe_join( {Title, Format, TitleNote, Conference, Periodical, Series, Volume, Publisher, Agency}, sepc );
+			chcommon = safe_join({Chapter, Edition, Language, TitleType, Others, sepc .. ' '}, sepc);
+		else
+			tcommon = safe_join( {Title, Format, Edition, Language, TitleType, Others, TitleNote, Conference, Periodical, Series, Volume, Publisher, Agency}, sepc );
+			chcommon = safe_join({Chapter},sepc);
+		end
+	end																			-- 로컬 끝 (2025-09-13)
 	
 	if #ID_list > 0 then
 		ID_list = safe_join( { sepc .. " ",  table.concat( ID_list, sepc .. " " ), ID }, sepc );
@@ -3048,13 +3206,12 @@ the annotation directly follows the |title= parameter value in the citation rath
 			if is_set(Chapter) and 0 == #c then
 				in_text = in_text .. cfg.messages['in'] .. " "
 				if (sepc ~= '.') then in_text = in_text:lower() end				-- lowercase for cs2
+			end
+			if EditorCount <= 1 then
+				post_text = ' (' .. cfg.messages['editor'] .. ')';
 			else
-				if EditorCount <= 1 then
-					post_text = ", " .. cfg.messages['editor'];
-				else
-					post_text = ", " .. cfg.messages['editors'];
-				end
-			end 
+				post_text = ' (' .. cfg.messages['editors'] .. ')';
+			end
 			Editors = terminate_name_list (in_text .. Editors .. post_text, sepc);	-- terminate with 0 or 1 sepc and a space
 		end
 		if is_set (Contributors) then											-- book cite and we're citing the intro, preface, etc
@@ -3067,16 +3224,16 @@ the annotation directly follows the |title= parameter value in the citation rath
 			if not is_set (Date) then											-- when date is set it's in parentheses; no Contributors termination
 				Contributors = terminate_name_list (Contributors, sepc);		-- terminate with 0 or 1 sepc and a space
 			end
-			text = safe_join( {Contributors, Date, Chapter, tcommon, Authors, Place, Editors, tcommon2, pgtext, idcommon }, sepc );
+			text = safe_join( {Contributors, Date, Chapter, tcommon, Authors, Place, Editors, Others, tcommon2, pgtext, idcommon }, sepc );
 		else
-			text = safe_join( {Authors, Date, Chapter, Place, Editors, tcommon, pgtext, idcommon }, sepc );
+			text = safe_join( {Authors, Date, chcommon, Place, Editors, tcommon, pgtext, idcommon }, sepc );		-- 로컬 (2025-09-13)
 		end
 	elseif is_set(Editors) then
 		if is_set(Date) then
 			if EditorCount <= 1 then
-				Editors = Editors .. ", " .. cfg.messages['editor'];
+				Editors = Editors .. " " .. cfg.messages['editor'];				-- 로컬: '편집'을 공백 뒤에 표시
 			else
-				Editors = Editors .. ", " .. cfg.messages['editors'];
+				Editors = Editors .. " " .. cfg.messages['editors'];			-- 로컬: '편집'을 공백 뒤에 표시
 			end
 		else
 			if EditorCount <= 1 then
@@ -3085,12 +3242,12 @@ the annotation directly follows the |title= parameter value in the citation rath
 				Editors = Editors .. " (" .. cfg.messages['editors'] .. ")" .. sepc .. " "
 			end
 		end
-		text = safe_join( {Editors, Date, Chapter, Place, tcommon, pgtext, idcommon}, sepc );
+		text = safe_join( {Editors, Date, chcommon, Place, tcommon, pgtext, idcommon}, sepc );		-- 로컬 (2025-09-13)
 	else
 		if config.CitationClass=="journal" and is_set(Periodical) then
-			text = safe_join( {Chapter, Place, tcommon, pgtext, Date, idcommon}, sepc );
+			text = safe_join( {chcommon, Place, tcommon, pgtext, Date, idcommon}, sepc );		-- 로컬 (2025-09-13)
 		else
-			text = safe_join( {Chapter, Place, tcommon, Date, pgtext, idcommon}, sepc );
+			text = safe_join( {chcommon, Place, tcommon, Date, pgtext, idcommon}, sepc );		-- 로컬 (2025-09-13)
 		end
 	end
 	
@@ -3186,7 +3343,7 @@ This is used by templates such as {{cite book}} to create the actual citation te
 
 ]]
 
-function cs1.citation(frame)
+local function citation(frame)
 	local pframe = frame:getParent()
 	local validation, identifiers, metadata;
 	
@@ -3303,4 +3460,142 @@ function cs1.citation(frame)
 	return citation0( config, args)
 end
 
-return cs1;
+
+--[[--------------------------< _ C I T A T I O N >------------------------------------------------------------
+
+Module entry point
+
+	frame – from template call (citation()); may be nil when called from another module
+	args – table of all cs1|2 parameters in the template (the template frame)
+	config – table of template-supplied parameter (the #invoke frame)
+
+]]
+
+local function _citation (frame, args, config)									-- save a copy in case we need to display an error message in preview mode
+	if not frame then
+		frame = mw.getCurrentFrame();											-- if called from another module, get a frame for frame-provided functions
+	end
+																				-- i18n: set the name that your wiki uses to identify sandbox subpages from sandbox template invoke (or can be set here)
+	local sandbox = ((config.SandboxPath and '' ~= config.SandboxPath) and config.SandboxPath) or '/sandbox';	-- sandbox path from {{#invoke:Citation/CS1/sandbox|citation|SandboxPath=/...}}
+	is_sandbox = nil ~= string.find (frame:getTitle(), sandbox, 1, true);		-- is this invoke the sandbox module?
+	sandbox = is_sandbox and sandbox or '';										-- use i18n sandbox to load sandbox modules when this module is the sandox; live modules else
+
+	cfg = mw.loadData ('Module:@ko/Citation/CS1/Configuration' .. sandbox);			-- load sandbox versions of support modules when {{#invoke:Citation/CS1/sandbox|...}}; live modules else
+	whitelist = mw.loadData ('Module:@ko/Citation/CS1/Whitelist' .. sandbox);
+	utilities = require ('Module:@ko/Citation/CS1/Utilities' .. sandbox);
+	validation = require ('Module:@ko/Citation/CS1/Date_validation' .. sandbox);
+	identifiers = require ('Module:@ko/Citation/CS1/Identifiers' .. sandbox);
+	metadata = require ('Module:@ko/Citation/CS1/COinS' .. sandbox);
+
+	utilities.set_selected_modules (cfg);										-- so that functions in Utilities can see the selected cfg tables
+	identifiers.set_selected_modules (cfg, utilities);							-- so that functions in Identifiers can see the selected cfg tables and selected Utilities module
+	validation.set_selected_modules (cfg, utilities);							-- so that functions in Date validataion can see selected cfg tables and the selected Utilities module
+	metadata.set_selected_modules (cfg, utilities);								-- so that functions in COinS can see the selected cfg tables and selected Utilities module
+
+	z = utilities.z;															-- table of error and category tables in Module:Citation/CS1/Utilities
+
+	is_preview_mode = not utilities.is_set (frame:preprocess ('{{REVISIONID}}'));
+
+	local suggestions = {};														-- table where we store suggestions if we need to loadData them
+	local error_text;															-- used as a flag
+
+	local capture;																-- the single supported capture when matching unknown parameters using patterns
+	local empty_unknowns = {};													-- sequence table to hold empty unknown params for error message listing
+	for k, v in pairs( args ) do												-- get parameters from the parent (template) frame
+		v = mw.ustring.gsub (v, '^%s*(.-)%s*$', '%1');							-- trim leading/trailing whitespace; when v is only whitespace, becomes empty string
+		if v ~= '' then
+			if ('string' == type (k)) then
+				k = mw.ustring.gsub (k, '%d', cfg.date_names.local_digits);		-- for enumerated parameters, translate 'local' digits to Western 0-9
+			end
+			if not validate( k, config.CitationClass ) then			
+				if type (k) ~= 'string' then									-- exclude empty numbered parameters
+					if v:match("%S+") ~= nil then
+						error_text = utilities.set_message ('err_text_ignored', {v});
+					end
+				elseif validate (k:lower(), config.CitationClass) then 
+					error_text = utilities.set_message ('err_parameter_ignored_suggest', {k, k:lower()});	-- suggest the lowercase version of the parameter
+				else
+					if nil == suggestions.suggestions then						-- if this table is nil then we need to load it
+						suggestions = mw.loadData ('Module:@ko/Citation/CS1/Suggestions' .. sandbox);	--load sandbox version of suggestion module when {{#invoke:Citation/CS1/sandbox|...}}; live module else
+					end
+					for pattern, param in pairs (suggestions.patterns) do		-- loop through the patterns to see if we can suggest a proper parameter
+						capture = k:match (pattern);							-- the whole match if no capture in pattern else the capture if a match
+						if capture then											-- if the pattern matches 
+							param = utilities.substitute (param, capture);		-- add the capture to the suggested parameter (typically the enumerator)
+							if validate (param, config.CitationClass) then		-- validate the suggestion to make sure that the suggestion is supported by this template (necessary for limited parameter lists)
+								error_text = utilities.set_message ('err_parameter_ignored_suggest', {k, param});	-- set the suggestion error message
+							else
+								error_text = utilities.set_message ('err_parameter_ignored', {k});	-- suggested param not supported by this template
+								v = '';											-- unset
+							end
+						end
+					end
+					if not utilities.is_set (error_text) then					-- couldn't match with a pattern, is there an explicit suggestion?						
+						if (suggestions.suggestions[ k:lower() ] ~= nil) and validate (suggestions.suggestions[ k:lower() ], config.CitationClass) then
+							utilities.set_message ('err_parameter_ignored_suggest', {k, suggestions.suggestions[ k:lower() ]});
+						else
+							utilities.set_message ('err_parameter_ignored', {k});
+							v = '';												-- unset value assigned to unrecognized parameters (this for the limited parameter lists)
+						end
+					end
+				end				  
+			end
+
+			args[k] = v;														-- save this parameter and its value
+
+		elseif not utilities.is_set (v) then									-- for empty parameters
+			if not validate (k, config.CitationClass, true) then				-- is this empty parameter a valid parameter
+				k = ('' == k) and '(empty string)' or k;						-- when k is empty string (or was space(s) trimmed to empty string), replace with descriptive text
+				table.insert (empty_unknowns, utilities.wrap_style ('parameter', k));	-- format for error message and add to the list
+			end
+																				-- crude debug support that allows us to render a citation from module {{#invoke:}} TODO: keep?
+	--	elseif args[k] ~= nil or (k == 'postscript') then						-- when args[k] has a value from {{#invoke}} frame (we don't normally do that)
+	--		args[k] = v;														-- overwrite args[k] with empty string from pframe.args[k] (template frame); v is empty string here
+		end																		-- not sure about the postscript bit; that gets handled in parameter validation; historical artifact?
+	end	
+
+	if 0 ~= #empty_unknowns then												-- create empty unknown error message
+		utilities.set_message ('err_param_unknown_empty', {
+			1 == #empty_unknowns and '' or 's',
+			utilities.make_sep_list (#empty_unknowns, empty_unknowns)
+			});
+	end
+
+	local non_url_param_t = {};													-- table of parameters and values that are not url-holding parameters
+	local url_param_t = {};														-- table of url-holding paramters and their values
+
+	for k, v in pairs( args ) do
+		if 'string' == type (k) then											-- don't evaluate positional parameters
+			has_invisible_chars (k, v);											-- look for invisible characters
+		end
+		has_extraneous_punc (k, v);												-- look for extraneous terminal punctuation in parameter values
+		missing_pipe_check (k, v);												-- do we think that there is a parameter that is missing a pipe?
+		args[k] = inter_wiki_check (k, v);										-- when language interwiki-linked parameter missing leading colon replace with wiki-link label
+
+		if 'string' == type (k) then											-- when parameter k is not positional
+			if not cfg.url_skip[k] then											-- and not in url skip table
+				non_url_param_t[k] = v;											-- make a parameter/value list for extraneous url check
+			else																-- and is in url skip table (a url-holding parameter)
+				url_param_t[k] = v;												-- make a parameter/value list to check for values that are The Wikipedia Library url
+			end
+		end
+	end
+
+	has_extraneous_url (non_url_param_t);										-- look for url in parameter values where a url does not belong
+	if has_twl_url (url_param_t) then												-- look for url-holding parameters that hold a The Wikipedia Library url
+		args['url-access'] = 'subscription';
+	end
+	return table.concat ({
+		frame:extensionTag ('templatestyles', '', {src='Module:Citation/CS1' .. sandbox .. '/styles.css'}),
+		citation0( config, args)
+	});
+end
+
+--[[--------------------------< E X P O R T E D   F U N C T I O N S >------------------------------------------
+]]
+
+return {
+	citation = citation,														-- template entry point
+	
+	_citation = _citation,														-- module entry point
+	}

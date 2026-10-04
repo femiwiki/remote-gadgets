@@ -101,19 +101,19 @@ end
 
 --[[--------------------------< H Y P H E N _ T O _ D A S H >--------------------------------------------------
 
-Converts a hyphen to a dash under certain conditions.  The hyphen must separate
+Converts a hyphen, endash, emdash to endash under certain conditions.  The hyphen/en/em must separate
 like items; unlike items are returned unmodified.  These forms are modified:
-	letter - letter (A - B)
+	letter - letter (A-B)
 	digit - digit (4-5)
 	digit separator digit - digit separator digit (4.1-4.5 or 4-1-4-5)
 	letterdigit - letterdigit (A1-A5) (an optional separator between letter and
 		digit is supported – a.1-a.5 or a-1-a-5)
-	digitletter - digitletter (5a - 5d) (an optional separator between letter and
+	digitletter - digitletter (5a-5d) (an optional separator between letter and
 		digit is supported – 5.a-5.d or 5-a-5-d)
 
 any other forms are returned unmodified.
 
-str may be a comma- or semicolon-separated list
+str may be a comma- or semicolon-separated list of page ranges with/without single pages
 
 ]]
 
@@ -122,27 +122,33 @@ local function hyphen_to_dash (str)
 		return str;
 	end
 
-	local accept;																-- boolean
-
 	str = str:gsub ("(%(%(.-%)%))", function(m) return m:gsub(",", "，"):gsub(";", "；") end) -- replace commas and semicolons in accept-as-written markup with similar unicode characters so they'll be ignored during the split	
-	str = str:gsub ('&[nm]dash;', {['&ndash;'] = '–', ['&mdash;'] = '—'});		-- replace &mdash; and &ndash; entities with their characters; semicolon mucks up the text.split
-	str = str:gsub ('&#45;', '-'); -- replace HTML numeric entity with hyphen character
-	str = str:gsub ('&nbsp;', ' '); -- replace &nbsp; entity with generic keyboard space character
+	str = str:gsub ('&[nm]dash;', {['&ndash;'] = '–', ['&mdash;'] = '—', ['&tilde;'] = '~'});		-- replace &mdash; and &ndash; entities with their characters; semicolon mucks up the text.split		-- 로컬. 물결표 추가.
+	str = str:gsub ('&#45;', '-');												-- replace HTML numeric entity with hyphen character
+	str = str:gsub ('&#126;', '~');												-- replace HTML numeric entity with tilde character		-- 로컬
+	str = str:gsub ('&nbsp;', ' ');												-- replace &nbsp; entity with generic keyboard space character
 	
 	local out = {};
 	local list = mw.text.split (str, '%s*[,;]%s*');								-- split str at comma or semicolon separators if there are any
 
+	local accept;																-- boolean
+
 	for _, item in ipairs (list) do												-- for each item in the list
 		item, accept = has_accept_as_written (item);							-- remove accept-this-as-written markup when it wraps all of item
-		if not accept and mw.ustring.match (item, '^%w*[%.%-]?%w+%s*[%-–—]%s*%w*[%.%-]?%w+$') then	-- if a hyphenated range or has endash or emdash separators
-			if item:match ('^%a+[%.%-]?%d+%s*%-%s*%a+[%.%-]?%d+$') or			-- letterdigit hyphen letterdigit (optional separator between letter and digit)
-				item:match ('^%d+[%.%-]?%a+%s*%-%s*%d+[%.%-]?%a+$') or			-- digitletter hyphen digitletter (optional separator between digit and letter)
-				item:match ('^%d+[%.%-]%d+%s*%-%s*%d+[%.%-]%d+$') or			-- digit separator digit hyphen digit separator digit
-				item:match ('^%d+%s*%-%s*%d+$') or								-- digit hyphen digit
-				item:match ('^%a+%s*%-%s*%a+$') then							-- letter hyphen letter
-					item = item:gsub ('(%w*[%.%-]?%w+)%s*%-%s*(%w*[%.%-]?%w+)', '%1–%2');	-- replace hyphen, remove extraneous space characters
+		if not accept and mw.ustring.match (item, '^%w*[%.%-]?%w+%s*[—–-~]%s*%w*[%.%-]?%w+$') then	-- if pagination uses <hyphen|dot> separators with hyphen/endash/emdash <range separator>		-- 로컬 시작
+			if mw.ustring.match (item, '^%a+[%.%-]%d+%s*[—–-~]%s*%a+[%.%-]%d+$') or		-- letter<hyphen|dot>digit <range separator> letter<hyphen|dot>digit (requires <hyphen|dot> separator between letter and digit)
+				mw.ustring.match (item, '^%d+[%.%-]%a+%s*[—–-~]%s*%d+[%.%-]%a+$') or		-- digit<hyphen|dot>letter <range separator> digit<hyphen|dot>letter (requires <hyphen|dot> separator between digit and letter)
+				mw.ustring.match (item, '^%d+[%.%-]%d+%s*[—–-~]%s*%d+[%.%-]%d+$') then	-- digit<hyphen|dot>digit <range separator> digit<hyphen|dot>digit (requires <hyphen|dot> separator between digit and digit)
+					item = mw.ustring.gsub (item, '(%w*[%.%-]%w+)%s*[—–-~]%s*(%w*[%.%-]%w+)', '<span class="nowrap">%1 –</span> <span class="nowrap">%2</span>');	-- replace <range separator>, with spaced endash
+
+			elseif mw.ustring.match (item, '^%d+%a+%s*[—–-~]%s*%d+%a+$') or		-- digitletter <range separator> digitletter
+				mw.ustring.match (item, '^%a+%d+%s*[—–-~]%s*%a+%d+$') or			-- letterdigit <range separator> letterdigit
+				mw.ustring.match (item, '^%d+%s*[—–-~]%s*%d+$') or				-- digit <range separator> digit
+				mw.ustring.match (item, '^%a+%s*[—–-~]%s*%a+$') then				-- letter<range separator> letter
+					item = mw.ustring.gsub (item, '(%w+)%s*[—–-~]%s*(%w+)', '<span class="nowrap">%1–</span>%2');	-- replace <range separator> with endash, remove extraneous space characters		-- 로컬 끝
+
 			else
-				item = mw.ustring.gsub (item, '%s*[–—]%s*', '–');				-- for endash or emdash separated ranges, replace em with en, remove extraneous whitespace
+	--			item = mw.ustring.gsub (item, '%s*[—–-]%s*', '–');				-- disabled; here when 'unlike' items so return <item> as is
 			end
 		end
 		table.insert (out, item);												-- add the (possibly modified) item to the output table

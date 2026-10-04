@@ -1,11 +1,32 @@
 --[[
-This module was originally on https://ko.wikipedia.org/wiki/모듈:Check_isxn and forked by Legunto
+This module was originally on https://ko.wikipedia.org/wiki/Module:Check_isxn and forked by Legunto
 (https://github.com/femiwiki/legunto).
 ]]
--- This template is a copy of the ISXN validation code from [[Module:Citation/CS1]]
--- which allows for validating ISBN, ISMN, and ISSN without invoking a citation template
+--[[
+
+This code is derived from the ISXN validation code at Module:Citation/CS1.  It allows validating ISBN,
+ISMN, and ISSN without invoking a citation template.
+
+]]
 
 local p = {}
+
+
+--[[--------------------------< E R R _ M S G _ S U P L _ T >--------------------------------------------------
+
+error message supplements for check_isbn(); adapted from a similarly named table at Module:Citation/CS1/Configuration
+
+]]
+
+local err_msg_supl_t = {
+	['char'] = 'invalid character',
+	['check'] = 'checksum',
+	['form'] = 'invalid form',
+	['group'] = 'invalid group id',
+	['length'] = 'length',
+	['prefix'] = 'invalid prefix',
+	}
+
 
 --[[--------------------------< IS _ V A L I D _ I S X N >-----------------------------------------------------
 
@@ -48,36 +69,73 @@ local function is_valid_isxn_13 (isxn_str)
 	return temp % 10 == 0;														-- sum modulo 10 is zero when isbn-13/ismn is correct
 end
 
+
 --[[--------------------------< C H E C K _ I S B N >------------------------------------------------------------
 
-Determines whether an ISBN string is valid
+Determines whether an ISBN string is valid.  Implements an ISBN validity check for {{ISBN}}, {{ISBNT}}, {{SBN}}, and
+{{Format ISBN}}.
 
 ]]
 
-local function check_isbn( isbn_str, error_string )
-	if nil ~= isbn_str:match("[^%s-0-9X]") then -- fail if isbn_str contains anything but digits, hyphens, or the uppercase X
-		return error_string;
+local function check_isbn (isbn_str, frame)
+	local function return_result (check, err_type)								-- local function to render the various error returns
+		if not check then														-- <check> false when there is an error
+			local template = ((frame.args.template_name and '' ~= frame.args.template_name) and frame.args.template_name) or nil;	-- get template name
+			if not template then
+				return '<span class="error" style="font-size:100%">&nbsp;calling template requires template_name parameter</span>';
+			end
+
+			local out_t = {'<span class="error" style="font-size:100%">'};		-- open the error message span
+			table.insert (out_t, '&nbsp;Parameter error in {{[[Template:');		-- open 'template' markup; open wikilink with Template namespace
+			table.insert (out_t, template);										-- template name wikilink
+			table.insert (out_t, '|');											-- its pipe
+			table.insert (out_t, template);										-- wikilink label
+			table.insert (out_t, ']]}}:&nbsp;');								-- close wikilink; close 'template' markup
+			table.insert (out_t, err_type);										-- type of isbn error
+			table.insert (out_t, '</span>')										-- close the error message span
+			if 0 == mw.title.getCurrentTitle().namespace then					-- categorize only when this template is used in mainspace
+				local category = table.concat ({'[[Category:Pages with ISBN errors]]'});
+				table.insert (out_t, category);
+			end
+			return table.concat (out_t);										-- make a big string and done
+		end
+	return '';																	-- no error, return an empty string
 	end
-	isbn_str = isbn_str:gsub( "-", "" ):gsub( " ", "" );	-- remove hyphens and spaces
-	local len = isbn_str:len();
+
+	if nil ~= isbn_str:match ('[^%s-0-9X]') then
+		return return_result (false, err_msg_supl_t.char);						-- fail if isbn_str contains anything but digits, hyphens, or the uppercase X
+	end
+
+	local id = isbn_str:gsub ('[%s-]', '');										-- remove hyphens and whitespace
+
+	local len = id:len();
  
 	if len ~= 10 and len ~= 13 then
-		return error_string;
+		return return_result (false, err_msg_supl_t.length);					-- fail if incorrect length
 	end
 
 	if len == 10 then
-		if isbn_str:match( "^%d*X?$" ) == nil then 
-			return error_string; 
+		if id:match ('^%d*X?$') == nil then										-- fail if isbn_str has 'X' anywhere but last position
+			return return_result (false, err_msg_supl_t.form);									
 		end
-		return is_valid_isxn(isbn_str, 10) and '' or error_string;
+		if id:find ('^63[01]') then												-- 630xxxxxxx and 631xxxxxxx are (apparently) not valid isbn group ids but are used by amazon as numeric identifiers (asin)
+			return return_result (false, err_msg_supl_t.group);					-- fail if isbn-10 begins with 630/1
+		end
+		return return_result (is_valid_isxn (id, 10), err_msg_supl_t.check);	-- pass if isbn-10 is numerically valid (checksum)
 	else
-		local temp = 0;
-		if isbn_str:match( "^97[89]%d*$" ) == nil then -- isbn13 begins with 978 or 979; ismn begins with 979
-			return error_string; 
+		if id:match ('^%d+$') == nil then
+			return return_result (false, err_msg_supl_t.char);					-- fail if ISBN-13 is not all digits
 		end
-		return is_valid_isxn_13 (isbn_str) and '' or error_string;
+		if id:match ('^97[89]%d*$') == nil then
+			return return_result (false, err_msg_supl_t.prefix);				-- fail when ISBN-13 does not begin with 978 or 979
+		end
+		if id:match ('^9790') then
+			return return_result (false, err_msg_supl_t.group);					-- group identifier '0' is reserved to ISMN
+		end
+		return return_result (is_valid_isxn_13 (id), err_msg_supl_t.check);		-- pass if isbn-10 is numerically valid (checksum)
 	end
 end
+
 
 --[[--------------------------< C H E C K _ I S M N >------------------------------------------------------------
 
@@ -101,6 +159,7 @@ local function check_ismn (id, error_string)
 
 	return valid_ismn and '' or error_string
 end
+
 
 --[[--------------------------< I S S N >----------------------------------------------------------------------
 
@@ -139,7 +198,7 @@ end
 ------------------------------< E N T R Y   P O I N T S >--------------------------------------------------====
 
 function p.check_isbn(frame)
-	return check_isbn(frame.args[1] or frame:getParent().args[1], frame.args['error'] or frame:getParent().args['error'] or 'error')
+	return check_isbn(frame.args[1] or frame:getParent().args[1], frame)
 end
 
 function p.check_ismn(frame)

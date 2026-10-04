@@ -42,6 +42,7 @@ local function is_valid_accessdate (accessdate)
 	local good1, good2;
 	local access_ts, tomorrow_ts;												-- to hold Unix time stamps representing the dates
 
+	accessdate = mw.ustring.gsub(accessdate, "[년월일 ]", "-"):gsub("-$", "");	-- 로컬
 	good1, access_ts = pcall (lang_object.formatDate, lang_object, 'U', accessdate );			-- convert accessdate value to Unix timestamp 
 	good2, tomorrow_ts = pcall (lang_object.formatDate, lang_object, 'U', 'today + 2 days' );	-- today midnight + 2 days is one second more than all day tomorrow
 	
@@ -65,11 +66,14 @@ end
 returns a number according to the month in a date: 1 for January, etc.  Capitalization and spelling must be correct.
 If not a valid month, returns 0
 
+-- 로컬. language 인수를 추가. 'en'을 지정하면 영어 입력만 허용하고, 'ko' 또는 'local'을 지정하면 한국어 입력만 허용.
+param 인수는 get_month_number()에서는 사용하지 않지만, get_element_number()에서 호출할 때 인수의 위치를 맞추기 위해 추가.
+
 ]]
 
-local function get_month_number (month)
-	return cfg.date_names['local'].long[month] or cfg.date_names['local'].short[month] or	-- look for local names first
-			cfg.date_names['en'].long[month] or	cfg.date_names['en'].short[month] or		-- failing that, look for English names
+local function get_month_number (month, _, language)
+	return language ~= 'en' and (cfg.date_names['local'].long[month] or cfg.date_names['local'].short[month]) or	-- look for local names first
+			(language ~= 'ko' and language ~= 'local') and (cfg.date_names['en'].long[month] or	cfg.date_names['en'].short[month]) or		-- failing that, look for English names
 			0;																				-- not a recognized month name
 end
 
@@ -96,12 +100,12 @@ These additional divisions not currently supported:
 
 ]]
 
-local function get_season_number (season, param)
+local function get_season_number (season, param, language)						-- 로컬
 	if 'date' ~= param then
 		return 0;																-- season dates only supported by |date=
 	end
-	return cfg.date_names['local'].season[season] or							-- look for local names first
-			cfg.date_names['en'].season[season] or								-- failing that, look for English names
+	return language ~= 'en' and cfg.date_names['local'].season[season] or							-- look for local names first		-- 로컬
+			(language ~= 'ko' and language ~= 'local') and cfg.date_names['en'].season[season] or								-- failing that, look for English names		-- 로컬
 			0;																	-- not a recognized season name
 end
 
@@ -124,13 +128,13 @@ These additional divisions not currently supported:
 
 ]]
 
-local function get_quarter_number (quarter, param)
+local function get_quarter_number (quarter, param, language)
 	if 'date' ~= param then
 		return 0;																-- quarter dates only supported by |date=
 	end
 	quarter = mw.ustring.gsub (quarter, ' +', ' ');								-- special case replace multiple space chars with a single space char
-	return cfg.date_names['local'].quarter[quarter] or							-- look for local names first
-			cfg.date_names['en'].quarter[quarter] or							-- failing that, look for English names
+	return language ~= 'en' and cfg.date_names['local'].quarter[quarter] or							-- look for local names first
+			(language ~= 'ko' and language ~= 'local') and cfg.date_names['en'].quarter[quarter] or							-- failing that, look for English names
 			0;																	-- not a recognized quarter name
 end
 
@@ -143,12 +147,12 @@ returns 0 when <param> is not |date=
 
 ]]
 
-local function get_proper_name_number (name, param)
+local function get_proper_name_number (name, param, language)					-- 로컬
 	if 'date' ~= param then
 		return 0;																-- proper-name dates only supported by |date=
 	end
-	return cfg.date_names['local'].named[name] or								-- look for local names dates first
-			cfg.date_names['en'].named[name] or									-- failing that, look for English names
+	return language ~= 'en' and cfg.date_names['local'].named[name] or								-- look for local names dates first		-- 로컬
+			(language ~= 'ko' and language ~= 'local') and cfg.date_names['en'].named[name] or									-- failing that, look for English names		-- 로컬
 			0;																	-- not a recognized named date
 end
 
@@ -159,13 +163,13 @@ returns true if month or season or quarter or proper name is valid (properly spe
 
 ]]
 
-local function get_element_number (element, param)
+local function get_element_number (element, param, language)					-- 로컬
 	local num;
 	
 	local funcs = {get_month_number, get_season_number, get_quarter_number, get_proper_name_number};	-- list of functions to execute in order
 	
 	for _, func in ipairs (funcs) do											-- spin through the function list
-		num = func (element, param);											-- call the function and get the returned number
+		num = func (element, param, language);											-- call the function and get the returned number		-- 로컬
 		if 0 ~= num then														-- non-zero when valid month season quarter 
 			return num;															-- return that number
 		end
@@ -188,7 +192,10 @@ local function is_valid_year (year, param)
 		year_limit = tonumber(os.date("%Y"))+1;									-- global variable so we only have to fetch it once
 	end
 
-	year = tonumber (year) or lang_object:parseFormattedNumber (year);			-- convert to number for the comparison;
+	year = tonumber (year) or lang_object:parseFormattedNumber (year);			-- convert to number for the comparison
+	if year and (100 > year) then												-- years less than 100 not supported
+		return false;
+	end
 	
 	if 'pmc-embargo-date' == param then											-- special case for |pmc-embargo-date=
 		return year and (year <= tonumber(os.date("%Y"))+2) or false;			-- years more than two years in the future are not accepted
@@ -229,7 +236,7 @@ local month_length;
 			end
 		end
 	else
-		month_length = days_in_month[month];
+		month_length = days_in_month[month] or 0;								-- invalid month number is nil so default <month_length> to 0
 	end
 
 	if tonumber (day) > month_length then
@@ -324,49 +331,43 @@ the output table receives:
 local function make_COinS_date (input, tCOinS_date)
 	local date;																	-- one date or first date in a range
 	local date2 = '';															-- end of range date
--- start temporary Julian / Gregorian calendar uncertainty detection
-	local year = tonumber(input.year);											-- this temporary code to determine the extent of sources dated to the Julian/Gregorian
-	local month = tonumber(input.month);										-- interstice 1 October 1582 – 1 January 1926
-	local day = tonumber (input.day);
-	if (0 ~= day) and															-- day must have a value for this to be a whole date
-		(((1582 == year) and (10 <= month) and (12 >= month)) or				-- any whole 1582 date from 1 October to 31 December or
-			((1926 == year) and (1 == month) and (1 == input.day)) or			-- 1 January 1926 or
-				((1582 < year) and (1925 >= year))) then						-- any date 1 January 1583 – 31 December 1925
-					tCOinS_date.inter_cal_cat = true;							-- set category flag true
-	end
--- end temporary Julian / Gregorian calendar uncertainty detection
-	
-	if 1582 > tonumber(input.year) or 20 < tonumber(input.month) then			-- Julian calendar or season so &rft.date gets year only
-		date = input.year;
-		if 0 ~= input.year2 and input.year ~= input.year2 then					-- if a range, only the second year portion when not the same as range start year
-			date = string.format ('%.4d/%.4d', tonumber(input.year), tonumber(input.year2))		-- assemble the date range
-		end
-		if 20 < tonumber(input.month) then										-- if season or proper-name date
-			local season = {[24] = 'winter', [21] = 'spring', [22] = 'summer', [23] = 'fall', [33] = '1', [34] = '2', [35] = '3', [36] = '4', [98] = 'Easter', [99] = 'Christmas'};	-- seasons lowercase, no autumn; proper-names use title case
-			if 0 == input.month2 then											-- single season date
-				if 40 < tonumber(input.month) then
-					tCOinS_date.rftchron = season[input.month];					-- proper-name dates
-				elseif 30 < tonumber(input.month) then
-					tCOinS_date.rftquarter = season[input.month];				-- quarters
-				else
-					tCOinS_date.rftssn = season[input.month];					-- seasons
-				end
-			else																-- season range with a second season specified
-				if input.year ~= input.year2 then								-- season year – season year range or season year–year
-					tCOinS_date.rftssn = season[input.month];					-- start of range season; keep this?
-					if 0~= input.month2 then
-						tCOinS_date.rftchron = string.format ('%s %s – %s %s', season[input.month], input.year, season[input.month2], input.year2);
-					end
-				else															-- season–season year range
-					tCOinS_date.rftssn = season[input.month];					-- start of range season; keep this?
-					tCOinS_date.rftchron = season[input.month] .. '–' .. season[input.month2];	-- season–season year range
-				end
-			end
-		end
-		tCOinS_date.rftdate = date;
+	input.year = tonumber (input.year) or lang_object:parseFormattedNumber (input.year);	-- language-aware tonumber()
+	input.year2 = tonumber (input.year2) or lang_object:parseFormattedNumber (input.year2);	-- COinS dates are pseudo-ISO 8601 so convert to Arabic numerals
+
+	if ((1582 == input.year) and (10 > tonumber(input.month))) or (1582 > input.year) then	-- if a Julian calendar date
+		tCOinS_date.rftdate = tostring (input.year);							-- &rft.date gets year only
 		return;																	-- done
 	end
-	
+																				-- here for all forms of Gregorian dates
+	if 20 < tonumber (input.month) then											-- if season, quarter, or proper-name date
+		date = input.year;														-- &rft.date gets year only
+		if 0 ~= input.year2 and input.year ~= input.year2 then					-- if a range, only the second year portion when not the same as range start year
+			date = string.format ('%.4d/%.4d', input.year, input.year2)			-- assemble the date range
+		end
+
+		local season = {[24] = 'winter', [21] = 'spring', [22] = 'summer', [23] = 'fall', [33] = '1', [34] = '2', [35] = '3', [36] = '4', [98] = 'Easter', [99] = 'Christmas'};	-- seasons lowercase, no autumn; proper-names use title case
+		if 0 == input.month2 then												-- single season, quarter, or proper-name date
+			if 40 < tonumber(input.month) then
+				tCOinS_date.rftchron = season[input.month];						-- proper-name date; used in journal metadata only
+			elseif 30 < tonumber(input.month) then
+				tCOinS_date.rftquarter = season[input.month];					-- quarter date; used in journal metadata only
+			else
+				tCOinS_date.rftssn = season[input.month];						-- season date; used in journal metadata only
+			end
+		else																	-- season ranges are lumped into &rft.chron; &rft.ssn and &rft.quarter are left blank
+			if input.year ~= input.year2 then									-- season year – season year range or season year–year
+				if 0 ~= input.month2 then
+					tCOinS_date.rftchron = string.format ('%s %s – %s %s', season[input.month], input.year, season[input.month2], input.year2);	-- used in journal metadata only
+				end
+			else																-- season–season year range
+				tCOinS_date.rftchron = season[input.month] .. '–' .. season[input.month2];	-- season–season year range; used in journal metadata only
+			end
+		end
+
+		tCOinS_date.rftdate = tostring (date);
+		return;																	-- done
+	end
+																				-- here for gregorian calendar dates
 	if 0 ~= input.day then
 		date = string.format ('%s-%.2d-%.2d', input.year, tonumber(input.month), tonumber(input.day));	-- whole date
 	elseif 0 ~= input.month then
@@ -390,7 +391,7 @@ local function make_COinS_date (input, tCOinS_date)
 end
 
 
---[[--------------------------< P A T T E R N S >--------------------------------------------------------------
+--[[--------------------------< P A T T E R N S _ T >----------------------------------------------------------
 
 this is the list of patterns for date formats that this module recognizes.  Approximately the first half of these
 patterns represent formats that might be reformatted into another format.  Those that might be reformatted have
@@ -400,44 +401,58 @@ patterns represent formats that might be reformatted into another format.  Those
 These patterns are used for both date validation and for reformatting.  This table should not be moved to ~/Configuration
 because changes to this table require changes to check_date() and to reformatter() and reformat_date()
 
+-- 로컬. 앵커용 접미사 정규표현식을 %a에서 [a-zA-Z]로 변경함. mw.ustring.match()을 사용하면 a, b, c, 뿐만이 아닌 '년'도 %a에 해당함.
+
 ]]
 
-local patterns = {
+local patterns_t = {
 	 																			-- year-initial numerical year-month-day
-	['ymd'] = {'^(%d%d%d%d)%-(%d%d)%-(%d%d)$', 'y', 'm', 'd'},					
+	['ymd'] = {'^([1-9]%d%d%d)%-(%d%d)%-(%d%d)$', 'y', 'm', 'd'},
 																				-- month-initial: month day, year
-	['Mdy'] = {'^(%D-) +([1-9]%d?), +((%d%d%d%d?)%a?)$', 'm', 'd', 'a', 'y'},
+	['Mdy'] = {'^(%D-) +([1-9]%d?), +(([1-9]%d%d%d?)[a-zA-Z]?)$', 'm', 'd', 'a', 'y'},
 																				-- month-initial day range: month day–day, year; days are separated by endash
-	['Md-dy'] = {'^(%D-) +([1-9]%d?)[%-–]([1-9]%d?), +((%d%d%d%d)%a?)$', 'm', 'd', 'd2', 'a', 'y'},
+	['Md-dy'] = {'^(%D-) +([1-9]%d?)[%-–]([1-9]%d?), +(([1-9]%d%d%d?)[a-zA-Z]?)$', 'm', 'd', 'd2', 'a', 'y'},
 																				-- day-initial: day month year
-	['dMy'] = {'^([1-9]%d?) +(%D-) +((%d%d%d%d?)%a?)$', 'd', 'm', 'a', 'y'},
+	['dMy'] = {'^([1-9]%d?) +(%D-) +(([1-9]%d%d%d?)[a-zA-Z]?)$', 'd', 'm', 'a', 'y'},
 																				-- year-initial: year month day; day: 1 or 2 two digits, leading zero allowed; not supported at en.wiki
-	--	['yMd'] = {'^((%d%d%d%d?)%a?) +(%D-) +(%d%d?)$', 'a', 'y', 'm', 'd'},
+	--	['yMd'] = {'^(([1-9]%d%d%d?)[a-zA-Z]?) +(%D-) +(%d%d?)$', 'a', 'y', 'm', 'd'},
 																				-- day-range-initial: day–day month year; days are separated by endash
-	['d-dMy'] = {'^([1-9]%d?)[%-–]([1-9]%d?) +(%D-) +((%d%d%d%d)%a?)$', 'd', 'd2', 'm', 'a', 'y'},
+	['d-dMy'] = {'^([1-9]%d?)[%-–]([1-9]%d?) +(%D-) +(([1-9]%d%d%d?)[a-zA-Z]?)$', 'd', 'd2', 'm', 'a', 'y'},
 																				-- day initial month-day-range: day month - day month year; uses spaced endash
-	['dM-dMy'] = {'^([1-9]%d?) +(%D-) +[%-–] +([1-9]%d?) +(%D-) +((%d%d%d%d)%a?)$', 'd', 'm', 'd2', 'm2', 'a', 'y'},
+	['dM-dMy'] = {'^([1-9]%d?) +(%D-) +[%-–] +([1-9]%d?) +(%D-) +(([1-9]%d%d%d?)[a-zA-Z]?)$', 'd', 'm', 'd2', 'm2', 'a', 'y'},
 																				-- month initial month-day-range: month day – month day, year;  uses spaced endash
-	['Md-Mdy'] = {'^(%D-) +([1-9]%d?) +[%-–] +(%D-) +([1-9]%d?), +((%d%d%d%d)%a?)$','m', 'd', 'm2', 'd2', 'a', 'y'},
+	['Md-Mdy'] = {'^(%D-) +([1-9]%d?) +[%-–] +(%D-) +([1-9]%d?), +(([1-9]%d%d%d?)[a-zA-Z]?)$','m', 'd', 'm2', 'd2', 'a', 'y'},
 																				-- day initial month-day-year-range: day month year - day month year; uses spaced endash
-	['dMy-dMy'] = {'^([1-9]%d?) +(%D-) +(%d%d%d%d) +[%-–] +([1-9]%d?) +(%D-) +((%d%d%d%d)%a?)$', 'd', 'm', 'y', 'd2', 'm2', 'a', 'y2'},
+	['dMy-dMy'] = {'^([1-9]%d?) +(%D-) +([1-9]%d%d%d?) +[%-–] +([1-9]%d?) +(%D-) +(([1-9]%d%d%d?)[a-zA-Z]?)$', 'd', 'm', 'y', 'd2', 'm2', 'a', 'y2'},
 																				-- month initial month-day-year-range: month day, year – month day, year;  uses spaced endash
-	['Mdy-Mdy'] = {'^(%D-) +([1-9]%d?), +(%d%d%d%d) +[%-–] +(%D-) +([1-9]%d?), +((%d%d%d%d)%a?)$', 'm', 'd', 'y', 'm2', 'd2', 'a', 'y2'},
+	['Mdy-Mdy'] = {'^(%D-) +([1-9]%d?), +([1-9]%d%d%d?) +[%-–] +(%D-) +([1-9]%d?), +(([1-9]%d%d%d?)[a-zA-Z]?)$', 'm', 'd', 'y', 'm2', 'd2', 'a', 'y2'},
 
 																				-- these date formats cannot be converted, per se, but month name can be rendered short or long
 																				-- month/season year - month/season year; separated by spaced endash
-	['My-My'] = {'^(%D-) +(%d%d%d%d) +[%-–] +(%D-) +((%d%d%d%d)%a?)$', 'm', 'y', 'm2', 'a', 'y2'},
+	['My-My'] = {'^(%D-) +([1-9]%d%d%d?) +[%-–] +(%D-) +(([1-9]%d%d%d?)[a-zA-Z]?)$', 'm', 'y', 'm2', 'a', 'y2'},
 																				-- month/season range year; months separated by endash
-	['M-My'] = {'^(%D-)[%-–](%D-) +((%d%d%d%d)%a?)$', 'm', 'm2', 'a', 'y'},
+	['M-My'] = {'^(%D-)[%-–](%D-) +(([1-9]%d%d%d?)[a-zA-Z]?)$', 'm', 'm2', 'a', 'y'},
 																				-- month/season year or proper-name year; quarter year when First Quarter YYYY etc.
-	['My'] = {'^([^%d–]-) +((%d%d%d%d)%a?)$', 'm', 'a', 'y'},					-- this way because endash is a member of %D; %D- will match January–March 2019 when it shouldn't
+	['My'] = {'^([^%d–]-) +(([1-9]%d%d%d?)[a-zA-Z]?)$', 'm', 'a', 'y'},					-- this way because endash is a member of %D; %D- will match January–March 2019 when it shouldn't
 
 																				-- these date formats cannot be converted
-	['Sy4-y2'] = {'^(%D-) +((%d%d)%d%d)[%-–]((%d%d)%a?)$'},						-- special case Winter/Summer year-year (YYYY-YY); year separated with unspaced endash
-	['Sy-y'] = {'^(%D-) +(%d%d%d%d)[%-–]((%d%d%d%d)%a?)$'},						-- special case Winter/Summer year-year; year separated with unspaced endash
-	['y-y'] = {'^(%d%d%d%d?)[%-–]((%d%d%d%d?)%a?)$'},							-- year range: YYY-YYY or YYY-YYYY or YYYY–YYYY; separated by unspaced endash; 100-9999
-	['y4-y2'] = {'^((%d%d)%d%d)[%-–]((%d%d)%a?)$'},								-- year range: YYYY–YY; separated by unspaced endash
-	['y'] = {'^((%d%d%d%d?)%a?)$'},												-- year; here accept either YYY or YYYY
+	['Sy4-y2'] = {'^(%D-) +(([1-9]%d)%d%d)[%-–]((%d%d)[a-zA-Z]?)$'},						-- special case Winter/Summer year-year (YYYY-YY); year separated with unspaced endash
+	['Sy-y'] = {'^(%D-) +([1-9]%d%d%d?)[%-–](([1-9]%d%d%d?)[a-zA-Z]?)$'},						-- special case Winter/Summer year-year; year separated with unspaced endash
+	['y-y'] = {'^([1-9]%d%d%d?)[%-–](([1-9]%d%d%d?)[a-zA-Z]?)$', 'y', 'a', 'y2'},							-- year range: YYY-YYY or YYY-YYYY or YYYY–YYYY; separated by unspaced endash; 100-9999
+	['y4-y2'] = {'^(([1-9]%d)%d%d)[%-–]((%d%d)[a-zA-Z]?)$', 'y', 'c', 'a', 'y2'},								-- year range: YYYY–YY; separated by unspaced endash
+	['y'] = {'^(([1-9]%d%d%d?)[a-zA-Z]?)$', 'a', 'y'},												-- year; here accept either YYY or YYYY
+
+--	['y-m'] = {'^([1-9]%d%d%d)%-(%d%d?)$', 'y', 'm'},							-- 로컬 시작
+	['ymd_ko'] = {'^(([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년 ([1-9][0-9]?월) ([1-9][0-9]?)일$', 'a', 'y', 'm', 'd'},
+	['y-y_ko'] = {'^([1-9][0-9][0-9][0-9]?)년[%-~](([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년$', 'y', 'a', 'y2'},
+	['y_ko'] = {'^(([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년$', 'a', 'y'},
+	['ym_ko'] = {'^(([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년 ([^%~%p%s일]+)$', 'a', 'y', 'm'},
+	['ym-ym_ko'] = {'^([1-9][0-9][0-9][0-9]?)년 ([^%~%p%s일]+)[%-~](([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년 ([^%~%p%s일]+)$', 'y', 'm', 'a', 'y2', 'm2'},
+	['ym-m_ko'] = {'^(([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년 ([^%~%p%s일]+)[%-~]([^%~%p%s일]+)$', 'a', 'y', 'm', 'm2'},
+
+	['ymd-ymd_ko'] = {'^([1-9][0-9][0-9][0-9]?)년 ([1-9][0-9]?월) ([1-9][0-9]?)일[%-~](([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년 ([1-9][0-9]?월) ([1-9][0-9]?)일$', 'y', 'm', 'd', 'a', 'y2', 'm2', 'd2'},
+	['ymd-md_ko'] = {'^(([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년 ([1-9][0-9]?월) ([1-9][0-9]?)일[%-~]([1-9][0-9]?월) ([1-9][0-9]?)일$', 'a', 'y', 'm', 'd', 'm2', 'd2'},
+	['ymd-d_ko'] = {'^(([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년 ([1-9][0-9]?월) ([1-9][0-9]?)일[%-~]([1-9][0-9]?)일$', 'a', 'y', 'm', 'd', 'd2'}		-- 로컬 끝
 	}
 
 
@@ -451,9 +466,9 @@ set, the editor intended to embargo a PMC but |pmc-embargo-date= does not hold a
 ]]
 
 local function is_valid_embargo_date (v)
-	if v:match (patterns['ymd'][1]) or											-- ymd
-		v:match (patterns['Mdy'][1]) or											-- dmy
-		v:match (patterns['dMy'][1]) then										-- mdy
+	if v:match (patterns_t['ymd'][1]) or										-- ymd
+		v:match (patterns_t['Mdy'][1]) or										-- dmy
+		v:match (patterns_t['dMy'][1]) then										-- mdy
 			return true, v;
 	end
 	return false, '9999';														-- if here not good date so return false and set embargo date to long time in future
@@ -492,77 +507,77 @@ local function check_date (date_string, param, tCOinS_date)
 	local anchor_year;
 	local coins_date;
 
-	if date_string:match (patterns['ymd'][1]) then								-- year-initial numerical year month day format
-		year, month, day = date_string:match (patterns['ymd'][1]);
+	if date_string:match (patterns_t['ymd'][1]) then							-- year-initial numerical year month day format
+		year, month, day = date_string:match (patterns_t['ymd'][1]);
 		if 12 < tonumber(month) or 1 > tonumber(month) or 1582 > tonumber(year) or 0 == tonumber(day) then return false; end	-- month or day number not valid or not Gregorian calendar
 		anchor_year = year;
 	
-	elseif mw.ustring.match(date_string, patterns['Mdy'][1]) then				-- month-initial: month day, year
-		month, day, anchor_year, year = mw.ustring.match(date_string, patterns['Mdy'][1]);
-		month = get_month_number (month);
+	elseif mw.ustring.match(date_string, patterns_t['Mdy'][1]) then				-- month-initial: month day, year
+		month, day, anchor_year, year = mw.ustring.match(date_string, patterns_t['Mdy'][1]);
+		month = get_month_number (month, 'en');
 		if 0 == month then return false; end									-- return false if month text isn't one of the twelve months
 				
-	elseif mw.ustring.match(date_string, patterns['Md-dy'][1]) then				-- month-initial day range: month day–day, year; days are separated by endash
-		month, day, day2, anchor_year, year = mw.ustring.match(date_string, patterns['Md-dy'][1]);
+	elseif mw.ustring.match(date_string, patterns_t['Md-dy'][1]) then			-- month-initial day range: month day–day, year; days are separated by endash
+		month, day, day2, anchor_year, year = mw.ustring.match(date_string, patterns_t['Md-dy'][1]);
 		if tonumber(day) >= tonumber(day2) then return false; end				-- date range order is left to right: earlier to later; dates may not be the same;
-		month = get_month_number (month);
+		month = get_month_number (month, 'en');
 		if 0 == month then return false; end									-- return false if month text isn't one of the twelve months
 		month2=month;															-- for metadata
 		year2 = year;
 
-	elseif mw.ustring.match(date_string, patterns['dMy'][1]) then				-- day-initial: day month year
-		day, month, anchor_year, year = mw.ustring.match(date_string, patterns['dMy'][1]);
-		month = get_month_number (month);
+	elseif mw.ustring.match(date_string, patterns_t['dMy'][1]) then				-- day-initial: day month year
+		day, month, anchor_year, year = mw.ustring.match(date_string, patterns_t['dMy'][1]);
+		month = get_month_number (month, 'en');
 		if 0 == month then return false; end									-- return false if month text isn't one of the twelve months
 
 --[[ NOT supported at en.wiki
-	elseif mw.ustring.match(date_string, patterns['yMd'][1]) then				-- year-initial: year month day; day: 1 or 2 two digits, leading zero allowed
-		anchor_year, year, month, day = mw.ustring.match(date_string, patterns['yMd'][1]);
-		month = get_month_number (month);
+	elseif mw.ustring.match(date_string, patterns_t['yMd'][1]) then				-- year-initial: year month day; day: 1 or 2 two digits, leading zero allowed
+		anchor_year, year, month, day = mw.ustring.match(date_string, patterns_t['yMd'][1]);
+		month = get_month_number (month, 'en');
 		if 0 == month then return false; end									-- return false if month text isn't one of the twelve months
 -- end NOT supported at en.wiki ]]
 
-	elseif mw.ustring.match(date_string, patterns['d-dMy'][1]) then				-- day-range-initial: day–day month year; days are separated by endash
-		day, day2, month, anchor_year, year = mw.ustring.match(date_string, patterns['d-dMy'][1]);
+	elseif mw.ustring.match(date_string, patterns_t['d-dMy'][1]) then			-- day-range-initial: day–day month year; days are separated by endash
+		day, day2, month, anchor_year, year = mw.ustring.match(date_string, patterns_t['d-dMy'][1]);
 		if tonumber(day) >= tonumber(day2) then return false; end				-- date range order is left to right: earlier to later; dates may not be the same;
-		month = get_month_number (month);
+		month = get_month_number (month, 'en');
 		if 0 == month then return false; end									-- return false if month text isn't one of the twelve months
 		month2 = month;															-- for metadata
 		year2 = year;
 
-	elseif mw.ustring.match(date_string, patterns['dM-dMy'][1]) then			-- day initial month-day-range: day month - day month year; uses spaced endash
-		day, month, day2, month2, anchor_year, year = mw.ustring.match(date_string, patterns['dM-dMy'][1]);
+	elseif mw.ustring.match(date_string, patterns_t['dM-dMy'][1]) then			-- day initial month-day-range: day month - day month year; uses spaced endash
+		day, month, day2, month2, anchor_year, year = mw.ustring.match(date_string, patterns_t['dM-dMy'][1]);
 		if (not is_valid_month_season_range(month, month2)) or not is_valid_year(year) then return false; end	-- date range order is left to right: earlier to later;
-		month = get_month_number (month);										-- for metadata
-		month2 = get_month_number (month2);
+		month = get_month_number (month, 'en');										-- for metadata
+		month2 = get_month_number (month2, 'en');
 		year2 = year;
 
-	elseif mw.ustring.match(date_string, patterns['Md-Mdy'][1]) then			-- month initial month-day-range: month day – month day, year; uses spaced endash
-		month, day, month2, day2, anchor_year, year = mw.ustring.match(date_string, patterns['Md-Mdy'][1]);
+	elseif mw.ustring.match(date_string, patterns_t['Md-Mdy'][1]) then			-- month initial month-day-range: month day – month day, year; uses spaced endash
+		month, day, month2, day2, anchor_year, year = mw.ustring.match(date_string, patterns_t['Md-Mdy'][1]);
 		if (not is_valid_month_season_range(month, month2, param)) or not is_valid_year(year) then return false; end
-		month = get_month_number (month);										-- for metadata
-		month2 = get_month_number (month2);
+		month = get_month_number (month, 'en');										-- for metadata
+		month2 = get_month_number (month2, 'en');
 		year2 = year;
 
-	elseif mw.ustring.match(date_string, patterns['dMy-dMy'][1]) then			-- day initial month-day-year-range: day month year - day month year; uses spaced endash
-		day, month, year, day2, month2, anchor_year, year2 = mw.ustring.match(date_string, patterns['dMy-dMy'][1]);
+	elseif mw.ustring.match(date_string, patterns_t['dMy-dMy'][1]) then			-- day initial month-day-year-range: day month year - day month year; uses spaced endash
+		day, month, year, day2, month2, anchor_year, year2 = mw.ustring.match(date_string, patterns_t['dMy-dMy'][1]);
 		if tonumber(year2) <= tonumber(year) then return false; end				-- must be sequential years, left to right, earlier to later
 		if not is_valid_year(year2) or not is_valid_month_range_style(month, month2) then return false; end		-- year2 no more than one year in the future; months same style
-		month = get_month_number (month);										-- for metadata
-		month2 = get_month_number (month2);
+		month = get_month_number (month, 'en');										-- for metadata
+		month2 = get_month_number (month2, 'en');
 		if 0 == month or 0 == month2 then return false; end						-- both must be valid
 
-	elseif mw.ustring.match(date_string, patterns['Mdy-Mdy'][1]) then			-- month initial month-day-year-range: month day, year – month day, year; uses spaced endash
-		month, day, year, month2, day2, anchor_year, year2 = mw.ustring.match(date_string, patterns['Mdy-Mdy'][1]);
+	elseif mw.ustring.match(date_string, patterns_t['Mdy-Mdy'][1]) then			-- month initial month-day-year-range: month day, year – month day, year; uses spaced endash
+		month, day, year, month2, day2, anchor_year, year2 = mw.ustring.match(date_string, patterns_t['Mdy-Mdy'][1]);
 		if tonumber(year2) <= tonumber(year) then return false; end				-- must be sequential years, left to right, earlier to later
 		if not is_valid_year(year2) or not is_valid_month_range_style(month, month2) then return false; end		-- year2 no more than one year in the future; months same style
-		month = get_month_number (month);										-- for metadata
+		month = get_month_number (month, 'en');										-- for metadata
 		month2 = get_month_number(month2);
 		if 0 == month or 0 == month2 then return false; end						-- both must be valid
 
-	elseif mw.ustring.match(date_string, patterns['Sy4-y2'][1]) then			-- special case Winter/Summer year-year (YYYY-YY); year separated with unspaced endash
+	elseif mw.ustring.match(date_string, patterns_t['Sy4-y2'][1]) then			-- special case Winter/Summer year-year (YYYY-YY); year separated with unspaced endash
 		local century;
-		month, year, century, anchor_year, year2 = mw.ustring.match(date_string, patterns['Sy4-y2'][1]);
+		month, year, century, anchor_year, year2 = mw.ustring.match(date_string, patterns_t['Sy4-y2'][1]);
 		if 'Winter' ~= month and 'Summer' ~= month then return false end;		-- 'month' can only be Winter or Summer
 		anchor_year = year .. '–' .. anchor_year;								-- assemble anchor_year from both years
 		year2 = century..year2;													-- add the century to year2 for comparisons
@@ -570,86 +585,201 @@ local function check_date (date_string, param, tCOinS_date)
 		if not is_valid_year(year2) then return false; end						-- no year farther in the future than next year
 		month = get_season_number(month, param);
 
-	elseif mw.ustring.match(date_string, patterns['Sy-y'][1]) then				-- special case Winter/Summer year-year; year separated with unspaced endash
-		month, year, anchor_year, year2 = mw.ustring.match(date_string, patterns['Sy-y'][1]);
-		if 'Winter' ~= month and 'Summer' ~= month then return false end;		-- 'month' can only be Winter or Summer
-		anchor_year = year .. '–' .. anchor_year;										-- assemble anchor_year from both years
+	elseif mw.ustring.match(date_string, patterns_t['Sy-y'][1]) then			-- special case Winter/Summer year-year; year separated with unspaced endash
+		month, year, anchor_year, year2 = mw.ustring.match(date_string, patterns_t['Sy-y'][1]);
+		month = get_season_number (month, param);								-- <month> can only be winter or summer; also for metadata
+		if (month ~= cfg.date_names['en'].season['Winter']) and (month ~= cfg.date_names['en'].season['Summer']) then
+			return false;														-- not Summer or Winter; abandon
+		end
+		anchor_year = year .. '–' .. anchor_year;								-- assemble anchor_year from both years
 		if 1 ~= tonumber(year2) - tonumber(year) then return false; end			-- must be sequential years, left to right, earlier to later
 		if not is_valid_year(year2) then return false; end						-- no year farther in the future than next year
-		month = get_season_number (month, param);								-- for metadata
 
-	elseif mw.ustring.match(date_string, patterns['My-My'][1]) then				-- month/season year - month/season year; separated by spaced endash
-		month, year, month2, anchor_year, year2 = mw.ustring.match(date_string, patterns['My-My'][1]);
+	elseif mw.ustring.match(date_string, patterns_t['My-My'][1]) then			-- month/season year - month/season year; separated by spaced endash
+		month, year, month2, anchor_year, year2 = mw.ustring.match(date_string, patterns_t['My-My'][1]);
 		anchor_year = year .. '–' .. anchor_year;								-- assemble anchor_year from both years
 		if tonumber(year) >= tonumber(year2) then return false; end				-- left to right, earlier to later, not the same
 		if not is_valid_year(year2) then return false; end						-- no year farther in the future than next year
-		if 0 ~= get_month_number(month) and 0 ~= get_month_number(month2) and is_valid_month_range_style(month, month2) then 	-- both must be month year, same month style
-			month = get_month_number(month);
-			month2 = get_month_number(month2);
-		elseif 0 ~= get_season_number(month, param) and 0 ~= get_season_number(month2, param) then	-- both must be season year, not mixed
-			month = get_season_number(month, param);
-			month2 = get_season_number(month2, param);
+		if 0 ~= get_month_number(month, 'en') and 0 ~= get_month_number(month2, 'en') and is_valid_month_range_style(month, month2) then 	-- both must be month year, same month style
+			month = get_month_number(month, 'en');
+			month2 = get_month_number(month2, 'en');
+		elseif 0 ~= get_season_number(month, param, 'en') and 0 ~= get_season_number(month2, param, 'en') then	-- both must be season year, not mixed
+			month = get_season_number(month, param, 'en');
+			month2 = get_season_number(month2, param, 'en');
 		else
 			 return false;
 		end
 
-	elseif mw.ustring.match(date_string, patterns['M-My'][1]) then				-- month/season range year; months separated by endash 
-		month, month2, anchor_year, year = mw.ustring.match(date_string, patterns['M-My'][1]);
+	elseif mw.ustring.match(date_string, patterns_t['M-My'][1]) then			-- month/season range year; months separated by endash 
+		month, month2, anchor_year, year = mw.ustring.match(date_string, patterns_t['M-My'][1]);
 		if (not is_valid_month_season_range(month, month2, param)) or (not is_valid_year(year)) then return false; end
-		if 0 ~= get_month_number(month) then									-- determined to be a valid range so just check this one to know if month or season
-			month = get_month_number(month);
-			month2 = get_month_number(month2);
+		if 0 ~= get_month_number(month, 'en') then									-- determined to be a valid range so just check this one to know if month or season
+			month = get_month_number(month, 'en');
+			month2 = get_month_number(month2, 'en');
 			if 0 == month or 0 == month2 then return false; end
 		else
-			month = get_season_number(month, param);
-			month2 = get_season_number(month2, param);
+			month = get_season_number(month, param, 'en');
+			month2 = get_season_number(month2, param, 'en');
 		end
 		year2 = year;
 		
-	elseif mw.ustring.match(date_string, patterns['My'][1]) then				-- month/season/quarter/proper-name year
-		month, anchor_year, year = mw.ustring.match(date_string, patterns['My'][1]);
+	elseif mw.ustring.match(date_string, patterns_t['My'][1]) then				-- month/season/quarter/proper-name year
+		month, anchor_year, year = mw.ustring.match(date_string, patterns_t['My'][1]);
 		if not is_valid_year(year) then return false; end
-		month = get_element_number(month, param);								-- get month season quarter proper-name number or nil
+		month = get_element_number(month, param, 'en');								-- get month season quarter proper-name number or nil
 		if not month then return false; end										-- not valid whatever it is
 
-	elseif mw.ustring.match(date_string, patterns['y-y'][1]) then				-- Year range: YYY-YYY or YYY-YYYY or YYYY–YYYY; separated by unspaced endash; 100-9999
-		year, anchor_year, year2 = mw.ustring.match(date_string, patterns['y-y'][1]);
+	elseif mw.ustring.match(date_string, patterns_t['y-y'][1]) then				-- Year range: YYY-YYY or YYY-YYYY or YYYY–YYYY; separated by unspaced endash; 100-9999
+		year, anchor_year, year2 = mw.ustring.match(date_string, patterns_t['y-y'][1]);
 		anchor_year = year .. '–' .. anchor_year;								-- assemble anchor year from both years
 		if tonumber(year) >= tonumber(year2) then return false; end				-- left to right, earlier to later, not the same
 		if not is_valid_year(year2) then return false; end						-- no year farther in the future than next year
 
-	elseif mw.ustring.match(date_string, patterns['y4-y2'][1]) then				-- Year range: YYYY–YY; separated by unspaced endash
+	elseif mw.ustring.match(date_string, patterns_t['y4-y2'][1]) then			-- Year range: YYYY–YY; separated by unspaced endash
 		local century;
-		year, century, anchor_year, year2 = mw.ustring.match(date_string, patterns['y4-y2'][1]);
+		year, century, anchor_year, year2 = mw.ustring.match(date_string, patterns_t['y4-y2'][1]);
 		anchor_year = year .. '–' .. anchor_year;								-- assemble anchor year from both years
-
-		if in_array (param, {'date', 'publication-date', 'year'}) then
-			add_prop_cat ('year-range-abbreviated');
-		end
 
 		if 13 > tonumber(year2) then return false; end							-- don't allow 2003-05 which might be May 2003
-		year2 = century .. year2;													-- add the century to year2 for comparisons
+		year2 = century .. year2;												-- add the century to year2 for comparisons
 		if tonumber(year) >= tonumber(year2) then return false; end				-- left to right, earlier to later, not the same
 		if not is_valid_year(year2) then return false; end						-- no year farther in the future than next year
 
-	elseif mw.ustring.match(date_string, patterns['y'][1]) then					-- year; here accept either YYY or YYYY
-		anchor_year, year = mw.ustring.match(date_string, patterns['y'][1]);
+		if in_array (param, {'date', 'publication-date', 'year'}) then			-- here when 'valid' abbreviated year range; if one of these parameters
+			add_prop_cat ('year-range-abbreviated');							-- add properties cat
+		end
+
+	elseif mw.ustring.match(date_string, patterns_t['y'][1]) then				-- year; here accept either YYY or YYYY
+		anchor_year, year = mw.ustring.match(date_string, patterns_t['y'][1]);
+		if false == is_valid_year(year) then
+			return false;
+--		end
+--		if '년' == mw.ustring.sub(anchor_year, -1) then
+--			anchor_year = year;
+		end
+		
+-- 로컬 시작
+	elseif mw.ustring.match(date_string, patterns_t['ymd_ko'][1]) then			-- ko: year month day
+		anchor_year, year, month, day = mw.ustring.match(date_string, patterns_t['ymd_ko'][1]);
+		month = get_month_number (month, 'ko');
+		if 0 == month or 0 == tonumber(day) then
+			return false;
+		end
+		anchor_year = year;
+		
+	elseif mw.ustring.match(date_string, patterns_t['ym_ko'][1]) then			-- ko: year month
+		anchor_year, year, month = mw.ustring.match(date_string, patterns_t['ym_ko'][1]);
+		if not is_valid_year(year) then return false; end
+		month = get_element_number(month, param, 'ko');
+		if not month then return false; end
+		anchor_year = year;
+	
+	elseif mw.ustring.match(date_string, patterns_t['y_ko'][1]) then
+		anchor_year, year = mw.ustring.match(date_string, patterns_t['y_ko'][1]);
 		if false == is_valid_year(year) then
 			return false;
 		end
+		anchor_year = year;
+		
+--	elseif mw.ustring.match(date_string, patterns_t['y-m'][1]) then				-- YYYY-MM
+--		year, month = mw.ustring.match(date_string, patterns_t['y-m'][1]);
+--		if not is_valid_year(year) then return false; end
+--		month = tonumber(month);
+--		if 12 < month or 1 > month then return false; end
+--		if tonumber(year) % 100 < month then
+--			if not in_array (param, {'access-date', 'archive-date'}) then
+--				set_message ('maint_ambiguous_date_format')
+--			end
+--		end					
+--		anchor_year = year;
+	
+	elseif mw.ustring.match(date_string, patterns_t['y-y_ko'][1]) then
+		year, anchor_year, year2 = mw.ustring.match(date_string, patterns_t['y-y_ko'][1]);
+		anchor_year = year .. '–' .. anchor_year;								-- assemble anchor year from both years
+		if tonumber(year) >= tonumber(year2) then return false; end				-- left to right, earlier to later, not the same
+		if not is_valid_year(year2) then return false; end						-- no year farther in the future than next year
+	
+	elseif mw.ustring.match(date_string, patterns_t['ym-ym_ko'][1]) then
+		year, month, anchor_year, year2, month2 = mw.ustring.match(date_string, patterns_t['ym-ym_ko'][1]);
+		anchor_year = year .. '–' .. anchor_year;								-- assemble anchor year from both years
+		if tonumber(year) >= tonumber(year2) then return false; end				-- left to right, earlier to later, not the same
+		if not is_valid_year(year2) then return false; end						-- no year farther in the future than next year
+		if 0 ~= get_month_number(month, 'ko') and 0 ~= get_month_number(month2, 'ko') and is_valid_month_range_style(month, month2) then 	-- both must be month year, same month style
+			month = get_month_number(month, 'ko');
+			month2 = get_month_number(month2, 'ko');
+		elseif 0 ~= get_season_number(month, param, 'ko') and 0 ~= get_season_number(month2, param, 'ko') then	-- both must be season year, not mixed
+			month = get_season_number(month, param, 'ko');
+			month2 = get_season_number(month2, param, 'ko');
+		else
+			 return false;
+		end
+	
+	elseif mw.ustring.match(date_string, patterns_t['ym-m_ko'][1]) then
+		anchor_year, year, month, month2 = mw.ustring.match(date_string, patterns_t['ym-m_ko'][1]);
+		if tonumber(month) then month = month .. '월' end
+		if (not is_valid_month_season_range(month, month2, param)) or (not is_valid_year(year)) then return false; end
+		if 0 ~= get_month_number(month, 'ko') then									-- determined to be a valid range so just check this one to know if month or season
+			month = get_month_number(month, 'ko');
+			month2 = get_month_number(month2, 'ko');
+			if 0 == month or 0 == month2 then return false; end
+		else
+			month = get_season_number(month, param, 'ko');
+			month2 = get_season_number(month2, param, 'ko');
+		end
+		year2 = year;
+	
+	elseif mw.ustring.match(date_string, patterns_t['ymd-ymd_ko'][1]) then
+		year, month, day, anchor_year, year2, month2, day2 = mw.ustring.match(date_string, patterns_t['ymd-ymd_ko'][1]);
+		if tonumber(year2) <= tonumber(year) then return false; end				-- must be sequential years, left to right, earlier to later
+		if not is_valid_year(year2) or not is_valid_month_range_style(month, month2) then return false; end		-- year2 no more than one year in the future; months same style
+		if 0 == tonumber(day) or 0 == tonumber(day2) then return false; end
+		month = get_month_number (month, 'ko');										-- for metadata
+		month2 = get_month_number (month2, 'ko');
+		if 0 == month or 0 == month2 then return false; end						-- both must be valid
+	
+	elseif mw.ustring.match(date_string, patterns_t['ymd-md_ko'][1]) then
+		anchor_year, year, month, day, month2, day2 = mw.ustring.match(date_string, patterns_t['ymd-md_ko'][1]);
+		if (not is_valid_month_season_range(month, month2)) or not is_valid_year(year) then return false; end	-- date range order is left to right: earlier to later;
+		if 0 == tonumber(day) or 0 == tonumber(day2) then return false; end
+		month = get_month_number (month, 'ko');										-- for metadata
+		month2 = get_month_number (month2, 'ko');
+		year2 = year;
+	
+	elseif mw.ustring.match(date_string, patterns_t['ymd-d_ko'][1]) then
+		anchor_year, year, month, day, day2 = mw.ustring.match(date_string, patterns_t['ymd-d_ko'][1]);
+		if tonumber(day) >= tonumber(day2) then return false; end				-- date range order is left to right: earlier to later; dates may not be the same;
+		if 0 == tonumber(day) or 0 == tonumber(day2) then return false; end
+		month = get_month_number (month, 'ko');
+		if 0 == month then return false; end									-- return false if month text isn't one of the twelve months
+		month2 = month;															-- for metadata
+		year2 = year;
+-- 로컬 끝
 
 	else
 		return false;															-- date format not one of the MOS:DATE approved formats
 	end
 
-	if 'access-date' == param then												-- test accessdate here because we have numerical date parts
+	if param ~= 'date' then														-- CITEREF disambiguation only allowed in |date=; |year= & |publication-date= promote to date
+		if anchor_year:match ('%l$') then
+			return false;
+		end
+	end
+
+	if 'access-date' == param then												-- test access-date here because we have numerical date parts
 		if 0 ~= year and 0 ~= month and 0 ~= day and 							-- all parts of a single date required
-			0 == year2 and 0 == month2 and 0 == day2 then						-- none of these; accessdate must not be a range
+			0 == year2 and 0 == month2 and 0 == day2 then						-- none of these; access-date must not be a range
 				if not is_valid_accessdate(year .. '-' .. month .. '-' .. day) then	
-					return false;												-- return false when accessdate out of bounds
+					return false;												-- return false when access-date out of bounds
 				end
 		else
-			return false;														-- return false when accessdate is a range of two dates
+			return false;														-- return false when access-date is a range of two dates
+		end
+	end
+
+	if 'archive-date' == param then												-- test archive-date here because we have numerical date parts
+		if not (0 ~= year and 0 ~= month and 0 ~= day and						-- all parts of a single date required
+			0 == year2 and 0 == month2 and 0 == day2) then						-- none of these; archive-date must not be a range
+				return false;													-- return false when archive-date is a range of two dates
 		end
 	end
 
@@ -700,26 +830,45 @@ local function dates(date_parameters_list, tCOinS_date, error_list)
 	for k, v in pairs(date_parameters_list) do									-- for each date-holding parameter in the list
 		if is_set(v.val) then													-- if the parameter has a value
 			v.val = mw.ustring.gsub(v.val, '%d', cfg.date_names.local_digits);	-- translate 'local' digits to Western 0-9
-			if v.val:match("^c%. [1-9]%d%d%d?%a?$") then						-- special case for c. year or with or without CITEREF disambiguator - only |date= and |year=
-				local year = v.val:match("c%. ([1-9]%d%d%d?)%a?");				-- get the year portion so it can be tested
+			if v.val:match("^c%. [1-9]%d%d%d?[a-zA-Z]?$") then						-- special case for c. year or with or without CITEREF disambiguator - only |date= and |year=		-- 로컬
+				local year = v.val:match("c%. ([1-9]%d%d%d?)[a-zA-Z]?");				-- get the year portion so it can be tested		-- 로컬
 				if 'date' == k then
-					anchor_year, COinS_date = v.val:match("((c%. [1-9]%d%d%d?)%a?)");	-- anchor year and COinS_date only from |date= parameter
+					anchor_year, COinS_date = v.val:match("((c%. [1-9]%d%d%d?)[a-zA-Z]?)");	-- anchor year and COinS_date only from |date= parameter		-- 로컬
 					good_date = is_valid_year(year);
 				elseif 'year' == k then
 					good_date = is_valid_year(year);
+				else
+					good_date = false;
 				end
+			elseif mw.ustring.match(v.val, "^[1-9][0-9][0-9][0-9]?[a-zA-Z]?년경$") then		-- 로컬 시작
+				local year = mw.ustring.match(v.val, "^([1-9][0-9][0-9][0-9]?)[a-zA-Z]?년경$");
+				if 'date' == k then
+					anchor_year = v.val;
+					COinS_date = year;
+					good_date = is_valid_year(year);
+				elseif 'year' == k then
+					good_date = is_valid_year(year);
+				else
+					good_date = false;
+				end																-- 로컬 끝
 			elseif 'date' == k then												-- if the parameter is |date=
-				if v.val:match("^n%.d%.%a?$") then -- ToDo: I18N								-- if |date=n.d. with or without a CITEREF disambiguator
-					good_date, anchor_year, COinS_date = true, v.val:match("((n%.d%.)%a?)"); -- ToDo: I18N	-- "n.d."; no error when date parameter is set to no date
-				elseif v.val:match("^nd%a?$") then -- ToDo: I18N								-- if |date=nd with or without a CITEREF disambiguator
-					good_date, anchor_year, COinS_date = true, v.val:match("((nd)%a?)"); -- ToDo: I18N	-- "nd";	no error when date parameter is set to no date
+				if v.val:match("^n%.d%.[a-zA-Z]?$") then -- ToDo: I18N								-- if |date=n.d. with or without a CITEREF disambiguator		-- 로컬 시작
+					good_date, anchor_year, COinS_date = true, v.val:match("((n%.d%.)[a-zA-Z]?)"); -- ToDo: I18N	-- "n.d."; no error when date parameter is set to no date
+				elseif v.val:match("^nd[a-zA-Z]?$") then -- ToDo: I18N								-- if |date=nd with or without a CITEREF disambiguator
+					good_date, anchor_year, COinS_date = true, v.val:match("((nd)[a-zA-Z]?)"); -- ToDo: I18N	-- "nd";	no error when date parameter is set to no date
+				elseif mw.ustring.match(v.val, "^날짜 없음[a-zA-Z]?$") then
+					anchor_year = mw.ustring.gsub(v.val, '날짜 없음', 'n.d.', 1);
+					good_date, COinS_date = true, 'n.d.';						-- 로컬 끝
 				else
 					good_date, anchor_year, COinS_date = check_date (v.val, k, tCOinS_date);	-- go test the date
 				end
 			elseif 'year' == k then												-- if the parameter is |year= it should hold only a year value
-				if v.val:match("^[1-9]%d%d%d?%a?$") then						-- if |year = 3 or 4 digits only with or without a CITEREF disambiguator
-					good_date, anchor_year, COinS_date = true, v.val:match("((%d+)%a?)");
+				if mw.ustring.match(v.val, "^[1-9][0-9][0-9][0-9]?[a-zA-Z]?년?$") then	-- if |year = 3 or 4 digits only with or without a CITEREF disambiguator		-- 로컬 시작
+					good_date = true;
+				else
+					good_date = false;											-- 로컬 끝
 				end
+				
 			elseif 'pmc-embargo-date' == k then									-- if the parameter is |pmc-embargo-date=
 				good_date = check_date (v.val, k);								-- go test the date
 				if true == good_date then										-- if the date is a valid date
@@ -734,6 +883,32 @@ local function dates(date_parameters_list, tCOinS_date, error_list)
 		end
 	end
 	return anchor_year, embargo_date;											-- and done
+end
+
+
+--[[--------------------------< Y E A R _ C H E C K >----------------------------------------------------------
+
+Temporary function to test |year= for acceptable values:
+	YYY, YYYY, year-only ranges, their circa forms, with or without CITEREF disambiguators.
+
+When |year= holds some form of date that is not one of these year-only dates, emit a maintenance message.
+
+This function necessary because many non-cs1|2 templates have a |year= parameter so cirrus searches are more-or-
+less useless
+
+]]
+
+local function year_check (year)
+	year = year:gsub ('c%. *', '');												-- remove circa annotation (if present) before testing <year>
+	year = mw.ustring.gsub(year, '년경$', '년');								-- 로컬
+	
+	for _, index in ipairs ({'y-y', 'y4-y2', 'y', 'y_ko', 'y-y_ko'}) do							-- spin through these indexes into patterns_t		-- 로컬
+		if mw.ustring.match (year, patterns_t[index][1]) then
+			return;																-- if a match then |year= holds a valid 'year'
+		end
+	end
+
+	set_message ('maint_year');													-- if here, |year= value is not an accepted value; add a maint cat
 end
 
 
@@ -759,12 +934,12 @@ local function year_date_check (year_string, year_origin, date_string, date_orig
 
 	year = year_string:match ('(%d%d%d%d?)');
 
-	if date_string:match ('%d%d%d%d%-%d%d%-%d%d') and year_string:match ('%d%d%d%d%a') then	--special case where both date and year are required YYYY-MM-DD and YYYYx
+	if date_string:match ('%d%d%d%d%-%d%d%-%d%d') then							--special case where both date and year are required YYYY-MM-DD and YYYYx
 		date1 = date_string:match ('(%d%d%d%d)');
 		year = year_string:match ('(%d%d%d%d)');
 		if year ~= date1 then
 			result = 0;															-- years don't match
-		else
+		elseif year_string:match ('%d%d%d%d%a') then
 			result = 2;															-- years match; but because disambiguated, don't add to maint cat
 		end
 		
@@ -807,14 +982,14 @@ reformatted.  Does the grunt work for reformat_dates().
 The table re_formats maps pattern_idx (current format) and format_param (desired format) to a table that holds:
 	format string used by string.format()
 	identifier letters ('d', 'm', 'y', 'd2', 'm2', 'y2') that serve as indexes into a table t{} that holds captures
-		from mw.ustring.match() for the various date parts specified by  patterns[pattern_idx][1]
+		from mw.ustring.match() for the various date parts specified by  patterns_t[pattern_idx][1]
 
-Items in patterns{} have the general form:
+Items in patterns_t{} have the general form:
 	['ymd'] = {'^(%d%d%d%d)%-(%d%d)%-(%d%d)$', 'y', 'm', 'd'}, where:
 		['ymd'] is pattern_idx
-		patterns['ymd'][1] is the match pattern with captures for mw.ustring.match()
-		patterns['ymd'][2] is an indicator letter identifying the content of the first capture
-		patterns['ymd'][3] ... the second capture etc.
+		patterns_t['ymd'][1] is the match pattern with captures for mw.ustring.match()
+		patterns_t['ymd'][2] is an indicator letter identifying the content of the first capture
+		patterns_t['ymd'][3] ... the second capture etc.
 
 when a pattern matches a date, the captures are loaded into table t{} in capture order using the idemtifier
 characters as indexes into t{}  For the above, a ymd date is in t{} as:
@@ -823,7 +998,7 @@ characters as indexes into t{}  For the above, a ymd date is in t{} as:
 To reformat, this function is called with the pattern_idx that matches the current format of the date and with
 format_param set to the desired format.  This function loads table t{} as described and then calls string.format()
 with the format string specified by re_format[pattern_idx][format_param][1] using values taken from t{} according
-to the capture identifier letters specified by patterns[pattern_idx][format_param][n] where n is 2..
+to the capture identifier letters specified by patterns_t[pattern_idx][format_param][n] where n is 2..
 
 ]]
 
@@ -832,70 +1007,144 @@ local re_formats = {
 		['mdy'] = {'%s %s, %s', 'm', 'd', 'y'},									-- |df=mdy
 		['dmy'] = {'%s %s %s', 'd', 'm', 'y'},									-- |df=dmy
 	--		['yMd'] = {'%s %s %s', 'y', 'm', 'd'},								-- |df=yMd; not supported at en.wiki
+		['ko'] = {'%s년 %s %s일', 'y', 'm', 'd'},								-- 로컬. |df=ko
 		},
 	['Mdy'] = {																	-- date format is Mdy; reformat to:
 		['mdy'] = {'%s %s, %s', 'm', 'd', 'y'},									-- for long/short reformatting
 		['dmy'] = {'%s %s %s', 'd', 'm', 'y'},									-- |df=dmy
 		['ymd'] = {'%s-%s-%s', 'y', 'm', 'd'},									-- |df=ymd
 	--		['yMd'] = {'%s %s %s', 'y', 'm', 'd'},								-- |df=yMd; not supported at en.wiki
+		['ko'] = {'%s년 %s %s일', 'y', 'm', 'd'},								-- 로컬. |df=ko
 		},
 	['dMy'] = {																	-- date format is dMy; reformat to:
 		['dmy'] = {'%s %s %s', 'd', 'm', 'y'},									-- for long/short reformatting
 		['mdy'] = {'%s %s, %s', 'm', 'd', 'y'},									-- |df=mdy
 		['ymd'] = {'%s-%s-%s', 'y', 'm', 'd'},									-- |df=ymd
 	--		['yMd'] = {'%s %s %s', 'y', 'm', 'd'},								-- |df=yMd; not supported at en.wiki
+		['ko'] = {'%s년 %s %s일', 'y', 'm', 'd'},								-- 로컬. |df=ko
 		},
 	['Md-dy'] = {																-- date format is Md-dy; reformat to:
 		['mdy'] = {'%s %s–%s, %s', 'm', 'd', 'd2', 'y'},						-- for long/short reformatting
 		['dmy'] = {'%s–%s %s %s', 'd', 'd2', 'm', 'y'},							-- |df=dmy -> d-dMy 
+		['ko'] = {'%s년 %s %s일~%s일', 'y', 'm', 'd', 'd2'},					-- 로컬. |df=ko
 		},
 	['d-dMy'] = {																-- date format is d-d>y; reformat to:
 		['dmy'] = {'%s–%s %s %s', 'd', 'd2', 'm', 'y'},							-- for long/short reformatting
 		['mdy'] = {'%s %s–%s, %s', 'm', 'd', 'd2', 'y'},						-- |df=mdy -> Md-dy 
+		['ko'] = {'%s년 %s %s일~%s일', 'y', 'm', 'd', 'd2'},					-- 로컬. |df=ko
 		},
 	['dM-dMy'] = {																-- date format is dM-dMy; reformat to:
 		['dmy'] = {'%s %s – %s %s %s', 'd', 'm', 'd2', 'm2', 'y'},				-- for long/short reformatting
 		['mdy'] = {'%s %s – %s %s, %s', 'm', 'd', 'm2', 'd2', 'y'},				-- |df=mdy -> Md-Mdy 
+		['ko'] = {'%s년 %s %s일~%s %s일', 'y', 'm', 'd', 'm2', 'd2'},			-- 로컬. |df=ko
 		},
 	['Md-Mdy'] = {																-- date format is Md-Mdy; reformat to:
 		['mdy'] = {'%s %s – %s %s, %s', 'm', 'd',  'm2', 'd2', 'y'},			-- for long/short reformatting
 		['dmy'] = {'%s %s – %s %s %s', 'd', 'm', 'd2', 'm2', 'y'},				-- |df=dmy -> dM-dMy 
+		['ko'] = {'%s년 %s %s일~%s %s일', 'y', 'm', 'd', 'm2', 'd2'},			-- 로컬. |df=ko
 		},
 	['dMy-dMy'] = {																-- date format is dMy-dMy; reformat to:
 		['dmy'] = {'%s %s %s – %s %s %s', 'd', 'm', 'y', 'd2', 'm2', 'y2'},		-- for long/short reformatting
 		['mdy'] = {'%s %s, %s – %s %s, %s', 'm', 'd', 'y', 'm2', 'd2', 'y2'},	-- |df=mdy -> Mdy-Mdy 
+		['ko'] = {'%s년 %s %s일~%s년 %s %s일', 'y', 'm', 'd', 'y2', 'm2', 'd2'},	-- 로컬. |df=ko
 		},
 	['Mdy-Mdy'] = {																-- date format is Mdy-Mdy; reformat to:
 		['mdy'] = {'%s %s, %s – %s %s, %s', 'm', 'd', 'y', 'm2', 'd2', 'y2'},	-- for long/short reformatting
 		['dmy'] = {'%s %s %s – %s %s %s', 'd', 'm', 'y', 'd2', 'm2', 'y2'},		-- |df=dmy -> dMy-dMy 
+		['ko'] = {'%s년 %s %s일~%s년 %s %s일', 'y', 'm', 'd', 'y2', 'm2', 'd2'},	-- 로컬. |df=ko
 		},
 	['My-My'] = {																-- these for long/short reformatting
 		['any'] = {'%s %s – %s %s', 'm', 'y', 'm2', 'y2'},						-- dmy/mdy agnostic
+		['ko'] = {'%s년 %s~%s년 %s', 'y', 'm', 'y2', 'm2'},					-- 로컬. |df=ko
 		},
 	['M-My'] = {																-- these for long/short reformatting
 		['any'] = {'%s–%s %s', 'm', 'm2', 'y'},									-- dmy/mdy agnostic
+		['ko'] = {'%s년 %s~%s', 'y', 'm', 'm2'},								-- 로컬. |df=ko
 		},
 	['My'] = {																	-- these for long/short reformatting
 		['any'] = {'%s %s', 'm', 'y'},											-- dmy/mdy agnostic
+		['ko'] = {'%s년 %s', 'y', 'm'},											-- 로컬. |df=ko
 		},
 	--	['yMd'] = {																-- not supported at en.wiki
 	--		['mdy'] = {'%s %s, %s', 'm', 'd', 'y'},								-- |df=mdy
 	--		['dmy'] = {'%s %s %s', 'd', 'm', 'y'},								-- |df=dmy
 	--		['ymd'] = {'%s-%s-%s', 'y', 'm', 'd'},								-- |df=ymd
+	--		['ko'] = {'%s년 %s %s일', 'y', 'm', 'd'},							-- 로컬. |df=ko
 	--		},
+																				-- 로컬 시작
+	['ymd_ko'] = {
+		['mdy'] = {'%s %s, %s', 'm', 'd', 'y'},									-- |df=mdy
+		['dmy'] = {'%s %s %s', 'd', 'm', 'y'},									-- |df=dmy
+		['ymd'] = {'%s-%s-%s', 'y', 'm', 'd'},									-- |df=ymd
+		['ko'] = {'%s년 %s %s일', 'y', 'm', 'd'},
+        },
+	['ym_ko'] = {
+		['any'] = {'%s %s', 'm', 'y'},
+		['ko'] = {'%s년 %s', 'y', 'm'},
+		},
+	['y_ko'] = {
+		['any'] = {'%s', 'y'},
+		['ko'] = {'%s', 'y'},
+		},
+	['y'] = {
+		['any'] = {'%s', 'y'},
+		['ko'] = {'%s', 'y'},
+		},
+	['y-y'] = {
+		['any'] = {'%s–%s', 'y', 'y2'},
+		['ko'] = {'%s년~%s년', 'y', 'y2'},
+		},
+	['y4-y2'] = {
+		['any'] = {'%s–%s', 'y', 'y2'},
+		['ko'] = {'%s년~%s년', 'y', 'y2'},
+		},
+	['y-m'] = {
+		['any'] = {'%s %s', 'm', 'y'},
+		['ko'] = {'%s년 %s', 'y', 'm'},
+		},
+	['y-y_ko'] = {
+		['any'] = {'%s–%s', 'y', 'y2'},
+		['ko'] = {'%s년~%s년', 'y', 'y2'},
+		},
+	['ym-ym_ko'] = {
+		['any'] = {'%s %s – %s %s', 'm', 'y', 'm2', 'y2'},
+		['ko'] = {'%s년 %s~%s년 %s', 'y', 'm', 'y2', 'm2'},
+		},
+	['ym-m_ko'] = {
+		['any'] = {'%s–%s %s', 'm', 'm2', 'y'},
+		['ko'] = {'%s년 %s~%s', 'y', 'm', 'm2'},
+		},
+	['ymd-ymd_ko'] = {
+		['mdy'] = {'%s %s, %s – %s %s, %s', 'm', 'd', 'y', 'm2', 'd2', 'y2'},
+		['dmy'] = {'%s %s %s – %s %s %s', 'd', 'm', 'y', 'd2', 'm2', 'y2'},
+		['ko'] = {'%s년 %s %s일~%s년 %s %s일', 'y', 'm', 'd', 'y2', 'm2', 'd2'},
+		},
+	['ymd-md_ko'] = {
+		['mdy'] = {'%s %s – %s %s, %s', 'm', 'd',  'm2', 'd2', 'y'},
+		['dmy'] = {'%s %s – %s %s %s', 'd', 'm', 'd2', 'm2', 'y'},
+		['ko'] = {'%s년 %s %s일~%s %s일', 'y', 'm', 'd', 'm2', 'd2'},
+		},
+	['ymd-d_ko'] = {
+		['dmy'] = {'%s–%s %s %s', 'd', 'd2', 'm', 'y'},
+		['mdy'] = {'%s %s–%s, %s', 'm', 'd', 'd2', 'y'},
+		['ko'] = {'%s년 %s %s일~%s일', 'y', 'm', 'd', 'd2'},
+		},																		-- 로컬 끝
 	}
 
 
 local function reformatter (date, pattern_idx, format_param, mon_len)
-	if not in_array (pattern_idx, {'ymd', 'Mdy', 'Md-dy', 'dMy', 'yMd', 'd-dMy', 'dM-dMy', 'Md-Mdy', 'dMy-dMy', 'Mdy-Mdy', 'My-My', 'M-My', 'My'}) then
-		return;																	-- not in this set of date format patterns then not a reformattable date
+	if not in_array (pattern_idx, {'ymd', 'Mdy', 'Md-dy', 'dMy', 'yMd', 'd-dMy', 'dM-dMy', 'Md-Mdy', 'dMy-dMy', 'Mdy-Mdy', 'My-My', 'M-My', 'My',
+		'ymd_ko', 'ym_ko', 'y_ko', 'y', 'y-y', 'y4-y2', 'y-y_ko', 'ym-ym_ko', 'ym-m_ko', 'ymd-ymd_ko', 'ymd-md_ko', 'ymd-d_ko'}) then		-- 로컬
+		return;																	-- not in this set of date format patterns_t then not a reformattable date
 	end
 	
-	if 'ymd' == format_param and in_array (pattern_idx, {'ymd', 'Md-dy', 'd-dMy', 'dM-dMy', 'Md-Mdy', 'dMy-dMy', 'Mdy-Mdy', 'My-My', 'M-My', 'My'}) then
+	if 'ymd' == format_param and in_array (pattern_idx, {'ymd', 'Md-dy', 'd-dMy', 'dM-dMy', 'Md-Mdy', 'dMy-dMy', 'Mdy-Mdy', 'My-My', 'M-My', 'My',
+		'ym_ko', 'y', 'y-y', 'y4-y2', 'y-m', 'y-y_ko', 'ym-ym_ko', 'ym-m_ko', 'ymd-ymd_ko', 'ymd-md_ko', 'ymd-d_ko'}) then		-- 로컬
 		return;																	-- ymd date ranges not supported at en.wiki; no point in reformatting ymd to ymd
 	end
 
-	if in_array (pattern_idx, {'My', 'M-My', 'My-My'}) then						-- these are not dmy/mdy so can't be 'reformatted' into either
+	if 'ko' ~= format_param and in_array (pattern_idx, {'My', 'M-My', 'My-My',		-- 로컬
+		'ym_ko', 'y', 'y_ko', 'y-y', 'y4-y2', 'y-m', 'y-y_ko', 'ym-ym_ko', 'ym-m_ko'}) then -- these are not dmy/mdy so can't be 'reformatted' into either, except for ko		-- 로컬
 		format_param = 'any';													-- so format-agnostic 
 	end
 
@@ -905,43 +1154,84 @@ local function reformatter (date, pattern_idx, format_param, mon_len)
 		return;																	-- not a reformattable date
 	end
 	
-	local c1, c2, c3, c4, c5, c6, c7;											-- these hold the captures specified in patterns[pattern_idx][1]
-	c1, c2, c3, c4, c5, c6, c7 = mw.ustring.match (date, patterns[pattern_idx][1]);	-- get the captures
+	local c1, c2, c3, c4, c5, c6, c7;											-- these hold the captures specified in patterns_t[pattern_idx][1]
+	c1, c2, c3, c4, c5, c6, c7 = mw.ustring.match (date, patterns_t[pattern_idx][1]);	-- get the captures
 
-	local t = {																	-- table that holds k/v pairs of date parts from the captures and patterns[pattern_idx][2..]
-		[patterns[pattern_idx][2]] = c1;										-- at minimum there is always one capture with a matching indicator letter
-		[patterns[pattern_idx][3] or 'x'] = c2;									-- patterns can have a variable number of captures; each capture requires an indicator letter;
-		[patterns[pattern_idx][4] or 'x'] = c3;									-- where there is no capture, there is no indicator letter so n in patterns[pattern_idx][n] will be nil;
-		[patterns[pattern_idx][5] or 'x'] = c4;									-- the 'x' here spoofs an indicator letter to prevent 'table index is nil' error
-		[patterns[pattern_idx][6] or 'x'] = c5;
-		[patterns[pattern_idx][7] or 'x'] = c6;
-		[patterns[pattern_idx][8] or 'x'] = c7;
+	local t = {																	-- table that holds k/v pairs of date parts from the captures and patterns_t[pattern_idx][2..]
+		[patterns_t[pattern_idx][2]] = c1;										-- at minimum there is always one capture with a matching indicator letter
+		[patterns_t[pattern_idx][3] or 'x'] = c2;								-- patterns_t can have a variable number of captures; each capture requires an indicator letter;
+		[patterns_t[pattern_idx][4] or 'x'] = c3;								-- where there is no capture, there is no indicator letter so n in patterns_t[pattern_idx][n] will be nil;
+		[patterns_t[pattern_idx][5] or 'x'] = c4;								-- the 'x' here spoofs an indicator letter to prevent 'table index is nil' error
+		[patterns_t[pattern_idx][6] or 'x'] = c5;
+		[patterns_t[pattern_idx][7] or 'x'] = c6;
+		[patterns_t[pattern_idx][8] or 'x'] = c7;
 		};
 
-	if t.a then																	-- if this date has an anchor year capture
-		t.y = t.a;																-- use the anchor year capture when reassembling the date
+	if t.a then																	-- if this date has an anchor year capture (all convertable date formats except ymd)
+		if t.y2 then															-- for year range date formats														
+			t.y2 = t.a;															-- use the anchor year capture when reassembling the date
+		else																	-- here for single date formats (except ymd)
+			t.y = t.a;															-- use the anchor year capture when reassembling the date
+		end
 	end
 
-	if tonumber(t.m) then														-- if raw month is a number (converting from ymd)
-		if 's' == mon_len then													-- if we are to use abbreviated month names
-			t.m = cfg.date_names['inv_local_s'][tonumber(t.m)];					-- convert it to a month name
-		else
-			t.m = cfg.date_names['inv_local_l'][tonumber(t.m)];					-- convert it to a month name
+	do																			-- 로컬 시작
+		if 'y4-y2' == pattern_idx then
+			t.y2 = t.c .. t.y2;
 		end
-		t.d = t.d:gsub ('0(%d)', '%1');											-- strip leading '0' from day if present
-	elseif 'ymd' == format_param then											-- when converting to ymd
+		if t.m then
+			t.m = t.m:gsub ('0(%d)', '%1');
+			if t.d then
+				t.d = mw.ustring.gsub(t.d, '일', ''):gsub ('0(%d)', '%1');
+			end
+		end
+		if 'ym-m_ko' == pattern_idx and tonumber(t.m) then
+			t.m = t.m .. '월';
+		end
+	end																			-- 로컬 끝
+																				-- 로컬 시작. ymd 형식 변환 위해 조건문 순서 바꿈.
+	if 'ymd' == format_param then												-- when converting to ymd
 		t.y = t.y:gsub ('%a', '');												-- strip CITREF disambiguator if present; anchor year already known so process can proceed; TODO: maint message?
 		if 1582 > tonumber (t.y) then											-- ymd format dates not allowed before 1582
 			return;
 		end
-		t.m = string.format ('%02d', get_month_number (t.m));					-- make sure that month and day are two digits
+		t.m = string.format ('%02d', tonumber(t.m) or get_month_number (t.m));	-- make sure that month and day are two digits		-- 로컬. 변환 원본이 ymd 형식일 경우 get_month_number() 호출을 피함.
+
 		t.d = string.format ('%02d', t.d);
+	elseif tonumber(t.m) then													-- if raw month is a number (converting from ymd)
+		if 's' == mon_len then													-- if we are to use abbreviated month names
+			if 'ko' ~= format_param then
+				t.m = cfg.date_names['inv_en_short'][tonumber(t.m)];			-- convert it to a month name
+			else
+				t.m = cfg.date_names['inv_local_short'][tonumber(t.m)];			-- convert it to a month name
+			end
+		else
+			if 'ko' ~= format_param then
+				t.m = cfg.date_names['inv_en_long'][tonumber(t.m)];				-- convert it to a month name
+			else
+				t.m = cfg.date_names['inv_local_long'][tonumber(t.m)];			-- convert it to a month name
+			end
+		end
+		if t.d then
+			t.d = t.d:gsub ('0(%d)', '%1');										-- strip leading '0' from day if present
+		end
 	elseif mon_len then															-- if mon_len is set to either 'short' or 'long'
 		for _, mon in ipairs ({'m', 'm2'}) do									-- because there can be two month names, check both 
-			if t[mon] then
-				t[mon] = get_month_number (t[mon]);								-- get the month number for this month (is length agnostic)
-				if 0 == t[mon] then return; end									-- seasons and named dates can't be converted
-				t[mon] = (('s' == mon_len) and cfg.date_names['inv_local_s'][t[mon]]) or cfg.date_names['inv_local_l'][t[mon]];	-- fetch month name according to length
+			if t[mon] then														-- 로컬. 계절 이름.
+				if 'ko' ~= format_param then
+					t[mon] = (('s' == mon_len) and cfg.date_names['inv_en_short'][get_month_number (t[mon])])
+								or cfg.date_names['inv_en_long'][get_month_number (t[mon])]
+								or cfg.date_names['inv_en_season'][get_season_number (t[mon], 'date')]
+								or cfg.date_names['inv_en_quarter'][get_quarter_number (t[mon], 'date')]
+								or cfg.date_names['inv_en_named'][get_proper_name_number (t[mon], 'date')];
+				else 
+					t[mon] = (('s' == mon_len) and cfg.date_names['inv_local_short'][get_month_number (t[mon])])
+								or cfg.date_names['inv_local_long'][get_month_number (t[mon])]
+								or cfg.date_names['inv_local_season'][get_season_number (t[mon], 'date')]
+								or cfg.date_names['inv_local_quarter'][get_quarter_number (t[mon], 'date')]
+								or cfg.date_names['inv_local_named'][get_proper_name_number (t[mon], 'date')];
+				end
+				if not t[mon] then return end
 			end
 		end
 	end
@@ -1011,7 +1301,7 @@ local function reformat_dates (date_parameters_list, format)
 	for param_name, param_val in pairs (date_parameters_list) do				-- for each date-holding parameter in the list
 		if is_set (param_val.val) then											-- if the parameter has a value
 			if not (not all and in_array (param_name, {'access-date', 'archive-date'})) then	-- skip access- or archive-date unless format is xxx-all; yeah, ugly; TODO: find a better way
-				for pattern_idx, pattern in pairs (patterns) do
+				for pattern_idx, pattern in pairs (patterns_t) do
 					if mw.ustring.match (param_val.val, pattern[1]) then
 						if all and in_array (param_name, {'access-date', 'archive-date'}) then	-- if this date is an access- or archive-date
 							new_date = reformatter (param_val.val, pattern_idx, (('y' == len_a) and 'ymd') or format, len_a);	-- choose ymd or dmy/mdy according to len_a setting
@@ -1022,6 +1312,7 @@ local function reformat_dates (date_parameters_list, format)
 						if new_date then										-- set when date was reformatted
 							date_parameters_list[param_name].val = new_date;	-- update date in date list
 							result = true;										-- and announce that changes have been made
+							break;
 						end
 					end	-- if
 				end		-- for
@@ -1045,13 +1336,22 @@ local function date_hyphen_to_dash (date_parameters_list)
 	local result = false;
 	local n;
 	for param_name, param_val in pairs(date_parameters_list) do					-- for each date-holding parameter in the list
-		if is_set (param_val.val) and
-			not mw.ustring.match (param_val.val, patterns.ymd[1]) then			-- for those that are not ymd dates (ustring because here digits may not be Western)
-				param_val.val, n = param_val.val:gsub ('%-', '–');				-- replace any hyphen with ndash
-				if 0 ~= n then
-					date_parameters_list[param_name].val = param_val.val;		-- update the list
-					result = true;
+		if is_set (param_val.val) then											-- 로컬 시작
+			for pattern_idx, pattern in pairs (patterns_t) do
+				if mw.ustring.match (param_val.val, pattern[1]) then
+					if in_array (pattern_idx, {'ymd', 'y-y_ko', 'ym-ym_ko', 'ym-m_ko', 'ymd-ymd_ko', 'ymd-md_ko', 'ymd-d_ko'}) then
+						break;
+					end
+					
+					param_val.val, n = param_val.val:gsub ('%-', '–');			-- replace any hyphen with ndash
+--					param_val.val, n = param_val.val:gsub ('%~', '–');			-- replace any tilde with ndash		-- 로컬
+					if 0 ~= n then
+						date_parameters_list[param_name].val = param_val.val;	-- update the list
+						result = true;
+					end
+					break;
 				end
+			end																	-- 로컬 끝
 		end
 	end
 	return result;																-- so we know if any hyphens were replaced
@@ -1060,7 +1360,7 @@ end
 
 --[[-------------------------< D A T E _ N A M E _ X L A T E >------------------------------------------------
 
-Attempts to translate English month names to local-language month names using names supplied by MediaWiki's
+Attempts to translate English date names to local-language date names using names supplied by MediaWiki's
 date parser function.  This is simple name-for-name replacement and may not work for all languages.
 
 if xlat_dig is true, this function will also translate Western (English) digits to the local language's digits.
@@ -1074,20 +1374,32 @@ local function date_name_xlate (date_parameters_list, xlt_dig)
 	local modified = false;
 	local date;
 	
+	local sources_t = {
+		{cfg.date_names.en.long, cfg.date_names.inv_local_long},				-- for translating long English month names to long local month names
+		{cfg.date_names.en.short, cfg.date_names.inv_local_short},				-- short month names
+		{cfg.date_names.en.quarter, cfg.date_names.inv_local_quarter},			-- quarter date names
+		{cfg.date_names.en.season, cfg.date_names.inv_local_season},			-- season date nam
+		{cfg.date_names.en.named, cfg.date_names.inv_local_named},				-- named dates
+		}
+
+	local function is_xlateable (month)											-- local function to get local date name that replaces existing English-language date name
+		for _, date_names_t in ipairs (sources_t) do							-- for each sequence table in date_names_t
+			if date_names_t[1][month] then										-- if date name is English month (long or short), quarter, season or named and
+				if date_names_t[2][date_names_t[1][month]] then					-- if there is a matching local date name
+					return date_names_t[2][date_names_t[1][month]];				-- return the local date name
+				end
+			end
+		end
+	end
+
 	for param_name, param_val in pairs(date_parameters_list) do					-- for each date-holding parameter in the list
 		if is_set(param_val.val) then											-- if the parameter has a value
 			date = param_val.val;
-			for month in mw.ustring.gmatch (date, '%a+') do						-- iterate through all dates in the date (single date or date range)
-				if cfg.date_names.en.long[month] then
-					mode = 'F';													-- English name is long so use long local name
-				elseif cfg.date_names.en.short[month] then
-					mode = 'M';													-- English name is short so use short local name
-				else
-					mode = nil;													-- not an English month name; could be local language month name or an English season name
-				end
-		
-				if mode then													-- might be a season
-					xlate = lang_object:formatDate(mode, '1' .. month);			-- translate the month name to this local language
+			for month in mw.ustring.gmatch (date, '[%a ]+') do					-- iterate through all date names in the date (single date or date range)
+				month = mw.text.trim (month);									-- this because quarterly dates contain whitespace
+				xlate = is_xlateable (month);									-- get translate <month>; returns translation or nil
+				
+				if xlate then		
 					date = mw.ustring.gsub (date, month, xlate);				-- replace the English with the translation
 					date_parameters_list[param_name].val = date;				-- save the translated date
 					modified = true;
@@ -1124,14 +1436,59 @@ local function set_selected_modules (cfg_table_ptr, utilities_page_ptr)
 end
 
 
+--[[--------------------------< A R C H I V E _ D A T E _ C H E C K >------------------------------------------
+
+Compare value in |archive-date= with the timestamp in Wayback machine urls.  Emits an error message with suggested
+date from the |archive-url= timestamp in an appropriate format when the value in |archive-date= does not match
+the timestamp.
+
+this function never called when any date in a cs1|2 template has errors
+
+error message suggests new |archive-date= value in an appropriate format specified by <df>.  <df> is either 
+|df= or cfg.global_df in that order.  If <df> is nil, suggested date has format from |archive-date=.  There is
+a caveat: when |df=dmy or |df=mdy, the reformatter leaves |access-date= and |archive-date= formats as they are.
+The error message suggested date is passed to the formatter as YYYY-MM-DD so when |df=dmy or |df=mdy, the format
+is not changed.
+
+]]
+
+local function archive_date_check (archive_date, archive_url_timestamp, df)		-- 로컬 시작. archive_date_format 미사용.
+--	local archive_date_format = 'dmy-y';										-- holds the date format of date in |archive-date; default to ymd; 'dmy' used here to spoof reformat_dates()
+	
+--	for _, v_t in ipairs ({{'dMy', 'dmy-all'}, {'Mdy', 'mdy-all'}}) do			-- is |archive-date= format dmy or mdy?
+--		if archive_date:match (patterns_t[v_t[1]][1]) then						-- does the pattern match?
+--			archive_date_format = cfg.keywords_xlate[v_t[2]];					-- get appropriate |df= supported keyword from the i18n translator table
+--			break;
+--		end
+--	end																			-- 로컬 끝.
+	
+	local dates_t = {};
+	dates_t['archive-date'] = {val=archive_date, name=''};						-- setup to call reformat_dates(); never called when errors so <name> unset as not needed
+	reformat_dates (dates_t, 'dmy-y');											-- reformat |archive-date= to ymd; 'dmy' used here to spoof reformat_dates()
+	local archive_url_date = archive_url_timestamp:gsub ('(%d%d%d%d)(%d%d)(%d%d)%d*', '%1-%2-%3');	-- make ymd format date from timestamp
+
+	if dates_t['archive-date'].val == archive_url_date then						-- are the two dates the same
+		return;																	-- yes, done
+	else
+		dates_t['archive-date'] = {val=archive_url_date, name=''};				-- setup to call reformat_dates() with the timestamp date
+		reformat_dates (dates_t, 'ymd');					-- reformat timestamp to format specified by <df> or format used in |archive-date=		-- 로컬
+		archive_url_date = dates_t['archive-date'].val;
+		set_message ('err_archive_date_url_ts_mismatch', archive_url_date);		-- emit an error message
+	end
+end
+
+
 --[[--------------------------< E X P O R T E D   F U N C T I O N S >------------------------------------------
 ]]
 
 return {																		-- return exported functions
-	dates = dates,
-	year_date_check = year_date_check,
-	reformat_dates = reformat_dates,
+	archive_date_check = archive_date_check,
 	date_hyphen_to_dash = date_hyphen_to_dash,
 	date_name_xlate = date_name_xlate,
-	set_selected_modules = set_selected_modules
+	dates = dates,
+	is_valid_date = is_valid_date,
+	reformat_dates = reformat_dates,
+	set_selected_modules = set_selected_modules,
+	year_check = year_check,
+	year_date_check = year_date_check,
 	}
