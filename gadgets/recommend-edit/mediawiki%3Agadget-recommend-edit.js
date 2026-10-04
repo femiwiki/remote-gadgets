@@ -12,10 +12,11 @@
     return;
   }
 
-  const element = document.createElement('div');
+  const element = document.createElement('button');
+  element.type = 'button';
   element.classList.add('fw-edit');
-  element.innerHtml = mw.msg('skin-view-edit');
   element.title = mw.msg('tooltip-ca-edit');
+  element.setAttribute('aria-label', mw.msg('tooltip-ca-edit'));
   element.addEventListener('click', (e) => {
     OO.ui
       .confirm('내용을 직접 고칠 수 있습니다.', {
