@@ -1,6 +1,8 @@
 from apply import (
     file_to_title,
+    find_duplicate_titles,
     get_all_files,
+    normalize_title,
     sanitize_args,
     validate_files,
 )
@@ -62,3 +64,26 @@ def test_get_all_files_is_sorted(tmp_path, monkeypatch):
         "pages/a",
         "pages/b",
     ]
+
+
+def test_normalize_title():
+    assert normalize_title("module:@ko/Date_validation") == normalize_title(
+        "module:@ko/Date validation"
+    )
+    assert normalize_title("module:Wd") == normalize_title("Module:wd")
+    assert normalize_title("mediawiki:common.css") == normalize_title(
+        "MediaWiki:Common.css"
+    )
+    assert normalize_title("module:A  b ") == normalize_title("module: A b")
+    assert normalize_title("module:Wd") != normalize_title("module:WD")
+
+
+def test_find_duplicate_titles():
+    space = "lua/ko/Citation%2FCS1%2FDate%20validation"
+    underscore = "lua/ko/Citation%2FCS1%2FDate_validation"
+    sandbox = "lua/ko/Citation%2FCS1%2FDate_validation%2Fsandbox"
+
+    assert find_duplicate_titles([underscore, sandbox]) == {}
+    assert find_duplicate_titles([space, underscore, sandbox]) == {
+        "module:@ko/Citation/CS1/Date validation": [space, underscore]
+    }

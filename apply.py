@@ -96,6 +96,28 @@ def file_to_title(file):
         return basename(unquote(file))
 
 
+def normalize_title(title):
+    """compare titles as MediaWiki does: `_` is a space, runs of spaces
+    collapse, and the namespace and the first letter are case-insensitive"""
+    title = " ".join(title.replace("_", " ").split())
+    namespace, colon, name = title.partition(":")
+    if colon and namespace.strip().lower() in ("mediawiki", "module"):
+        namespace = namespace.strip().lower() + ":"
+        name = name.strip()
+    else:
+        namespace = ""
+        name = title
+    return namespace + name[:1].upper() + name[1:]
+
+
+def find_duplicate_titles(files):
+    """return {title: [files]} for every page more than one file maps to"""
+    titles = {}
+    for f in files:
+        titles.setdefault(normalize_title(file_to_title(f)), []).append(f)
+    return {t: fs for t, fs in titles.items() if len(fs) > 1}
+
+
 def edit_pages_on_wiki(targets, wiki):
     logger.info("target files:" + " / ".join(targets))
 
@@ -140,6 +162,12 @@ def get_all_files():
 
 def main():
     sanitize_args(argv)
+
+    duplicates = find_duplicate_titles(get_all_files())
+    for title, files in duplicates.items():
+        logger.error(f"{title} is mapped from more than one file: {files}")
+    if duplicates:
+        exit(1)
 
     FEMIWIKI = mwclient.Site("femiwiki.com", path="/")
 
