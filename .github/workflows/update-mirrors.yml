@@ -3,6 +3,7 @@ name: Update mirrors
 on:
   schedule:
     - cron:  '0 0 1 * *' # Monthly
+  workflow_dispatch:
 
 permissions: {}
 
