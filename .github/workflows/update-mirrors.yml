@@ -13,8 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
 
     steps:
 
@@ -45,10 +44,18 @@ jobs:
     - name: Check & download for module updates
       run: legunto update
 
+    # A pull request opened with GITHUB_TOKEN triggers no workflows, so the
+    # required checks would never run on it
+    - uses: peter-murray/workflow-application-token-action@dad2b81e50ce3edeb5f3b7ffbd79f731368bd668 # v5.1.1
+      id: get_workflow_token
+      with:
+        application_id: ${{ vars.PAT_APPLICATION_ID }}
+        application_private_key: ${{ secrets.PAT_APPLICATION_PRIVATE_KEY }}
+
     - name: Create a pull request
       uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ steps.get_workflow_token.outputs.token }}
         author: GitHub <noreply@github.com>
         commit-message: Update Scribunto module(s)
         title: Update Scribunto module(s)
