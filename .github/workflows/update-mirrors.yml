@@ -44,8 +44,7 @@ jobs:
     - name: Check & download for module updates
       run: legunto update
 
-    # A pull request opened with GITHUB_TOKEN triggers no workflows, so the
-    # required checks would never run on it
+    # GITHUB_TOKEN's pull requests trigger no workflows, so required checks never run
     - uses: peter-murray/workflow-application-token-action@dad2b81e50ce3edeb5f3b7ffbd79f731368bd668 # v5.1.1
       id: get_workflow_token
       with:
