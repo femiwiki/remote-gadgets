@@ -1,29 +1,30 @@
 // <nowiki>
 (() => {
   const api = new mw.Api();
+  const title = mw.config.get('wgPageName');
   api
     .get({
       action: 'query',
-      titles: mw.config.get('wgPageName'),
-      prop: 'linkshere|links',
-      lhprop: 'title',
-      lhshow: '!redirect',
-      lhnamespace: 0,
-      plnamespace: 0,
-      format: 'json',
+      formatversion: 2,
+      // The pages this page links to, with a missing flag on the ones that do not exist
+      generator: 'links',
+      titles: title,
+      gplnamespace: 0,
+      list: 'backlinks',
+      bltitle: title,
+      blnamespace: 0,
+      blfilterredir: 'nonredirects',
     })
     .done((data) => {
-      if (!data) {
+      if (!data || !data.query) {
         return;
       }
-      const page = Object.values(data.query.pages)[0];
-      if (!page) {
-        return;
-      }
-      const linkshere = page.linkshere
-        ? page.linkshere.map((l) => l.title)
+      const linkshere = data.query.backlinks
+        ? data.query.backlinks.map((l) => l.title)
         : [];
-      const links = page.links ? page.links.map((l) => l.title) : [];
+      const links = data.query.pages
+        ? data.query.pages.filter((p) => !p.missing).map((p) => p.title)
+        : [];
       let allLinks = linkshere.concat(links);
       allLinks = allLinks.sort((a, b) => 0.5 - Math.random());
       // TODO: If the number of links is less than mw.config.get( 'wgRelatedArticlesCardLimit', 3 ),
