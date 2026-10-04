@@ -1,4 +1,9 @@
-from apply import file_to_title, sanitize_args, validate_files
+from apply import (
+    file_to_title,
+    get_all_files,
+    sanitize_args,
+    validate_files,
+)
 
 
 def test_sanitize_args(capsys):
@@ -41,3 +46,19 @@ def test_file_to_title():
     assert (
         file_to_title("pages/mediawiki%3Acommon.css") == "mediawiki:common.css"
     )
+
+
+def test_get_all_files_is_sorted(tmp_path, monkeypatch):
+    for f in ["pages/b", "pages/a", "lua/ko/b", "lua/ko/a", "gadgets/x/a"]:
+        (tmp_path / f).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / f).touch()
+    (tmp_path / "other").touch()
+    monkeypatch.chdir(tmp_path)
+
+    assert get_all_files() == [
+        "gadgets/x/a",
+        "lua/ko/a",
+        "lua/ko/b",
+        "pages/a",
+        "pages/b",
+    ]

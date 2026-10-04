@@ -135,7 +135,7 @@ def edit_pages_on_wiki(targets, wiki):
 def get_all_files():
     ROOT = Path(".")
     glob = [p for d in TARGET_DIRECTORIES for p in ROOT.glob(f"{d}/**/*")]
-    return [str(p) for p in glob if path.isfile(p)]
+    return sorted(str(p) for p in glob if path.isfile(p))
 
 
 def main():
