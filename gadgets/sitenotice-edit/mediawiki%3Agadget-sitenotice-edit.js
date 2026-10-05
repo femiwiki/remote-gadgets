@@ -4,7 +4,7 @@
     '\
 <div class="sitenotice-edit--buttons">\
   {{#buttons}}\
-  <a class="sitenotice-edit--button sitenotice-edit--{{id}}-button"\
+  <a class="sitenotice-edit--button sitenotice-edit--{{id}}-button oo-ui-icon-{{id}}"\
     href="/index.php?title=MediaWiki:Sitenotice&{{query}}"\
     title="{{desc}}"\
   ></a>\

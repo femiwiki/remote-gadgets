@@ -23,16 +23,9 @@ html.ve-deactivating .sitenotice-edit--buttons {
   width: 1.4em;
   height: 1.4em;
   display: inline-block;
+  background-repeat: no-repeat;
   background-size: 100%;
   /* https://codepen.io/sosuke/pen/Pjoqqp */
   filter: invert(87%) sepia(17%) saturate(7491%) hue-rotate(194deg)
     brightness(108%) contrast(98%);
-}
-
-.sitenotice-edit--history-button {
-  background-image: url('https://upload.wikimedia.org/wikipedia/commons/2/27/OOjs_UI_icon_history.svg');
-}
-
-.sitenotice-edit--edit-button {
-  background-image: url('https://upload.wikimedia.org/wikipedia/commons/8/8a/OOjs_UI_icon_edit-ltr.svg');
 }
