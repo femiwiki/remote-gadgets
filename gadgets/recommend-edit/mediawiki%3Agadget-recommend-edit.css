@@ -14,18 +14,11 @@
   cursor: pointer;
 }
 
-.fw-edit:after {
-  content: '';
-  width: 3rem;
-  height: 3rem;
+.fw-edit .oo-ui-icon-edit {
   display: block;
-  border-radius: 50%;
-  text-align: center;
-  line-height: 3rem;
-  color: white;
-  background-image: url(https://upload.wikimedia.org/wikipedia/commons/8/8a/OOjs_UI_icon_edit-ltr.svg);
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: auto;
   background-repeat: no-repeat;
-  background-size: 1.5rem;
-  background-position: 0.725rem;
-  filter: invert(1);
+  background-size: contain;
 }

@@ -17,6 +17,9 @@
   element.classList.add('fw-edit');
   element.title = mw.msg('tooltip-ca-edit');
   element.setAttribute('aria-label', mw.msg('tooltip-ca-edit'));
+  const icon = document.createElement('span');
+  icon.classList.add('oo-ui-icon-edit', 'oo-ui-image-invert');
+  element.append(icon);
   element.addEventListener('click', (e) => {
     OO.ui
       .confirm('내용을 직접 고칠 수 있습니다.', {
