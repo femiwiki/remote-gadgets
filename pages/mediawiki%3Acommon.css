@@ -26,36 +26,6 @@ See https://github.com/femiwiki/docker-mediawiki/issues/323
 }
 
 /*
-사용자 홈페이지의 빈 편집 제안 자리 채우기
-https://github.com/femiwiki/femiwiki/issues/272
-*/
-body.mw-special-Homepage.growthexperiments-homepage-desktop
-  .growthexperiments-homepage-container {
-  display: block;
-}
-body.mw-special-Homepage.growthexperiments-homepage-desktop
-  .growthexperiments-homepage-container
-  .growthexperiments-homepage-group-main {
-  width: auto;
-}
-body.mw-special-Homepage.growthexperiments-homepage-desktop
-  .growthexperiments-homepage-container
-  .growthexperiments-homepage-group-main-subgroup-secondary {
-  min-height: auto;
-}
-body.mw-special-Homepage.growthexperiments-homepage-desktop
-  .growthexperiments-homepage-container
-  .growthexperiments-homepage-group-sidebar {
-  width: auto;
-}
-body.mw-special-Homepage.growthexperiments-homepage-desktop
-  .growthexperiments-homepage-container
-  .growthexperiments-homepage-group-sidebar
-  .growthexperiments-homepage-module {
-  margin-right: 8px;
-}
-
-/*
 사용자 홈페이지 영향 모듈의 https://pageviews.toolforge.org/ 로 향하는 링크 비활성화
 */
 #mw-content-text
