@@ -98,24 +98,6 @@
 
     var isCollapsible = $(this).hasClass('book-flap-collapsible');
 
-    function makeCollapsible($root) {
-      var $li = $root.find('.book-flap-body > ul > li');
-      $li.each(function () {
-        var $hidable = $(this).children('ul');
-        if ($hidable.length === 0) return;
-
-        $('<div>')
-          .addClass('bookflap-collapse-button')
-          .html('▼')
-          .prependTo($(this))
-          .click(function () {
-            $hidable.toggle();
-          });
-
-        if ($(this).find('.mw-selflink').length === 0) $hidable.hide();
-      });
-    }
-
     if (isCollapsible) {
       makeCollapsible($slideBookFlap);
       makeCollapsible($sideBookFlap);
@@ -129,6 +111,24 @@
         .addClass('book-flap-tooltip')
         .appendTo($('.book-flap-button:first'));
     }
+  }
+
+  function makeCollapsible($root) {
+    var $li = $root.find('.book-flap-body > ul > li');
+    $li.each(function () {
+      var $hidable = $(this).children('ul');
+      if ($hidable.length === 0) return;
+
+      $('<div>')
+        .addClass('bookflap-collapse-button')
+        .html('▼')
+        .prependTo($(this))
+        .click(function () {
+          $hidable.toggle();
+        });
+
+      if ($(this).find('.mw-selflink').length === 0) $hidable.hide();
+    });
   }
 })();
 // </nowiki>
