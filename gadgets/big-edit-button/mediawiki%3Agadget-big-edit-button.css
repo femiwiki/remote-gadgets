@@ -1,0 +1,60 @@
+/* 초설의 안 */
+#p-header #lastmod-and-views {
+  padding: 0.3em 0;
+}
+
+#p-header #lastmod-and-views #p-views ul li {
+  display: inline-block;
+  float: none;
+}
+
+#p-header #lastmod-and-views #p-views #ca-ve-edit,
+#p-header #lastmod-and-views #p-views #ca-edit {
+  background-color: #c3bffd;
+  font-size: 1rem;
+  padding: 0.3em 0.5em;
+  border: 1px solid #a0a0ff;
+  border-radius: 0.3em;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  transition: background-color 0.3s;
+}
+
+#p-header #lastmod-and-views #p-views #ca-ve-edit:hover,
+#p-header #lastmod-and-views #p-views #ca-ve-edit:focus,
+#p-header #lastmod-and-views #p-views #ca-edit:hover,
+#p-header #lastmod-and-views #p-views #ca-edit:focus {
+  border-color: #6b6bff;
+  background-color: #a0a0ff;
+}
+
+#p-header #lastmod-and-views #p-views #ca-edit a,
+#p-header #lastmod-and-views #p-views #ca-ve-edit a {
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+}
+
+#p-header #lastmod-and-views #p-views #ca-ve-edit a:hover,
+#p-header #lastmod-and-views #p-views #ca-edit a:hover {
+  color: #ffffff;
+  border: none;
+}
+
+#p-header #lastmod-and-views #p-views #ca-ve-edit a:focus,
+#p-header #lastmod-and-views #p-views #ca-edit a:focus {
+  border: none;
+}
+
+#p-header #lastmod-and-views #p-views #ca-edit a:before,
+#p-header #lastmod-and-views #p-views #ca-ve-edit a:before {
+  content: '';
+  background-image: url(https://upload.wikimedia.org/wikipedia/commons/8/8a/OOjs_UI_icon_edit-ltr.svg);
+  background-size: 1em;
+  filter: invert(1);
+  padding-right: 0.3em;
+  background-repeat: no-repeat;
+  vertical-align: middle;
+  height: 1em;
+  width: 1em;
+}
