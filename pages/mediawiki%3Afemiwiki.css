@@ -87,20 +87,6 @@ https://github.com/femiwiki/FemiwikiSkin/issues/246
   }
 
   /*
-  개선된 최근바뀜 필터 이상한 문제 우회
-  https://github.com/femiwiki/skin/issues/37
-  */
-  .mw-rcfilters-ui-menuSelectWidget,
-  .mw-rcfilters-ui-menuSelectWidget-body,
-  .mw-rcfilters-ui-filterMenuHeaderWidget-header-title {
-    max-width: 90vw !important;
-  }
-  .mw-rcfilters-ui-itemMenuOptionWidget-excludeLabel,
-  .mw-rcfilters-ui-itemMenuOptionWidget-highlightButton {
-    width: auto;
-  }
-
-  /*
   팝업이 모바일에서 화면 밖으로 나가는 문제 우회
   */
   .mwe-popups {
