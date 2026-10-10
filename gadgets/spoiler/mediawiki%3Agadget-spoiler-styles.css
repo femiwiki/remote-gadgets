@@ -6,9 +6,8 @@
 .spoiler-notice-text.spoiler-show > a,
 .spoiler-text .thumbcaption,
 html.ve-active .spoiler-text {
-  background-color: #dae8b2;
-  border-radius: 0.4em;
-  padding-left: 0.3em;
+  text-decoration: underline dotted #746ccb;
+  text-underline-offset: 0.2em;
 }
 
 html.ve-active span.spoiler-text {
