@@ -42,3 +42,9 @@ CirrusSearch가 없으면 작동하지 않는 고급 검색 옵션 숨김
 .mw-advancedSearch-expandablePane-options {
   display: none;
 }
+
+/* 접을 수 있는 문단을 모든 이름공간에서 껐으므로 "모든 문단 확장" 설정을 숨김.
+   MobileFrontend가 이 설정을 접기가 켜졌을 때만 보여주면 제거 (femiwiki/femiwiki#329) */
+#skin-client-prefs-mf-expand-sections {
+  display: none;
+}
