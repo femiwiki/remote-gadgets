@@ -3,7 +3,7 @@
     "rights": [],
     "default": false,
     "hidden": true,
-    "skins": ["vector"],
+    "skins": ["vector", "vector-2022"],
     "targets": ["desktop", "mobile"],
     "category": ""
   },
