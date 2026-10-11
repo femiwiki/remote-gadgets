@@ -29,3 +29,18 @@
   width: 100%;
   height: 10rem;
 }
+
+/* 페미위키 스킨의 메뉴 아이콘과 같은 Codex 아이콘 */
+.fw-portals #p-mute a::before {
+  content: '';
+  flex-shrink: 0;
+  width: 1.5em;
+  height: 1.5em;
+  margin: 0 8px 0 calc(-1.5em - 8px);
+  background-color: currentColor;
+  opacity: 0.65;
+  -webkit-mask: url(/load.php?modules=oojs-ui.styles.icons-media&image=volumeOff&format=original&lang=ko&skin=femiwiki)
+    center / contain no-repeat;
+  mask: url(/load.php?modules=oojs-ui.styles.icons-media&image=volumeOff&format=original&lang=ko&skin=femiwiki)
+    center / contain no-repeat;
+}
