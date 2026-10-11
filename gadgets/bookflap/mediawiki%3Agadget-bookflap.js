@@ -219,7 +219,6 @@
             .toggleClass('book-flap-tab-selected', selected)
             .attr('aria-selected', String(selected));
         });
-        if (name === 'flap') markUsed();
       };
       $.each(
         [
@@ -242,19 +241,6 @@
       $toggle.text('목차·책날개');
     }
     $toc.find('.fw-toc-panel').append($pane);
-
-    var $badge = $();
-    if (!$.cookie('femiwiki-bookflap-used')) {
-      $badge = $('<span>터치!</span>')
-        .addClass('book-flap-badge')
-        .appendTo($toggle);
-    }
-    $toggle.on('click', markUsed);
-
-    function markUsed() {
-      $.cookie('femiwiki-bookflap-used', 1, { expires: 30 });
-      $badge.remove();
-    }
 
     // The right column takes 책날개 once it is wide enough for it.
     var page = document.querySelector('.fw-page');
