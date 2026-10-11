@@ -182,3 +182,116 @@ Otherwise:
     display: none;
   }
 }
+
+/* FemiwikiSkin 6 (FemiwikiSkin#348): 책날개 in the right column or a ToC tab.
+   Colours are the skin's primary2, primary4, primary5, accent and accent text. */
+body.book-flap-outside .book-flap-wrapper {
+  display: none !important;
+}
+
+.book-flap-aside {
+  display: none;
+}
+
+.book-flap-aside-mode #fw-page-aside {
+  /* Level with the title */
+  padding-top: 2.3rem;
+}
+
+.book-flap-aside-mode .book-flap-aside {
+  display: block;
+  position: sticky;
+  top: 1rem;
+  box-sizing: border-box;
+  width: 12rem;
+  max-height: calc(100vh - 2rem);
+  margin-left: 1rem;
+  overflow-y: auto;
+}
+
+.book-flap-aside-mode #fw-toc.book-flap-only {
+  display: none !important;
+}
+
+.book-flap-aside .book-flap-side,
+.book-flap-pane .book-flap-side {
+  max-width: none;
+  margin: 0 0 1.6rem;
+  padding: 0;
+  background-color: transparent;
+}
+
+.book-flap-aside .book-flap-title,
+.book-flap-pane .book-flap-title {
+  margin-bottom: 0.4rem;
+  padding: 0.3rem 0;
+  border-bottom: 2px solid #736ac9;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.book-flap-aside .book-flap-title a,
+.book-flap-pane .book-flap-title a {
+  color: #202122;
+}
+
+.book-flap-aside .book-flap-body,
+.book-flap-pane .book-flap-body {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.book-flap-tabs {
+  display: none;
+}
+
+.book-flap-pane {
+  display: none;
+}
+
+body:not(.book-flap-aside-mode) .book-flap-tab-flap .book-flap-pane,
+.book-flap-only .book-flap-pane {
+  display: block;
+}
+
+body:not(.book-flap-aside-mode)
+  .book-flap-tab-flap
+  .fw-toc-panel
+  > .fw-toc-list {
+  display: none;
+}
+
+body:not(.book-flap-aside-mode) .book-flap-has-tabs .fw-toc-header {
+  border-bottom: 1px solid #b9b5d9;
+}
+
+/* The tabs name the panel, so the heading stays for screen readers only. */
+body:not(.book-flap-aside-mode) .book-flap-has-tabs .fw-toc-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+body:not(.book-flap-aside-mode) .book-flap-tabs {
+  display: flex;
+  gap: 1em;
+}
+
+.book-flap-tab {
+  margin-bottom: -1px;
+  padding: 0.3rem 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font: inherit;
+  color: #5144a3;
+  cursor: pointer;
+}
+
+.book-flap-tab-selected {
+  border-bottom-color: #736ac9;
+  color: #202122;
+  font-weight: bold;
+}

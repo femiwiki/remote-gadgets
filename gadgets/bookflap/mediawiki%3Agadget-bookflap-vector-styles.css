@@ -8,6 +8,8 @@
 }
 
 .skin-vector .book-flap-wrapper {
+  /* 틀:책날개/styles.css hides it on screens wider than 1393px */
+  display: table !important;
   float: right;
   clear: right;
   width: 250px !important;
