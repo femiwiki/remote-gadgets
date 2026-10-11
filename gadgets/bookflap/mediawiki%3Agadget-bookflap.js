@@ -140,7 +140,7 @@
 
   /**
    * Wide screens show 책날개 in the right column. Where that column is too
-   * narrow, it is a "책날개" tab next to the ToC, in the column or the drawer.
+   * narrow, it is a "둘러보기" tab next to the ToC, in the column or the drawer.
    */
   function outsideContent() {
     var $body = $('body').addClass('book-flap-outside');
@@ -189,7 +189,7 @@
                   $('<h2></h2>')
                     .attr('id', 'fw-toc-heading')
                     .addClass('fw-toc-heading')
-                    .text('책날개'),
+                    .text('둘러보기'),
                   $('<label></label>')
                     .addClass('fw-toc-close fw-button')
                     .attr({ for: 'fw-toc-checkbox', title: '닫기' })
@@ -205,7 +205,7 @@
           tabindex: '0',
         })
         .addClass('mw-checkbox-hack-button fw-button')
-        .text('책날개')
+        .text('둘러보기')
         .prependTo($('#p-title-buttons .right-buttons'));
     } else {
       var $tabs = $('<div></div>')
@@ -223,7 +223,7 @@
       $.each(
         [
           ['toc', '목차'],
-          ['flap', '책날개'],
+          ['flap', '둘러보기'],
         ],
         function (_, tab) {
           $('<button></button>')
