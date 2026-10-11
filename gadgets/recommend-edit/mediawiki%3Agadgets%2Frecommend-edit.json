@@ -12,7 +12,7 @@
     "dependencies": [
       "oojs-ui-windows",
       "oojs-ui.styles.icons-editing-core",
-      "ext.growthExperiments.HelpPanelCta.styles"
+      "ext.gadget.floating-buttons"
     ],
     "messages": [
       "tooltip-ca-edit",

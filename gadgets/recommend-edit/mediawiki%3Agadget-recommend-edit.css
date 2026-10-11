@@ -1,17 +1,52 @@
 .fw-edit {
   position: fixed;
-  bottom: 2rem;
-  right: 1rem;
+  bottom: var(--fw-floating-button-inset);
+  right: var(--fw-floating-button-inset);
   border: 0;
   padding: 0;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   border-radius: 50%;
-  height: 3rem;
-  width: 3rem;
+  height: var(--fw-floating-button-size);
+  width: var(--fw-floating-button-size);
   z-index: 100;
-  animation: help-panel-slidein 800ms;
   background-color: #bad75b;
   cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(0.5rem);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0s 0.2s;
+}
+
+/* Left of the Discord button in the corner */
+.fw-discord-widget .fw-edit {
+  right: calc(
+    var(--fw-floating-button-inset) + var(--fw-floating-button-size) +
+      var(--fw-floating-button-gap)
+  );
+}
+
+.fw-floating-buttons-visible .fw-edit {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.fw-edit:active {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fw-edit,
+  .fw-floating-buttons-visible .fw-edit {
+    transform: none;
+    transition: none;
+  }
 }
 
 .fw-edit .oo-ui-icon-edit {
