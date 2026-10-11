@@ -1,0 +1,12 @@
+:root {
+  --fw-floating-button-size: 3rem;
+  --fw-floating-button-gap: 0.75rem;
+  --fw-floating-button-inset: 1rem;
+}
+
+/* Room below the footer, so the buttons cover no text at the end */
+.fw-floating-buttons body {
+  padding-bottom: calc(
+    var(--fw-floating-button-size) + 2 * var(--fw-floating-button-inset)
+  );
+}
