@@ -10,3 +10,15 @@
     var(--fw-floating-button-size) + 2 * var(--fw-floating-button-inset)
   );
 }
+
+/* Growth's help panel button, above the Discord button */
+.fw-discord-widget
+  body
+  > .mw-ge-help-panel-widget-overlay
+  .mw-ge-help-panel-cta {
+  right: var(--fw-floating-button-inset);
+  bottom: calc(
+    var(--fw-floating-button-inset) + var(--fw-floating-button-size) +
+      var(--fw-floating-button-gap)
+  );
+}
