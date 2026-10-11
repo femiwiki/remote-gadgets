@@ -238,7 +238,7 @@
       );
       $toc.addClass('book-flap-has-tabs').find('.fw-toc-header').prepend($tabs);
       select('toc');
-      $toggle.text('목차·책날개');
+      $toggle.text('목차·둘러보기');
     }
     $toc.find('.fw-toc-panel').append($pane);
 
