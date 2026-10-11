@@ -10,7 +10,7 @@
   "module": {
     "pages": ["discord-widget.js"],
     "peers": [],
-    "dependencies": [],
+    "dependencies": ["ext.gadget.floating-buttons"],
     "messages": [],
     "type": "general"
   }
