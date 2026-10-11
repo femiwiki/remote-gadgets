@@ -1,16 +1,16 @@
 {
   "settings": {
     "rights": [],
-    "default": true,
-    "hidden": false,
+    "default": false,
+    "hidden": true,
     "skins": ["femiwiki"],
     "targets": ["desktop", "mobile"],
     "category": "view"
   },
   "module": {
-    "pages": ["discord-widget.js"],
+    "pages": ["floating-buttons.js", "floating-buttons.css"],
     "peers": [],
-    "dependencies": ["ext.gadget.floating-buttons"],
+    "dependencies": [],
     "messages": [],
     "type": "general"
   }

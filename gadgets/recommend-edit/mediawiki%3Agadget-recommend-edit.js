@@ -18,7 +18,7 @@
   element.title = mw.msg('tooltip-ca-edit');
   element.setAttribute('aria-label', mw.msg('tooltip-ca-edit'));
   const icon = document.createElement('span');
-  icon.classList.add('oo-ui-icon-edit', 'oo-ui-image-invert');
+  icon.classList.add('oo-ui-icon-edit');
   element.append(icon);
   element.addEventListener('click', (e) => {
     OO.ui
@@ -47,5 +47,6 @@
 
   const content = document.querySelector('#content');
   content.append(element);
+  document.documentElement.classList.add('fw-floating-buttons');
 })();
 // </nowiki>
