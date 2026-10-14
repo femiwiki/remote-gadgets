@@ -11,15 +11,19 @@
 }
 
 .mw-gallery-traditional.scroll-right {
-  box-shadow: -17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
 }
 .mw-gallery-traditional.scroll-left {
-  box-shadow: 17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
+  mask-image: linear-gradient(to left, #000 calc(100% - 2rem), transparent);
 }
 .mw-gallery-traditional.scroll-left.scroll-right {
-  box-shadow:
-    -17px 0 16px -16px rgba(0, 0, 0, 0.4) inset,
-    17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 2rem,
+    #000 calc(100% - 2rem),
+    transparent
+  );
 }
 
 .mw-gallery-traditional .gallerytext > p {
