@@ -5,7 +5,7 @@
   var target;
 
   function main() {
-    $(
+    var $link = $(
       mw.util.addPortletLink(
         'p-cactions',
         '#',
@@ -13,7 +13,17 @@
         'p-createRedirect',
         '이 문서로 오는 넘겨주기 문서를 만듭니다.'
       )
-    ).on('click', function (e) {
+    );
+    if (mw.config.get('skin') === 'femiwiki') {
+      // The other items of the page menu have an icon.
+      $link
+        .find('a')
+        .prepend(
+          $('<span>').addClass('fw-icon').attr('aria-hidden', 'true'),
+          ' '
+        );
+    }
+    $link.on('click', function (e) {
       e.preventDefault();
       target = mw.config.get('wgPageName').replace(/_/g, ' ');
       mw.loader.using(['oojs-ui-core']).done(function () {
