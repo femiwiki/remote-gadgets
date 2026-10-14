@@ -6,7 +6,7 @@
 .spoiler-notice-text.spoiler-show > a,
 .spoiler-text .thumbcaption,
 html.ve-active .spoiler-text {
-  text-decoration: underline dotted #746ccb;
+  text-decoration: underline dotted var(--color-primary4, #736ac9);
   text-underline-offset: 0.2em;
 }
 
