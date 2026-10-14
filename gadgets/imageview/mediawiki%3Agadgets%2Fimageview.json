@@ -10,8 +10,8 @@
   "module": {
     "pages": ["imageview.js", "imageview.css"],
     "peers": [],
-    "dependencies": [],
-    "messages": [],
+    "dependencies": ["mediawiki.api", "mediawiki.util", "mediawiki.Title"],
+    "messages": ["cdx-dialog-close-button-label"],
     "type": "general"
   }
 }
