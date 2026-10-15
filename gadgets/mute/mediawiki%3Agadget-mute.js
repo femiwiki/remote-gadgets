@@ -56,9 +56,10 @@
 
     // Show trigger warning
     $('#mw-content-text').prepend(
-      '<div class="notice warning">' +
-        '가림 단어가 포함된 문서입니다. 이 문서의 제목 또는 본문에 한 개 이상의 가림 단어가 있습니다.' +
-        '</div>'
+      mw.util.messageBox(
+        '가림 단어가 포함된 문서입니다. 이 문서의 제목 또는 본문에 한 개 이상의 가림 단어가 있습니다.',
+        'warning'
+      )
     );
   }
 

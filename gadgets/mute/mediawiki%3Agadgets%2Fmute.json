@@ -9,7 +9,7 @@
   "module": {
     "pages": ["mute.js", "mute.css"],
     "peers": [],
-    "dependencies": [],
+    "dependencies": ["mediawiki.util", "mediawiki.codex.messagebox.styles"],
     "messages": [],
     "type": "general"
   }
