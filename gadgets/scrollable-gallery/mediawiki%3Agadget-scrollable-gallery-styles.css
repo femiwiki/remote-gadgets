@@ -35,7 +35,7 @@
 }
 
 @media screen and (max-width: 480px) {
-  .mw-parser-output ul.mw-gallery-traditional {
+  .mw-parser-output ul.gallery.mw-gallery-traditional {
     box-sizing: border-box;
     width: calc(100% + 2.6rem);
     margin-left: -1.3rem;
@@ -53,7 +53,7 @@
 }
 
 @media screen and (max-width: 360px) {
-  .mw-parser-output ul.mw-gallery-traditional {
+  .mw-parser-output ul.gallery.mw-gallery-traditional {
     width: calc(100% + 1.7rem);
     margin-left: -0.85rem;
   }
