@@ -1,33 +1,62 @@
-#Imageview-overlay {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: #0007;
+.imageview-open {
+  overflow: hidden;
 }
 
-#Imageview-overlay .image {
+.imageview {
   position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
+  inset: 0;
+  z-index: 450;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 0;
+  /* 다른 SNS처럼 밝은 테마에서도 어두운 바탕 */
+  background-color: rgba(0, 0, 0, 0.9);
+  color-scheme: dark;
+  outline: 0;
+}
+
+@media (min-width: 640px) {
+  .imageview {
+    padding: 56px;
+  }
+}
+
+.imageview__image {
   max-width: 100%;
   max-height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.1s;
 }
 
-#Imageview-overlay .loading-spinner {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  max-width: 20em;
-  max-height: 20em;
-  background-color: white;
-  border-radius: 5em;
-  padding: 0.6em;
+.imageview__image--loaded {
+  opacity: 1;
+}
+
+.imageview__progress {
+  position: absolute;
+}
+
+.imageview .imageview__close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  color: var(--color-inverted-fixed, #fff);
+}
+
+.imageview .imageview__close:hover,
+.imageview .imageview__close:active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--color-inverted-fixed, #fff);
+}
+
+.imageview__close-icon {
+  width: 20px;
+  height: 20px;
+  background-color: currentColor;
+  -webkit-mask: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=close&format=original&lang=ko&skin=femiwiki)
+    center / contain no-repeat;
+  mask: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=close&format=original&lang=ko&skin=femiwiki)
+    center / contain no-repeat;
 }
