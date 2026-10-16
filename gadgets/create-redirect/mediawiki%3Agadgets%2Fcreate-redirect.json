@@ -8,7 +8,7 @@
     "category": "edit"
   },
   "module": {
-    "pages": ["create-redirect.js"],
+    "pages": ["create-redirect.js", "create-redirect.css"],
     "peers": [],
     "dependencies": ["mediawiki.api"],
     "messages": [],
