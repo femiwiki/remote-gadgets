@@ -20,7 +20,7 @@ jobs:
 
       - run: taplo lint
 
-  prettier:
+  filenames:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -30,12 +30,14 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-
-      - run: npm ci
-
-      # prettier --check, then the page and module file name checks
-      - run: npm run lint
+      - name: Page and module file names match their wiki titles
+        run: |
+          # Hangul by code point: the runner's locale cannot compile a 가-힣 range
+          wrong=$(
+            git -c core.quotepath=off ls-files pages gadgets | grep -vE '/([a-z._-]|%3A|%2F)+$' || true
+            git -c core.quotepath=off ls-files lua | grep -vP '(*UTF)/[A-Z\x{AC00}-\x{D7A3}]([A-Za-z0-9\x{AC00}-\x{D7A3}_-]|%3A|%20|%2F)+$' || true
+          )
+          if [ -n "$wrong" ]; then echo "$wrong"; exit 1; fi
 
   ruff:
     runs-on: ubuntu-latest

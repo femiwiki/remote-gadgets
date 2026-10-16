@@ -1,17 +1,17 @@
 {
-  "settings": {
-    "rights": ["edit"],
-    "default": false,
-    "hidden": false,
-    "skins": [],
-    "targets": ["desktop", "mobile"],
-    "category": "edit"
-  },
-  "module": {
-    "pages": ["create-redirect.js", "create-redirect.css"],
-    "peers": [],
-    "dependencies": ["mediawiki.api"],
-    "messages": [],
-    "type": "general"
-  }
+	"settings": {
+		"rights": ["edit"],
+		"default": false,
+		"hidden": false,
+		"skins": [],
+		"targets": ["desktop", "mobile"],
+		"category": "edit"
+	},
+	"module": {
+		"pages": ["create-redirect.js", "create-redirect.css"],
+		"peers": [],
+		"dependencies": ["mediawiki.api"],
+		"messages": [],
+		"type": "general"
+	}
 }

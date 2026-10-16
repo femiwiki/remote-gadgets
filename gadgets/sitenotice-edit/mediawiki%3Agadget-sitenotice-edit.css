@@ -1,31 +1,31 @@
 .mw-dismissable-notice-close .sitenotice-edit--buttons {
-  text-align: right;
+	text-align: right;
 }
 
 #siteNotice .sitenotice-edit--buttons {
-  float: right;
-  clear: right;
+	float: right;
+	clear: right;
 }
 
 body > .sitenotice-edit--buttons {
-  margin-top: 1em;
-  text-align: center;
+	margin-top: 1em;
+	text-align: center;
 }
 
 body.action-edit .sitenotice-edit--buttons,
 html.ve-active .sitenotice-edit--buttons,
 html.ve-activated .sitenotice-edit--buttons,
 html.ve-deactivating .sitenotice-edit--buttons {
-  display: none;
+	display: none;
 }
 
 .sitenotice-edit--button {
-  width: 1.4em;
-  height: 1.4em;
-  display: inline-block;
-  background-repeat: no-repeat;
-  background-size: 100%;
-  /* https://codepen.io/sosuke/pen/Pjoqqp */
-  filter: invert(87%) sepia(17%) saturate(7491%) hue-rotate(194deg)
-    brightness(108%) contrast(98%);
+	width: 1.4em;
+	height: 1.4em;
+	display: inline-block;
+	background-repeat: no-repeat;
+	background-size: 100%;
+	/* https://codepen.io/sosuke/pen/Pjoqqp */
+	filter: invert(87%) sepia(17%) saturate(7491%) hue-rotate(194deg)
+		brightness(108%) contrast(98%);
 }

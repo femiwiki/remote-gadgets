@@ -1,13 +1,13 @@
 // <nowiki>
-(function () {
-  'use strict';
+(() => {
+	"use strict";
 
-  var today = new Date();
+	var today = new Date();
 
-  if (today.getMonth() != 2 || today.getDate() != 8) {
-    return;
-  }
+	if (today.getMonth() !== 2 || today.getDate() !== 8) {
+		return;
+	}
 
-  document.getElementById('searchInput').placeholder = '🥖🌹';
+	document.getElementById("searchInput").placeholder = "🥖🌹";
 })();
 // </nowiki>

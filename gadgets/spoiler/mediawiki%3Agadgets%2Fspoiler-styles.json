@@ -1,16 +1,16 @@
 {
-  "settings": {
-    "rights": [],
-    "default": false,
-    "hidden": true,
-    "skins": [],
-    "category": "view"
-  },
-  "module": {
-    "pages": ["spoiler-styles.css"],
-    "peers": [],
-    "dependencies": [],
-    "messages": [],
-    "type": "styles"
-  }
+	"settings": {
+		"rights": [],
+		"default": false,
+		"hidden": true,
+		"skins": [],
+		"category": "view"
+	},
+	"module": {
+		"pages": ["spoiler-styles.css"],
+		"peers": [],
+		"dependencies": [],
+		"messages": [],
+		"type": "styles"
+	}
 }

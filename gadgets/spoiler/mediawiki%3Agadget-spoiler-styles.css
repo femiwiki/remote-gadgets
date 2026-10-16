@@ -1,19 +1,19 @@
 .spoiler-text {
-  display: none;
+	display: none;
 }
 
 .spoiler-text,
 .spoiler-notice-text.spoiler-show > a,
 .spoiler-text .thumbcaption,
 html.ve-active .spoiler-text {
-  text-decoration: underline dotted var(--color-primary4, #736ac9);
-  text-underline-offset: 0.2em;
+	text-decoration: underline dotted var(--color-primary4, #736ac9);
+	text-underline-offset: 0.2em;
 }
 
 html.ve-active span.spoiler-text {
-  display: inline;
+	display: inline;
 }
 
 html.ve-active div.spoiler-text {
-  display: block;
+	display: block;
 }

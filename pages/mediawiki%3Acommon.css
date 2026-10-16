@@ -9,12 +9,12 @@
 */
 #pt-anontalk,
 #pt-anoncontribs {
-  display: none;
+	display: none;
 }
 
 /* <languages />의 결과물 가리기(스킨의 언어 링크와 중복되어 필요가 없음)  */
 .mw-pt-languages {
-  display: none;
+	display: none;
 }
 
 /*
@@ -22,29 +22,29 @@
 See https://github.com/femiwiki/docker-mediawiki/issues/323
 */
 .wb-langlinks-link {
-  display: none;
+	display: none;
 }
 
 /*
 사용자 홈페이지 영향 모듈의 https://pageviews.toolforge.org/ 로 향하는 링크 비활성화
 */
 #mw-content-text
-  .growthexperiments-homepage-module-impact
-  .impact-row
-  .pageviews:not(.empty-pageview) {
-  pointer-events: none;
-  color: #54595d;
+	.growthexperiments-homepage-module-impact
+	.impact-row
+	.pageviews:not(.empty-pageview) {
+	pointer-events: none;
+	color: #54595d;
 }
 
 /*
 CirrusSearch가 없으면 작동하지 않는 고급 검색 옵션 숨김
 */
 .mw-advancedSearch-expandablePane-options {
-  display: none;
+	display: none;
 }
 
 /* 접을 수 있는 문단을 모든 이름공간에서 껐으므로 "모든 문단 확장" 설정을 숨김.
    MobileFrontend가 이 설정을 접기가 켜졌을 때만 보여주면 제거 (femiwiki/femiwiki#329) */
 #skin-client-prefs-mf-expand-sections {
-  display: none;
+	display: none;
 }

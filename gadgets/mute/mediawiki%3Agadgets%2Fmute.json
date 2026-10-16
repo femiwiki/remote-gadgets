@@ -1,16 +1,16 @@
 {
-  "settings": {
-    "rights": [],
-    "default": true,
-    "hidden": false,
-    "skins": [],
-    "category": "view"
-  },
-  "module": {
-    "pages": ["mute.js", "mute.css"],
-    "peers": [],
-    "dependencies": ["mediawiki.util", "mediawiki.codex.messagebox.styles"],
-    "messages": [],
-    "type": "general"
-  }
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": false,
+		"skins": [],
+		"category": "view"
+	},
+	"module": {
+		"pages": ["mute.js", "mute.css"],
+		"peers": [],
+		"dependencies": ["mediawiki.util", "mediawiki.codex.messagebox.styles"],
+		"messages": [],
+		"type": "general"
+	}
 }

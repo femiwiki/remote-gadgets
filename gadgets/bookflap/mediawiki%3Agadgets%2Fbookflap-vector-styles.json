@@ -1,17 +1,17 @@
 {
-  "settings": {
-    "rights": [],
-    "default": false,
-    "hidden": true,
-    "skins": ["vector", "vector-2022"],
-    "targets": ["desktop", "mobile"],
-    "category": ""
-  },
-  "module": {
-    "pages": ["bookflap-vector-styles.css"],
-    "peers": [],
-    "dependencies": [],
-    "messages": [],
-    "type": "styles"
-  }
+	"settings": {
+		"rights": [],
+		"default": false,
+		"hidden": true,
+		"skins": ["vector", "vector-2022"],
+		"targets": ["desktop", "mobile"],
+		"category": ""
+	},
+	"module": {
+		"pages": ["bookflap-vector-styles.css"],
+		"peers": [],
+		"dependencies": [],
+		"messages": [],
+		"type": "styles"
+	}
 }

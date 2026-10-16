@@ -1,0 +1,21 @@
+{
+	"files": {
+		"includes": ["**", "!scribunto.json", "!scribunto.lock"]
+	},
+	"linter": {
+		"rules": {
+			// Wiki pages are scripts, and ResourceLoader only accepts ES2017
+			"complexity": {
+				"noImportantStyles": "off",
+				"useOptionalChain": "off"
+			},
+			// Site CSS overrides the skin, so the order and !important are deliberate
+			"style": {
+				"noDescendingSpecificity": "off"
+			},
+			"suspicious": {
+				"noRedundantUseStrict": "off"
+			}
+		}
+	}
+}

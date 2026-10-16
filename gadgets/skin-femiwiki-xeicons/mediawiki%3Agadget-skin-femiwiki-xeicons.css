@@ -15,83 +15,83 @@
 .fw-portals #n-최근-토론 a::before,
 .fw-portals #n-공지사항 a::before,
 .fw-portals #n-개선-요청 a::before {
-  content: '';
-  flex-shrink: 0;
-  width: 1.5em;
-  height: 1.5em;
-  margin: 0 8px 0 calc(-1.5em - 8px);
-  background-color: currentColor;
-  opacity: 0.65;
-  -webkit-mask-position: center;
-  mask-position: center;
-  -webkit-mask-size: contain;
-  mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
+	content: "";
+	flex-shrink: 0;
+	width: 1.5em;
+	height: 1.5em;
+	margin: 0 8px 0 calc(-1.5em - 8px);
+	background-color: currentColor;
+	opacity: 0.65;
+	-webkit-mask-position: center;
+	mask-position: center;
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
 }
 
 /* 특수 문서 */
 #n-upload a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=upload&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=upload&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=upload&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=upload&format=original&lang=ko&skin=femiwiki);
 }
 #n-facetedcategories a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=funnel&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=funnel&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=funnel&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=funnel&format=original&lang=ko&skin=femiwiki);
 }
 #n-specialpages a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=specialPages&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=specialPages&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=specialPages&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=specialPages&format=original&lang=ko&skin=femiwiki);
 }
 
 /* 확장 기능 */
 #t-sanctions a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=flag&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=flag&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=flag&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=flag&format=original&lang=ko&skin=femiwiki);
 }
 
 /* 페미위키 메뉴 */
 #n-도움말 a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=help&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=help&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=help&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=help&format=original&lang=ko&skin=femiwiki);
 }
 #n-질문게시판 a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=helpNotice&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=helpNotice&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=helpNotice&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=helpNotice&format=original&lang=ko&skin=femiwiki);
 }
 #n-자주-묻는-질문 a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-editing-citation&image=book&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-editing-citation&image=book&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-editing-citation&image=book&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-editing-citation&image=book&format=original&lang=ko&skin=femiwiki);
 }
 #n-실시간-채팅방 a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=speechBubble&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=speechBubble&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=speechBubble&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=speechBubble&format=original&lang=ko&skin=femiwiki);
 }
 #n-가입인사게시판 a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=hand&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=hand&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=hand&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=hand&format=original&lang=ko&skin=femiwiki);
 }
 #n-자유게시판 a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=speechBubbles&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=speechBubbles&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=speechBubbles&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=speechBubbles&format=original&lang=ko&skin=femiwiki);
 }
 #n-뉴스게시판 a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-editing-citation&image=newspaper&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-editing-citation&image=newspaper&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-editing-citation&image=newspaper&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-editing-citation&image=newspaper&format=original&lang=ko&skin=femiwiki);
 }
 #n-제재안게시판 a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=flag&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=flag&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=flag&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=flag&format=original&lang=ko&skin=femiwiki);
 }
 #n-최근-토론 a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=ongoingConversation&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=ongoingConversation&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=ongoingConversation&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-moderation&image=ongoingConversation&format=original&lang=ko&skin=femiwiki);
 }
 #n-공지사항 a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=notice&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=notice&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=notice&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-alerts&image=notice&format=original&lang=ko&skin=femiwiki);
 }
 #n-개선-요청 a::before {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=lightbulb&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=lightbulb&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=lightbulb&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=lightbulb&format=original&lang=ko&skin=femiwiki);
 }

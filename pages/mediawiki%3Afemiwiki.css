@@ -8,7 +8,7 @@
 [[주제:Uty456jw505lp6ym]]
 */
 #pt-betafeatures {
-  display: none;
+	display: none;
 }
 
 /*
@@ -16,25 +16,25 @@
 */
 #share-facebook > a,
 #share-twitter > a {
-  background-position: center left;
-  background-repeat: no-repeat;
-  background-size: 24px 24px;
-  padding-left: 28px;
+	background-position: center left;
+	background-repeat: no-repeat;
+	background-size: 24px 24px;
+	padding-left: 28px;
 }
 .mw-fw-ui-shareDialog .mw-fw-ui-twitterButton .oo-ui-iconElement-icon {
-  background-image: url(https://femiwiki-uploaded-files.s3.amazonaws.com/b/bb/Twitter_Social_Icon_Rounded_Square_Color.svg);
+	background-image: url(https://femiwiki-uploaded-files.s3.amazonaws.com/b/bb/Twitter_Social_Icon_Rounded_Square_Color.svg);
 }
 .mw-fw-ui-shareDialog .mw-fw-ui-facebookButton .oo-ui-iconElement-icon {
-  background-image: url(https://upload.wikimedia.org/wikipedia/commons/c/c2/F_icon.svg);
+	background-image: url(https://upload.wikimedia.org/wikipedia/commons/c/c2/F_icon.svg);
 }
 
 /*
 뮤트 메뉴의 버튼이 잘 안 보이는 문제 수정
 [[주제:Ucejtawk4j2jmvx3]]
 */
-div.dialog input[type='reset'] {
-  background-color: lightgray;
-  color: #252525;
+div.dialog input[type="reset"] {
+	background-color: lightgray;
+	color: #252525;
 }
 
 /*
@@ -43,18 +43,18 @@ div.dialog input[type='reset'] {
 */
 .mw-diff-tool .jquery-confirmable-interface,
 #pagehistory .jquery-confirmable-interface {
-  display: inline;
-  white-space: normal;
+	display: inline;
+	white-space: normal;
 }
 
 /*
 카테고리 트리 우측의 LTR 문자가 종종 실수로 복사되는 일을 막기 위해 띄움
 */
 .CategoryTreeLabel {
-  margin-right: 0.5em;
+	margin-right: 0.5em;
 }
 
 /**/
 #content .embedvideowrap {
-  height: auto !important;
+	height: auto !important;
 }

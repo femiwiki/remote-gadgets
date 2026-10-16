@@ -1,17 +1,17 @@
 {
-  "settings": {
-    "rights": [],
-    "default": true,
-    "hidden": false,
-    "skins": ["femiwiki"],
-    "targets": ["desktop", "mobile"],
-    "category": "view"
-  },
-  "module": {
-    "pages": ["imageview.js", "imageview.css"],
-    "peers": [],
-    "dependencies": ["mediawiki.api", "mediawiki.util", "mediawiki.Title"],
-    "messages": ["cdx-dialog-close-button-label"],
-    "type": "general"
-  }
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": false,
+		"skins": ["femiwiki"],
+		"targets": ["desktop", "mobile"],
+		"category": "view"
+	},
+	"module": {
+		"pages": ["imageview.js", "imageview.css"],
+		"peers": [],
+		"dependencies": ["mediawiki.api", "mediawiki.util", "mediawiki.Title"],
+		"messages": ["cdx-dialog-close-button-label"],
+		"type": "general"
+	}
 }
