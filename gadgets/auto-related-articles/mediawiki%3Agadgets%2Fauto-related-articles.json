@@ -1,18 +1,18 @@
 {
-  "settings": {
-    "rights": [],
-    "default": true,
-    "hidden": false,
-    "skins": [],
-    "category": "view",
-    "actions": ["view"],
-    "namespaces": [0]
-  },
-  "module": {
-    "pages": ["auto-related-articles.js"],
-    "peers": [],
-    "dependencies": ["mediawiki.api"],
-    "messages": [],
-    "type": "general"
-  }
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": false,
+		"skins": [],
+		"category": "view",
+		"actions": ["view"],
+		"namespaces": [0]
+	},
+	"module": {
+		"pages": ["auto-related-articles.js"],
+		"peers": [],
+		"dependencies": ["mediawiki.api"],
+		"messages": [],
+		"type": "general"
+	}
 }

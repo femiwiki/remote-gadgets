@@ -3,16 +3,16 @@
 See https://github.com/femiwiki/docker-mediawiki/issues/323
 */
 .wb-langlinks-add {
-  display: none;
+	display: none;
 }
 
 /*
 사용자 홈페이지 영향 모듈의 https://pageviews.toolforge.org/ 로 향하는 링크 비활성화
 */
 #mw-content-text
-  .growthexperiments-homepage-module-impact
-  .impact-row
-  .pageviews:not(.empty-pageview) {
-  pointer-events: none;
-  color: #54595d;
+	.growthexperiments-homepage-module-impact
+	.impact-row
+	.pageviews:not(.empty-pageview) {
+	pointer-events: none;
+	color: #54595d;
 }

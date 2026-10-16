@@ -1,24 +1,24 @@
 {
-  "settings": {
-    "rights": [],
-    "default": true,
-    "hidden": true,
-    "skins": ["femiwiki"],
-    "category": "view"
-  },
-  "module": {
-    "pages": ["recommend-edit.js", "recommend-edit.css"],
-    "peers": [],
-    "dependencies": [
-      "oojs-ui-windows",
-      "oojs-ui.styles.icons-editing-core",
-      "ext.gadget.floating-buttons"
-    ],
-    "messages": [
-      "tooltip-ca-edit",
-      "userlogin-joinproject",
-      "ooui-dialog-message-reject"
-    ],
-    "type": "general"
-  }
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": true,
+		"skins": ["femiwiki"],
+		"category": "view"
+	},
+	"module": {
+		"pages": ["recommend-edit.js", "recommend-edit.css"],
+		"peers": [],
+		"dependencies": [
+			"oojs-ui-windows",
+			"oojs-ui.styles.icons-editing-core",
+			"ext.gadget.floating-buttons"
+		],
+		"messages": [
+			"tooltip-ca-edit",
+			"userlogin-joinproject",
+			"ooui-dialog-message-reject"
+		],
+		"type": "general"
+	}
 }

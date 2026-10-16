@@ -1,60 +1,60 @@
 .mw-gallery-traditional {
-  overflow-x: scroll;
-  white-space: nowrap;
-  text-align: center;
-  -webkit-overflow-scrolling: touch;
+	overflow-x: scroll;
+	white-space: nowrap;
+	text-align: center;
+	-webkit-overflow-scrolling: touch;
 }
 
 .mw-parser-output ul.mw-gallery-traditional {
-  padding: 0 1.3rem;
-  margin-bottom: 3.2rem;
+	padding: 0 1.3rem;
+	margin-bottom: 3.2rem;
 }
 
 .mw-gallery-traditional.scroll-right {
-  box-shadow: -17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
+	box-shadow: -17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
 }
 .mw-gallery-traditional.scroll-left {
-  box-shadow: 17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
+	box-shadow: 17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
 }
 .mw-gallery-traditional.scroll-left.scroll-right {
-  box-shadow:
-    -17px 0 16px -16px rgba(0, 0, 0, 0.4) inset,
-    17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
+	box-shadow:
+		-17px 0 16px -16px rgba(0, 0, 0, 0.4) inset,
+		17px 0 16px -16px rgba(0, 0, 0, 0.4) inset;
 }
 
 .mw-gallery-traditional .gallerytext > p {
-  white-space: normal;
-  margin: 0;
-  text-align: center;
+	white-space: normal;
+	margin: 0;
+	text-align: center;
 }
 
 .mw-gallery-traditional li.gallerybox div.thumb {
-  margin: 0;
-  border: none;
-  background-color: initial;
+	margin: 0;
+	border: none;
+	background-color: initial;
 }
 
 @media screen and (max-width: 480px) {
-  .mw-parser-output ul.gallery.mw-gallery-traditional {
-    box-sizing: border-box;
-    width: calc(100% + 2.6rem);
-    margin-left: -1.3rem;
-  }
+	.mw-parser-output ul.gallery.mw-gallery-traditional {
+		box-sizing: border-box;
+		width: calc(100% + 2.6rem);
+		margin-left: -1.3rem;
+	}
 
-  .mw-parser-output ul.mw-gallery-traditional img {
-    max-width: 80vw;
-  }
+	.mw-parser-output ul.mw-gallery-traditional img {
+		max-width: 80vw;
+	}
 
-  .mw-gallery-traditional .gallerybox,
-  .mw-gallery-traditional .gallerybox > div,
-  .mw-gallery-traditional .thumb {
-    max-width: 80vw;
-  }
+	.mw-gallery-traditional .gallerybox,
+	.mw-gallery-traditional .gallerybox > div,
+	.mw-gallery-traditional .thumb {
+		max-width: 80vw;
+	}
 }
 
 @media screen and (max-width: 360px) {
-  .mw-parser-output ul.gallery.mw-gallery-traditional {
-    width: calc(100% + 1.7rem);
-    margin-left: -0.85rem;
-  }
+	.mw-parser-output ul.gallery.mw-gallery-traditional {
+		width: calc(100% + 1.7rem);
+		margin-left: -0.85rem;
+	}
 }

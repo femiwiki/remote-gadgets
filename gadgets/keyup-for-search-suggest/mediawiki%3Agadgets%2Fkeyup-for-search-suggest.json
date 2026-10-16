@@ -1,16 +1,16 @@
 {
-  "settings": {
-    "rights": [],
-    "default": true,
-    "hidden": true,
-    "skins": ["femiwiki"],
-    "category": "search"
-  },
-  "module": {
-    "pages": ["keyup-for-search-suggest.js"],
-    "peers": [],
-    "dependencies": ["mediawiki.searchSuggest"],
-    "messages": [],
-    "type": "general"
-  }
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": true,
+		"skins": ["femiwiki"],
+		"category": "search"
+	},
+	"module": {
+		"pages": ["keyup-for-search-suggest.js"],
+		"peers": [],
+		"dependencies": ["mediawiki.searchSuggest"],
+		"messages": [],
+		"type": "general"
+	}
 }

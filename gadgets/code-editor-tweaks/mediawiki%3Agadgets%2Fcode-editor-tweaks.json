@@ -1,16 +1,16 @@
 {
-  "settings": {
-    "rights": ["edit"],
-    "default": true,
-    "hidden": false,
-    "skins": [],
-    "category": "plugin-configuration"
-  },
-  "module": {
-    "pages": ["code-editor-tweaks.js"],
-    "peers": [],
-    "dependencies": [],
-    "messages": [],
-    "type": "general"
-  }
+	"settings": {
+		"rights": ["edit"],
+		"default": true,
+		"hidden": false,
+		"skins": [],
+		"category": "plugin-configuration"
+	},
+	"module": {
+		"pages": ["code-editor-tweaks.js"],
+		"peers": [],
+		"dependencies": [],
+		"messages": [],
+		"type": "general"
+	}
 }

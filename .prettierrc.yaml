@@ -1,6 +1,0 @@
-singleQuote: true
-trailingComma: es5
-overrides:
-  - files: "gadgets/**/{G,g}adget_definition:*"
-    options:
-      parser: "json"

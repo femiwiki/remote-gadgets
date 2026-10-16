@@ -1,17 +1,17 @@
 {
-  "settings": {
-    "rights": [],
-    "default": false,
-    "hidden": false,
-    "skins": ["femiwiki"],
-    "targets": ["desktop", "mobile"],
-    "category": "view"
-  },
-  "module": {
-    "pages": ["rc-lazy-load.js"],
-    "peers": [],
-    "dependencies": [],
-    "messages": [],
-    "type": "general"
-  }
+	"settings": {
+		"rights": [],
+		"default": false,
+		"hidden": false,
+		"skins": ["femiwiki"],
+		"targets": ["desktop", "mobile"],
+		"category": "view"
+	},
+	"module": {
+		"pages": ["rc-lazy-load.js"],
+		"peers": [],
+		"dependencies": [],
+		"messages": [],
+		"type": "general"
+	}
 }

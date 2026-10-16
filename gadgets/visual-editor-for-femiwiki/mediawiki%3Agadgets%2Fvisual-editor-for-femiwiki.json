@@ -1,16 +1,16 @@
 {
-  "settings": {
-    "rights": [],
-    "default": true,
-    "hidden": false,
-    "skins": [],
-    "category": "edit"
-  },
-  "module": {
-    "pages": ["visual-editor-for-femiwiki.js"],
-    "peers": [],
-    "dependencies": ["ext.visualEditor.desktopArticleTarget.init"],
-    "messages": [],
-    "type": "general"
-  }
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": false,
+		"skins": [],
+		"category": "edit"
+	},
+	"module": {
+		"pages": ["visual-editor-for-femiwiki.js"],
+		"peers": [],
+		"dependencies": ["ext.visualEditor.desktopArticleTarget.init"],
+		"messages": [],
+		"type": "general"
+	}
 }

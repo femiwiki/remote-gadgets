@@ -1,4 +1,4 @@
 #p-createRedirect .fw-icon {
-  -webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=articleRedirect&format=original&lang=ko&skin=femiwiki);
-  mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=articleRedirect&format=original&lang=ko&skin=femiwiki);
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=articleRedirect&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=articleRedirect&format=original&lang=ko&skin=femiwiki);
 }
