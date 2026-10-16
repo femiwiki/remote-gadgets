@@ -1,126 +1,48 @@
 /* CSS placed here will be applied to all skins */
 
-#mw-wrapper {
-  position: relative;
-}
-
 .book-flap-wrapper {
   width: 100%;
-}
-
-.book-flap-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
-
-#book-flap-close-button {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 15rem;
-  right: 0;
-  background-color: rgba(0, 0, 0, 0.7);
 }
 
 .book-flap-body {
   font-size: 0.8rem;
 }
 
-.book-flap-slide {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  background-color: white;
-  width: 15rem;
-  height: 100%;
-  overflow-y: scroll;
-}
-
-.book-flap-left.book-flap-slide {
-  left: 0;
-}
-.book-flap-right.book-flap-slide {
-  right: 0;
-}
-
-.book-flap-slide .book-flap-title {
-  background-color: #aca6e4;
-  color: white;
-  padding: 0.35em 1.3em 0.35em;
-}
-
-.book-flap-side {
-  box-sizing: border-box;
-  max-width: 15rem;
-  margin-top: 2.3em;
-  padding: 1.3rem;
-  background-color: #f9f9f9;
-  pointer-events: auto;
-}
-
-.book-flap-side .book-flap-title {
-  font-size: 1.1em;
-}
-
-.book-flap-side .book-flap-title a {
-  color: black;
-}
-
-.book-flap-slide .book-flap-body {
-  margin: 0;
-  padding: 0 1.3rem;
-}
-
 .book-flap-side .book-flap-body {
   margin: 0;
 }
 
-.book-flap-slide .book-flap-title a,
 .book-flap-side .book-flap-title a {
   text-decoration: none;
 }
 
-.book-flap-slide .book-flap-body > p,
 .book-flap-side .book-flap-body > p {
   margin: 0 0 0.3em 0;
 }
 
-.book-flap-slide .book-flap-body ul,
 .book-flap-side .book-flap-body ul {
   list-style-type: none;
   margin: 0;
   padding-left: 0;
 }
 
-.book-flap-slide .book-flap-body ul li,
 .book-flap-side .book-flap-body ul li {
   margin-bottom: 0.3em;
   list-style-type: none;
 }
 
-.book-flap-slide .book-flap-body > ul > li > ul,
 .book-flap-side .book-flap-body > ul > li > ul {
   margin-top: 0.3em;
   border-top: 1px solid #b9b5d9;
   padding-top: 0.3em;
 }
 
-.book-flap-slide .book-flap-body > ul > li,
 .book-flap-side .book-flap-body > ul > li {
   margin-top: 1em;
 }
 
-.book-flap-slide .book-flap-body li li li,
 .book-flap-side .book-flap-body li li li {
   padding-left: 0.5em;
-}
-
-.book-flap-slide .book-flap-title a {
-  color: white;
 }
 
 .bookflap-collapse-button {
@@ -133,54 +55,6 @@
   cursor: pointer;
   text-align: center;
   line-height: 2em;
-}
-
-#book-flap-leftside,
-#book-flap-rightside {
-  box-sizing: border-box;
-  position: absolute;
-  max-width: 73.4rem;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-  margin: auto;
-}
-#book-flap-rightside > .book-flap-side {
-  margin-left: auto;
-}
-
-body.fw-legacy-small-elements #book-flap-leftside,
-body.fw-legacy-small-elements #book-flap-rightside {
-  max-width: 80rem;
-}
-
-.book-flap-body .틀-도구모음 {
-  float: right;
-}
-
-/*
-When the small-elements feature is enabled:
-@font-size-root-default: 16.5; // px
-@content-width: 50rem;
-
-Otherwise:
-@font-size-root-default: 19; // px
-@content-width: 43.4rem;
-*/
-/*(43.3 + 30) * 19px*/
-@media screen and (max-width: 1393px) {
-  body:not(.fw-legacy-small-elements) #book-flap-leftside,
-  body:not(.fw-legacy-small-elements) #book-flap-rightside {
-    display: none;
-  }
-}
-
-/* (50 + 30) * 16.5px */
-@media screen and (max-width: 1320px) {
-  body.fw-legacy-small-elements #book-flap-leftside,
-  body.fw-legacy-small-elements #book-flap-rightside {
-    display: none;
-  }
 }
 
 /* FemiwikiSkin 6 (FemiwikiSkin#348): 책날개 in the right column or a ToC tab.
