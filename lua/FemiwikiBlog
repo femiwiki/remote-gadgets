@@ -126,4 +126,130 @@ function p.findLastId( frame )
 	return findLastId( root )
 end
 
+--- 포스트 문서의 {{페미위키 블로그 포스트}}에 적힌 값 하나를 읽습니다.
+-- @param text 포스트 문서의 내용
+-- @param name 매개변수 이름
+-- @return string|nil 값, 없거나 비어 있으면 nil
+local function postField( text, name )
+	local value = text:match( '|%s*' .. name .. '%s*=([^\n]*)' )
+	value = value and mw.text.trim( value )
+	if value == '' then
+		return nil
+	end
+	return value
+end
+
+-- 피드 주소의 쿼리입니다. 피드 문서를 틀까지 펼친 원문으로 받고, CDN이 한 시간 캐시하게 합니다.
+-- action=raw의 templates=expand는 미디어위키 코어 기능입니다.
+-- https://www.mediawiki.org/wiki/Manual:Parameters_to_index.php#Raw
+local FEED_QUERY = 'action=raw&templates=expand&maxage=3600&smaxage=3600'
+
+--- 요약의 위키 문법을 피드에 넣을 평문으로 바꿉니다.
+-- Scribunto에는 이런 함수가 없어서, 요약에 쓸 만한 문법만 다룹니다.
+-- 링크는 보이는 글자만 남기고, 굵게와 기울임 따옴표를 뺍니다.
+-- @param text 위키 문법
+-- @return string 평문
+local function plainText( text )
+	text = text:gsub( '%[%[[^%]|]*|([^%]]*)%]%]', '%1' )
+	text = text:gsub( '%[%[([^%]]*)%]%]', '%1' )
+	text = text:gsub( '%[https?://%S+%s+([^%]]*)%]', '%1' )
+	text = text:gsub( "'''?", '' )
+	return text
+end
+
+--- XML에 넣을 수 있게 특수 문자를 바꿉니다.
+-- @param text 평문
+-- @return string
+local function xml( text )
+	return mw.text.encode( text, '<>&"' )
+end
+
+--- 날짜를 Atom이 쓰는 RFC 3339 형식으로 바꿉니다.
+-- @param date 포스트 틀의 date 값
+-- @return string|nil 바꾼 날짜, 읽을 수 없으면 nil
+local function rfc3339( date )
+	if not date then
+		return nil
+	end
+	local lang = mw.language.getContentLanguage()
+	local ok, formatted = pcall( lang.formatDate, lang, 'c', date )
+	if ok then
+		return formatted
+	end
+	return nil
+end
+
+--- 피드 문서의 주소를 돌려줍니다. 블로그 대문의 구독 링크에 씁니다.
+-- @param frame.args['page'] 피드 문서의 이름
+-- @return string 주소
+function p.feedUrl( frame )
+	return mw.title.new( frame.args['page'] ):canonicalUrl( FEED_QUERY )
+end
+
+--- 최근 포스트들을 Atom 피드로 만듭니다.
+-- 피드 문서에서 부르고, 그 문서를 p.feedUrl의 주소로 받으면 XML이 나옵니다.
+-- 제목, 발행일, 요약, 글쓴이는 포스트 문서의 {{페미위키 블로그 포스트}}에서 읽습니다.
+-- 날짜가 없거나 잘못된 포스트는 뺍니다.
+-- @param frame.args['root'] 포스트들의 공통된 문서 제목 부분, '/'는 포함 안 함.
+-- @param frame.args['title'] 피드 제목, 없으면 root
+-- @param frame.args['limit'] 넣을 최다 포스트 수, 없으면 20
+-- @return string Atom XML
+function p.atom( frame )
+	local root = frame.args['root']
+	if root == nil then error( 'root must be declared' ) end
+	local feedTitle = frame.args['title'] or root
+	local limit = tonumber( frame.args['limit'] ) or 20
+	local rootUrl = mw.title.new( root ):canonicalUrl()
+	local selfUrl = mw.title.getCurrentTitle():canonicalUrl( FEED_QUERY )
+
+	local now = rfc3339( 'now' )
+	local entries = {}
+	local updated
+	for id = findLastId( root ), 1, -1 do
+		local post = mw.title.new( root .. '/' .. id )
+		local text = post:getContent()
+		local published = text and rfc3339( postField( text, 'date' ) )
+		-- 발행일이 오지 않은 포스트는 아직 넣지 않습니다.
+		if published and published <= now then
+			local url = post:canonicalUrl()
+			local entry = {
+				'<entry>',
+				'<title>' .. xml( postField( text, 'title' ) or tostring( id ) ) .. '</title>',
+				'<link rel="alternate" type="text/html" href="' .. xml( url ) .. '"/>',
+				'<id>' .. xml( url ) .. '</id>',
+				'<published>' .. published .. '</published>',
+				'<updated>' .. published .. '</updated>',
+			}
+			local author = postField( text, 'author' )
+			if author then
+				table.insert( entry, '<author><name>' .. xml( author ) .. '</name></author>' )
+			end
+			local summary = postField( text, 'summary' )
+			if summary then
+				table.insert( entry, '<summary>' .. xml( plainText( summary ) ) .. '</summary>' )
+			end
+			table.insert( entry, '</entry>' )
+			table.insert( entries, table.concat( entry, '\n' ) )
+			-- RFC 3339 날짜는 모두 UTC로 바뀌어 있어 글자로 비교해도 순서가 맞습니다.
+			if not updated or published > updated then
+				updated = published
+			end
+			if #entries >= limit then break end
+		end
+	end
+
+	local lang = mw.language.getContentLanguage()
+	return table.concat( {
+		'<?xml version="1.0" encoding="utf-8"?>',
+		'<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="' .. lang:getCode() .. '">',
+		'<title>' .. xml( feedTitle ) .. '</title>',
+		'<link rel="alternate" type="text/html" href="' .. xml( rootUrl ) .. '"/>',
+		'<link rel="self" type="application/atom+xml" href="' .. xml( selfUrl ) .. '"/>',
+		'<id>' .. xml( rootUrl ) .. '</id>',
+		'<updated>' .. ( updated or now ) .. '</updated>',
+		table.concat( entries, '\n' ),
+		'</feed>',
+	}, '\n' )
+end
+
 return p
