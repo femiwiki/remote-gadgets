@@ -11,7 +11,11 @@
 		"pages": ["bookflap.js", "bookflap.css"],
 		"peers": ["bookflap-vector-styles"],
 		"dependencies": [],
-		"messages": [],
+		"messages": [
+			"navigation",
+			"ooui-popup-widget-close-button-aria-label",
+			"toc"
+		],
 		"type": "general"
 	}
 }

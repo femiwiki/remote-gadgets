@@ -170,3 +170,56 @@ body:not(.book-flap-aside-mode) .book-flap-tabs {
 	color: var(--color-base, #202122);
 	font-weight: bold;
 }
+
+.book-flap-strip {
+	display: flex;
+	align-items: baseline;
+	gap: 0.6em;
+	box-sizing: border-box;
+	width: 100%;
+	margin: 0.6rem 0 0;
+	padding: 0.5rem 0.3rem;
+	/* The design guide fills colour only for a state (#333) */
+	border: 0;
+	border-top: 1px solid var(--color-primary2, #b9b5d9);
+	border-bottom: 1px solid var(--color-primary2, #b9b5d9);
+	background: none;
+	color: var(--color-base, #202122);
+	font: inherit;
+	font-size: 0.85rem;
+	text-align: left;
+	cursor: pointer;
+}
+
+.book-flap-strip:hover {
+	background-color: var(
+		--background-color-button-quiet--hover,
+		rgba(0, 24, 73, 0.027)
+	);
+}
+
+.book-flap-strip-label {
+	flex: none;
+}
+
+.book-flap-strip-titles {
+	flex: auto;
+	overflow: hidden;
+	color: var(--color-primary5, #5144a3);
+	font-weight: bold;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.book-flap-strip::after {
+	content: "›";
+	color: var(--color-primary5, #5144a3);
+}
+
+/* The skin's ToC column (1120px and up) shows the 둘러보기 tab itself, except
+   on the wide pages that keep the drawer. */
+@media screen and (min-width: 1120px) {
+	body:not(.fw-wide-content) .book-flap-strip {
+		display: none;
+	}
+}
