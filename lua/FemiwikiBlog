@@ -190,6 +190,14 @@ local function feedAddress( title )
 		'/index.php?curid=' .. title.id .. '&' .. FEED_QUERY
 end
 
+--- 포스트 그림의 섬네일 주소를 만듭니다.
+-- 특수:파일경로가 그림 서버의 섬네일로 넘겨 주므로, 피드 리더는 글 문서를 따로 읽지 않고 그림을 받습니다.
+-- @param file 파일 이름, '파일:'은 포함 안 함.
+-- @return string 주소
+local function thumbnailUrl( file )
+	return tostring( mw.uri.canonicalUrl( 'Special:FilePath/' .. file, { width = 640 } ) )
+end
+
 --- 피드 문서의 주소를 돌려줍니다. 블로그 대문의 구독 링크에 씁니다.
 -- @param frame.args['page'] 피드 문서의 이름
 -- @return string 주소
@@ -199,7 +207,7 @@ end
 
 --- 최근 포스트들을 Atom 피드로 만듭니다.
 -- 피드 문서에서 부르고, 그 문서를 p.feedUrl의 주소로 받으면 XML이 나옵니다.
--- 제목, 발행일, 요약, 글쓴이는 포스트 문서의 {{페미위키 블로그 포스트}}에서 읽습니다.
+-- 제목, 발행일, 요약, 글쓴이, 섬네일은 포스트 문서의 {{페미위키 블로그 포스트}}에서 읽습니다.
 -- 날짜가 없거나 잘못된 포스트는 뺍니다.
 -- @param frame.args['root'] 포스트들의 공통된 문서 제목 부분, '/'는 포함 안 함.
 -- @param frame.args['title'] 피드 제목, 없으면 root
@@ -239,6 +247,10 @@ function p.atom( frame )
 			if summary then
 				table.insert( entry, '<summary>' .. xml( plainText( summary ) ) .. '</summary>' )
 			end
+			local thumb = postField( text, 'thumb' ) or postField( text, 'hero' )
+			if thumb then
+				table.insert( entry, '<media:thumbnail url="' .. xml( thumbnailUrl( thumb ) ) .. '"/>' )
+			end
 			table.insert( entry, '</entry>' )
 			table.insert( entries, table.concat( entry, '\n' ) )
 			-- RFC 3339 날짜는 모두 UTC로 바뀌어 있어 글자로 비교해도 순서가 맞습니다.
@@ -252,7 +264,7 @@ function p.atom( frame )
 	local lang = mw.language.getContentLanguage()
 	return table.concat( {
 		'<?xml version="1.0" encoding="utf-8"?>',
-		'<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="' .. lang:getCode() .. '">',
+		'<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="' .. lang:getCode() .. '">',
 		'<title>' .. xml( feedTitle ) .. '</title>',
 		'<link rel="alternate" type="text/html" href="' .. xml( rootUrl ) .. '"/>',
 		'<link rel="self" type="application/atom+xml" href="' .. xml( selfUrl ) .. '"/>',
