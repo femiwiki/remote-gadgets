@@ -93,7 +93,8 @@ def file_to_title(file):
     elif "mediawiki%3Agadgets%2F" in file:
         return "mediawiki:gadgets/" + basename(unquote(file))
     else:
-        return basename(unquote(file))
+        # Unquote after basename() so a subpage's %2F stays in the title
+        return unquote(basename(file))
 
 
 def normalize_title(title):
