@@ -139,10 +139,11 @@ local function postField( text, name )
 	return value
 end
 
--- 피드 주소의 쿼리입니다. 피드 문서를 틀까지 펼친 원문으로 받고, CDN이 한 시간 캐시하게 합니다.
+-- 피드 주소의 쿼리입니다. 피드 문서를 틀까지 펼친 원문으로 받고, 서버 캐시가 한 시간 들고 있게 합니다.
+-- 코어는 이런 raw 응답에 s-maxage=0을 붙여서, smaxage가 없으면 받을 때마다 다시 만듭니다.
 -- action=raw의 templates=expand는 미디어위키 코어 기능입니다.
 -- https://www.mediawiki.org/wiki/Manual:Parameters_to_index.php#Raw
-local FEED_QUERY = 'action=raw&templates=expand&maxage=3600&smaxage=3600'
+local FEED_QUERY = 'action=raw&templates=expand&smaxage=3600'
 
 --- 요약의 위키 문법을 피드에 넣을 평문으로 바꿉니다.
 -- Scribunto에는 이런 함수가 없어서, 요약에 쓸 만한 문법만 다룹니다.
@@ -179,11 +180,21 @@ local function rfc3339( date )
 	return nil
 end
 
+--- 피드 문서를 문서 ID로 받는 주소를 만듭니다.
+-- 문서 이름 대신 ID를 써서 주소가 짧고, 문서를 옮겨도 그대로 쓸 수 있습니다.
+-- @param title 피드 문서의 mw.title 객체
+-- @return string 주소
+local function feedAddress( title )
+	local uri = mw.uri.canonicalUrl( title.prefixedText )
+	return uri.protocol .. '://' .. uri.host .. mw.site.scriptPath ..
+		'/index.php?curid=' .. title.id .. '&' .. FEED_QUERY
+end
+
 --- 피드 문서의 주소를 돌려줍니다. 블로그 대문의 구독 링크에 씁니다.
 -- @param frame.args['page'] 피드 문서의 이름
 -- @return string 주소
 function p.feedUrl( frame )
-	return mw.title.new( frame.args['page'] ):canonicalUrl( FEED_QUERY )
+	return feedAddress( mw.title.new( frame.args['page'] ) )
 end
 
 --- 최근 포스트들을 Atom 피드로 만듭니다.
@@ -200,7 +211,7 @@ function p.atom( frame )
 	local feedTitle = frame.args['title'] or root
 	local limit = tonumber( frame.args['limit'] ) or 20
 	local rootUrl = mw.title.new( root ):canonicalUrl()
-	local selfUrl = mw.title.getCurrentTitle():canonicalUrl( FEED_QUERY )
+	local selfUrl = feedAddress( mw.title.getCurrentTitle() )
 
 	local now = rfc3339( 'now' )
 	local entries = {}
