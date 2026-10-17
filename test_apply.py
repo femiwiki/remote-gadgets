@@ -48,6 +48,10 @@ def test_file_to_title():
     assert (
         file_to_title("pages/mediawiki%3Acommon.css") == "mediawiki:common.css"
     )
+    assert (
+        file_to_title("pages/틀%3A페미위키%20블로그%2Fstyles.css")
+        == "틀:페미위키 블로그/styles.css"
+    )
 
 
 def test_get_all_files_is_sorted(tmp_path, monkeypatch):

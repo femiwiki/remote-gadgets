@@ -1,0 +1,105 @@
+.purge {
+	text-align: right;
+	font-size: smaller;
+}
+
+ul.blog-posts {
+	display: block;
+	overflow: hidden;
+	padding: 0;
+	margin-bottom: 0;
+}
+
+ul.blog-posts li {
+	display: grid;
+	grid-template-columns: 10em 1fr;
+	column-gap: 2em;
+	margin: 0 0 3em 1.2em;
+}
+
+ul.blog-posts .blog-thumb {
+	grid-row: 1 / 3;
+	margin: 0;
+}
+
+ul.blog-posts .blog-thumb img {
+	width: 100%;
+	height: 7em;
+	object-fit: contain;
+}
+
+ul.blog-posts .blog-header-wrapper,
+ul.blog-posts .summary {
+	grid-column: 2;
+}
+
+ul.blog-posts .title {
+	margin: 0 !important;
+	border-bottom: 1px solid #b9b5d9 !important;
+}
+
+ul.blog-posts .mw-headline-number {
+	display: none;
+}
+
+ul.blog-posts .date,
+ul.blog-posts .author {
+	margin: 0 !important;
+	font-size: smaller;
+	display: inline;
+}
+
+ul.blog-posts .author {
+	font-weight: bold;
+	padding-right: 0.6em;
+}
+
+.see-more {
+	padding-left: 1em;
+	display: inline;
+}
+
+.see-more ~ .mw-inputbox-centered {
+	float: right;
+}
+
+.feeds {
+	display: inline-block;
+	padding-right: 0.5em;
+	float: right;
+}
+
+.feeds-icon {
+	display: inline-block;
+}
+
+.feeds ul {
+	display: inline-block;
+	padding-left: 0.5em;
+	margin: 0;
+}
+
+.feeds li {
+	display: inline-block;
+	padding-right: 0.5em;
+	font-size: smaller;
+}
+
+@media screen and (max-width: 640px) {
+	ul.blog-posts {
+		margin: 0;
+	}
+
+	ul.blog-posts li {
+		display: block;
+		margin-left: 0;
+	}
+
+	ul.blog-posts .blog-thumb {
+		display: none;
+	}
+
+	ul.blog-posts .title .mw-headline {
+		font-size: smaller;
+	}
+}
