@@ -66,7 +66,6 @@
 		});
 
 		var $toc = $("#fw-toc");
-		var $toggle = $("#fw-toc-toggle");
 		if ($toc.length === 0) {
 			// Pages without a ToC get the skin's drawer for 책날개 alone.
 			$toc = $("<nav></nav>")
@@ -85,29 +84,26 @@
 									$("<h2></h2>")
 										.attr("id", "fw-toc-heading")
 										.addClass("fw-toc-heading")
-										.text("둘러보기"),
+										.text(mw.msg("navigation")),
 									$("<label></label>")
 										.addClass("fw-toc-close fw-button")
-										.attr({ for: "fw-toc-checkbox", title: "닫기" }),
+										.attr({
+											for: "fw-toc-checkbox",
+											title: mw.msg(
+												"ooui-popup-widget-close-button-aria-label",
+											),
+										}),
 								),
 						),
 				)
 				.appendTo($(".fw-page").addClass("fw-page-has-toc"));
-			$toggle = $("<label></label>")
-				.attr({
-					id: "fw-toc-toggle",
-					for: "fw-toc-checkbox",
-					"aria-controls": "fw-toc",
-					tabindex: "0",
-				})
-				.addClass("mw-checkbox-hack-button fw-button")
-				.text("둘러보기")
-				.prependTo($("#p-title-buttons .right-buttons"));
-		} else {
+		}
+		var select = () => {};
+		if (!$toc.hasClass("book-flap-only")) {
 			const $tabs = $("<div></div>")
 				.addClass("book-flap-tabs")
 				.attr("role", "tablist");
-			const select = (name) => {
+			select = (name) => {
 				$toc.toggleClass("book-flap-tab-flap", name === "flap");
 				$tabs.children().each(function () {
 					var selected = $(this).attr("data-tab") === name;
@@ -118,14 +114,14 @@
 			};
 			$.each(
 				[
-					["toc", "목차"],
-					["flap", "둘러보기"],
+					["toc", "toc"],
+					["flap", "navigation"],
 				],
 				(_, tab) => {
 					$("<button></button>")
 						.attr({ type: "button", role: "tab", "data-tab": tab[0] })
 						.addClass("book-flap-tab")
-						.text(tab[1])
+						.text(mw.msg(tab[1]))
 						.on("click", () => {
 							select(tab[0]);
 						})
@@ -134,9 +130,43 @@
 			);
 			$toc.addClass("book-flap-has-tabs").find(".fw-toc-header").prepend($tabs);
 			select("toc");
-			$toggle.text("목차·둘러보기");
+			// The ToC button opens the ToC, and the strip below opens 책날개.
+			$("#fw-toc-toggle").on("click", () => {
+				select("toc");
+			});
 		}
 		$toc.find(".fw-toc-panel").append($pane);
+
+		// Where 책날개 is in the drawer, a strip under the title names it and
+		// opens the drawer on it, so readers see it is there (#333).
+		var checkbox = document.getElementById("fw-toc-checkbox");
+		$("<button></button>")
+			.attr({ type: "button", "aria-controls": "fw-toc" })
+			.addClass("book-flap-strip skin-fw-unprintable")
+			.append(
+				$("<span></span>")
+					.addClass("book-flap-strip-label")
+					.text(mw.msg("navigation")),
+				$("<span></span>")
+					.addClass("book-flap-strip-titles")
+					.text(
+						$raws
+							.map(function () {
+								return $(this).find(".book-flap-title").text().trim();
+							})
+							.get()
+							.filter(Boolean)
+							.join(" · "),
+					),
+			)
+			.on("click", () => {
+				select("flap");
+				if (!checkbox) return;
+				checkbox.checked = true;
+				// The skin's checkbox hack updates aria-expanded on this event.
+				checkbox.dispatchEvent(new Event("input", { bubbles: true }));
+			})
+			.appendTo($("#p-header"));
 
 		// The right column takes 책날개 once it is wide enough for it.
 		var page = document.querySelector(".fw-page");
