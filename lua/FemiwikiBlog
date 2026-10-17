@@ -1,0 +1,129 @@
+local p = {}
+
+--- root/id 문서가 있는지 확인합니다.
+-- 확인한 문서는 이 모듈을 부른 문서가 링크한 것으로 기록됩니다.
+-- 그래서 없던 문서가 새로 만들어지면 부른 문서의 캐시가 비워져, 새 포스트가 자동으로 목록에 나타납니다.
+local function exists( root, id )
+	return mw.title.new( root .. '/' .. id ).exists
+end
+
+--- 마지막 포스트의 id를 찾습니다.
+-- 1, 2, 4, 8, ...로 두 배씩 늘리며 없는 번호를 찾은 뒤 그 사이를 이진 탐색합니다.
+-- 지수 탐색: https://en.wikipedia.org/wiki/Exponential_search
+-- 중간 번호가 비어 있으면 그 앞 번호를 마지막으로 여길 수 있습니다.
+-- @param root 포스트들의 공통된 문서 제목 부분, '/'는 포함 안 함.
+-- @return number 마지막 포스트의 id, 포스트가 없으면 0
+local function findLastId( root )
+	if not exists( root, 1 ) then
+		return 0
+	end
+
+	-- lo는 있는 번호, hi는 없는 번호입니다.
+	local lo, hi = 1, 2
+	while exists( root, hi ) do
+		lo, hi = hi, hi * 2
+	end
+	while hi - lo > 1 do
+		local mid = math.floor( ( lo + hi ) / 2 )
+		if exists( root, mid ) then
+			lo = mid
+		else
+			hi = mid
+		end
+	end
+	return lo
+end
+
+--- 최근 블로그 포스트들을 보여줍니다.
+-- @param frame.args['root'] 포스트들의 공통된 문서 제목 부분, '/'는 포함 안 함.
+-- @param frame.args['limit'] 보여줄 최다 포스트 수, 없으면 5
+-- @return string wikitext
+function p.renderPosts( frame )
+	local root = frame.args['root']
+	local limit = tonumber( frame.args['limit'] ) or 5
+
+	local posts = ''
+	local count = 0
+	for id = findLastId( root ), 1, -1 do
+		if exists( root, id ) then
+			posts = posts .. frame:expandTemplate{ title = root .. '/' .. id }
+
+			count = count + 1
+			if count >= limit then break end
+		end
+	end
+
+	local ul = mw.html.create( 'ul' ):addClass( 'blog-posts' ):wikitext( posts )
+	return tostring( ul )
+end
+
+--- 포스트 문서의 {{페미위키 블로그 포스트}}에 적힌 title과 date 값을 읽습니다.
+-- @param text 포스트 문서의 내용
+-- @param id 포스트의 id, 제목을 찾지 못할 때 대신 씁니다.
+-- @return string 제목, 찾지 못하면 id
+-- @return string|nil 날짜, 찾지 못하면 nil
+local function postInfo( text, id )
+	local title = text:match( '|%s*title%s*=([^\n|]*)' )
+	local date = text:match( '|%s*date%s*=([^\n|]*)' )
+	return title and mw.text.trim( title ) or tostring( id ),
+		date and mw.text.trim( date )
+end
+
+--- 최근 포스트들의 제목과 날짜를 최신순 링크 목록으로 만듭니다.
+-- 목차에 끼어드는 제목 태그 없이 링크만 냅니다.
+-- @param root 포스트들의 공통된 문서 제목 부분, '/'는 포함 안 함.
+-- @param limit 보여줄 최다 포스트 수, nil이면 전부
+-- @param exclude 목록에서 뺄 포스트의 id, nil이면 빼지 않음
+-- @return string wikitext
+local function titleList( root, limit, exclude )
+	local lang = mw.language.getContentLanguage()
+	local items = {}
+	for id = findLastId( root ), 1, -1 do
+		-- 제목과 날짜를 읽으려고 내용을 가져오며, 없는 번호는 내용이 nil이라 여기서 걸러집니다.
+		-- exists로 따로 확인하지 않으므로 비싼 파서 함수 한도가 포스트 수를 제한하지 않습니다.
+		local text = id ~= exclude and mw.title.new( root .. '/' .. id ):getContent()
+		if text then
+			local title, date = postInfo( text, id )
+			local item = '* [[' .. root .. '/' .. id .. '|' .. title .. ']]'
+			-- 날짜가 잘못 적혀 있어도 목록 전체가 오류가 되지 않게, 날짜만 뺍니다.
+			local ok, formatted = pcall( lang.formatDate, lang, 'Y년 n월 j일', date or '', true )
+			if date and ok then
+				item = item .. ' <span class="femiwiki-blog-list--date">' .. formatted .. '</span>'
+			end
+			table.insert( items, item )
+			if limit and #items >= limit then break end
+		end
+	end
+	return table.concat( items, '\n' )
+end
+
+--- 최근 포스트들의 제목과 날짜를 링크 목록으로 보여줍니다. 포스트 아래 꼬리말에 씁니다.
+-- @param frame.args['root'] 포스트들의 공통된 문서 제목 부분, '/'는 포함 안 함.
+-- @param frame.args['limit'] 보여줄 최다 포스트 수, 없으면 3
+-- @param frame.args['exclude'] 목록에서 뺄 포스트의 id, 보통 지금 포스트
+-- @return string wikitext
+function p.renderTitles( frame )
+	return titleList(
+		frame.args['root'],
+		tonumber( frame.args['limit'] ) or 3,
+		tonumber( frame.args['exclude'] )
+	)
+end
+
+--- 모든 포스트의 제목과 날짜를 링크 목록으로 보여줍니다. 전체 보기 문서에 씁니다.
+-- @param frame.args['root'] 포스트들의 공통된 문서 제목 부분, '/'는 포함 안 함.
+-- @return string wikitext
+function p.renderArchive( frame )
+	return titleList( frame.args['root'] )
+end
+
+--- 마지막 포스트의 id를 돌려줍니다.
+-- @param frame.args['root'] 포스트들의 공통된 문서 제목 부분, '/'는 포함 안 함.
+-- @return number 마지막 포스트의 id
+function p.findLastId( frame )
+	local root = frame.args['root']
+	if root == nil then error( 'root must be declared' ) end
+	return findLastId( root )
+end
+
+return p
