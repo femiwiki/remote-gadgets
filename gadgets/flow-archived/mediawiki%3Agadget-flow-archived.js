@@ -1,8 +1,7 @@
 // <nowiki>
 "use strict";
-// Retired Flow boards carry edit=flow-archived, which no group holds. Flow
-// still draws an open reply box on their topics, because it asks whether the
-// topic page is editable rather than its board, so close the forms and say why.
+// Flow judges a topic's reply box by the topic page, not its retired board
+// (edit=flow-archived), so close the forms and say why
 (() => {
 	const isTopic = mw.config.get("wgNamespaceNumber") === 2600;
 	let board = mw.config.get("wgPageName");
