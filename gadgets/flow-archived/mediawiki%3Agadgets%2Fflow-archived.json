@@ -1,0 +1,22 @@
+{
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": true,
+		"skins": [],
+		"contentModels": ["flow-board"],
+		"targets": ["desktop", "mobile"],
+		"category": "view"
+	},
+	"module": {
+		"pages": ["flow-archived.js", "flow-archived.css"],
+		"peers": [],
+		"dependencies": [
+			"mediawiki.api",
+			"mediawiki.util",
+			"mediawiki.codex.messagebox.styles"
+		],
+		"messages": [],
+		"type": "general"
+	}
+}
