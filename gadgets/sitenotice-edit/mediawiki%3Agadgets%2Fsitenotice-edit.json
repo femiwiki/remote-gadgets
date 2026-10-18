@@ -10,11 +10,7 @@
 	"module": {
 		"pages": ["sitenotice-edit.js", "sitenotice-edit.css"],
 		"peers": [],
-		"dependencies": [
-			"mediawiki.template.mustache",
-			"oojs-ui.styles.icons-content",
-			"oojs-ui.styles.icons-editing-core"
-		],
+		"dependencies": ["mediawiki.template.mustache"],
 		"messages": [],
 		"type": "general"
 	}

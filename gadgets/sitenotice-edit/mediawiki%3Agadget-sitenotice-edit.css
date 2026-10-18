@@ -20,12 +20,42 @@ html.ve-deactivating .sitenotice-edit--buttons {
 }
 
 .sitenotice-edit--button {
+	display: inline-block;
+	padding: 0.3em;
+	border-radius: 0.3em;
+	color: var(--color-subtle, #54595d);
+	vertical-align: middle;
+}
+
+.sitenotice-edit--button:hover {
+	color: var(--color-emphasized, #101418);
+	background-color: var(--background-color-interactive-subtle--hover, #eaecf0);
+}
+
+.sitenotice-edit--button:active {
+	background-color: var(--background-color-interactive-subtle--active, #dadde3);
+}
+
+.sitenotice-edit--button::before {
+	content: "";
+	display: block;
 	width: 1.4em;
 	height: 1.4em;
-	display: inline-block;
-	background-repeat: no-repeat;
-	background-size: 100%;
-	/* https://codepen.io/sosuke/pen/Pjoqqp */
-	filter: invert(87%) sepia(17%) saturate(7491%) hue-rotate(194deg)
-		brightness(108%) contrast(98%);
+	background-color: currentColor;
+	-webkit-mask-position: center;
+	mask-position: center;
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+}
+
+.sitenotice-edit--history-button::before {
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=history&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-content&image=history&format=original&lang=ko&skin=femiwiki);
+}
+
+.sitenotice-edit--edit-button::before {
+	-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-editing-core&image=edit&format=original&lang=ko&skin=femiwiki);
+	mask-image: url(/load.php?modules=oojs-ui.styles.icons-editing-core&image=edit&format=original&lang=ko&skin=femiwiki);
 }
