@@ -1,13 +1,7 @@
 // <nowiki>
 "use strict";
-// Logged-out readers get page HTML from caddy-mwcache, which keeps it for
-// $wgCdnMaxAge (5 hours) and is not purged when MediaWiki:Sitenotice is
-// saved. So MediaWiki:Anonnotice holds only an empty placeholder, which the
-// skin shows logged-out readers instead of MediaWiki:Sitenotice, and this
-// fills it with the current MediaWiki:Sitenotice. The API response is cached
-// for 5 minutes, so an edit reaches readers within about that long, the way
-// CentralNotice fetches its banners outside the cached HTML.
-// https://github.com/femiwiki/docker-mediawiki/issues/318
+// MediaWiki:Anonnotice is only this placeholder, so the cached page HTML
+// never carries a stale notice (docker-mediawiki#318)
 (() => {
 	const placeholder = document.getElementById("fw-anon-sitenotice");
 	if (!placeholder) {
