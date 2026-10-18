@@ -1,0 +1,7 @@
+/* Flow draws these even where nobody can post */
+.fw-flow-archived .flow-reply-form,
+.fw-flow-archived .flow-ui-replyWidget,
+.fw-flow-archived .flow-newtopic-form,
+.fw-flow-archived .flow-ui-newTopicWidget {
+	display: none;
+}
