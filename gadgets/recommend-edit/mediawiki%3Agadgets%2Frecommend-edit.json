@@ -10,7 +10,6 @@
 		"pages": ["recommend-edit.js", "recommend-edit.css"],
 		"peers": [],
 		"dependencies": [
-			"oojs-ui-windows",
 			"oojs-ui.styles.icons-editing-core",
 			"ext.gadget.floating-buttons"
 		],
