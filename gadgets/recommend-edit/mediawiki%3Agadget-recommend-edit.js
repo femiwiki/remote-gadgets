@@ -20,7 +20,9 @@
 	const icon = document.createElement("span");
 	icon.classList.add("oo-ui-icon-edit");
 	element.append(icon);
-	element.addEventListener("click", (_e) => {
+	// OOUI windows load on the first click, not with every page
+	element.addEventListener("click", async (_e) => {
+		await mw.loader.using("oojs-ui-windows");
 		OO.ui
 			.confirm("내용을 직접 고칠 수 있습니다.", {
 				actions: [
