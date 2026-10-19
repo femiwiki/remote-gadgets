@@ -26,7 +26,7 @@
 		$link.on("click", (e) => {
 			e.preventDefault();
 			target = mw.config.get("wgPageName").replace(/_/g, " ");
-			mw.loader.using(["oojs-ui-core"]).done(() => {
+			mw.loader.using(["oojs-ui-windows"]).done(() => {
 				prompt();
 			});
 		});
