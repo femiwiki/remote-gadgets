@@ -1,0 +1,88 @@
+/* 편집 불가 안내: MediaWiki:Badaccess-groups and MediaWiki:Confirmedittext (femiwiki/femiwiki#300) */
+.fw-edit-login,
+.fw-edit-confirm {
+	margin: 0.5em 0;
+}
+.fw-edit-login p,
+.fw-edit-confirm p {
+	margin: 0.5em 0;
+}
+.fw-edit-login-title {
+	font-size: 1.25em;
+	font-weight: bold;
+}
+.fw-edit-login-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75em;
+	margin: 1em 0 1.5em !important;
+}
+.fw-edit-login-buttons a {
+	text-decoration: none !important;
+	background: none !important;
+	padding: 0 !important;
+}
+/* The design guide's buttons: 0.3em corners and the edit button's shadow */
+.fw-edit-login-button {
+	display: inline-block;
+	padding: 0.4em 1.2em;
+	border: 1px solid #ecebfc;
+	border-radius: 0.3em;
+	background-color: #ecebfc;
+	color: #5144a3;
+	font-weight: bold;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+a:hover .fw-edit-login-button {
+	background-color: #dfddf8;
+}
+a:active .fw-edit-login-button {
+	background-color: #d3cff4;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+/* The one primary action on the screen: green */
+.fw-edit-login-button-primary {
+	border-color: #8ca534;
+	background-color: #bad75b;
+	color: #414f0a;
+}
+a:hover .fw-edit-login-button-primary {
+	background-color: #acc94d;
+}
+a:active .fw-edit-login-button-primary {
+	background-color: #8ca534;
+}
+/* Logged-out readers: the sign-up card answers everything, so the other reasons are hidden */
+#mw-content-text:has(.fw-edit-login) > p:first-child,
+#mw-content-text:has(> .permissions-errors > :only-child .fw-edit-confirm)
+	> p:first-child {
+	display: none;
+}
+.permissions-errors:has(.fw-edit-login) {
+	padding: 0;
+	margin-left: 0;
+	list-style: none;
+}
+.permissions-errors:has(.fw-edit-login)
+	> li:not(.mw-permissionerror-badaccess-groups) {
+	display: none;
+}
+.permissions-errors:has(.fw-edit-confirm) {
+	margin-left: 0;
+	list-style: none;
+}
+/* Dark mode: the tonal button turns around, the green stays */
+html.skin-theme-clientpref-night
+.fw-edit-login-button:not(.fw-edit-login-button-primary) {
+	border-color: #36355b;
+	background-color: #36355b;
+	color: #c3bffd;
+}
+@media screen and (prefers-color-scheme: dark) {
+	html.skin-theme-clientpref-os
+		.fw-edit-login-button:not(.fw-edit-login-button-primary) {
+		border-color: #36355b;
+		background-color: #36355b;
+		color: #c3bffd;
+	}
+}

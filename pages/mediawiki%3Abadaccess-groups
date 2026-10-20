@@ -1,0 +1,8 @@
+{{#if: {{#pos: $1|{{!}}{{int:group-user-member}}]]}}
+|<div class="fw-edit-login">
+<p class="fw-edit-login-title">로그인하면 편집할 수 있습니다</p>
+<p>페미위키는 계정이 있어야 편집할 수 있습니다. 가입한 뒤 이메일 인증을 마치면 바로 편집할 수 있습니다.</p>
+<p class="fw-edit-login-buttons plainlinks">[{{fullurl:특수:계정만들기|returnto={{FULLPAGENAMEE}}}} <span class="fw-edit-login-button fw-edit-login-button-primary">계정 만들기</span>] [{{fullurl:특수:로그인|returnto={{FULLPAGENAMEE}}}} <span class="fw-edit-login-button">로그인</span>]</p>
+</div>
+|이 작업은 $1 {{PLURAL:$2|권한이|권한 중 하나가}} 있어야 할 수 있습니다.
+}}
