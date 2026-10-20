@@ -1,0 +1,5 @@
+<div class="fw-edit-confirm">
+<p class="fw-edit-login-title">이메일 인증을 마치면 편집할 수 있습니다</p>
+<p>가입할 때 적은 이메일 주소로 인증 메일을 받아 링크를 눌러 주세요. 이메일 주소를 적지 않았다면 [[특수:환경설정|환경 설정]]에서 먼저 적어 주세요.</p>
+<p class="fw-edit-login-buttons">[[특수:이메일확인|<span class="fw-edit-login-button fw-edit-login-button-primary">인증 메일 받기</span>]]</p>
+</div>

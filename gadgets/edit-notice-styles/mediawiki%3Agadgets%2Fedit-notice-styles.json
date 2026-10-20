@@ -1,0 +1,16 @@
+{
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": true,
+		"skins": [],
+		"category": "view"
+	},
+	"module": {
+		"pages": ["edit-notice-styles.css"],
+		"peers": [],
+		"dependencies": [],
+		"messages": [],
+		"type": "styles"
+	}
+}
