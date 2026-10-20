@@ -4,7 +4,8 @@
 		"default": true,
 		"hidden": true,
 		"skins": ["femiwiki"],
-		"category": "view"
+		"category": "view",
+		"actions": ["view"]
 	},
 	"module": {
 		"pages": ["recommend-edit.js", "recommend-edit.css"],
