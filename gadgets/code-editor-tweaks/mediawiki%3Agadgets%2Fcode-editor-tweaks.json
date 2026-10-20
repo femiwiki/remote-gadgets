@@ -4,7 +4,8 @@
 		"default": true,
 		"hidden": false,
 		"skins": [],
-		"category": "plugin-configuration"
+		"category": "plugin-configuration",
+		"actions": ["edit"]
 	},
 	"module": {
 		"pages": ["code-editor-tweaks.js"],
