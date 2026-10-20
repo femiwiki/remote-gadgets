@@ -112,6 +112,83 @@
 		);
 	}
 
+	// Changes lists: Special:RecentChanges, Special:Watchlist and the like
+	var CHANGES_LIST_PAGES = [
+		"Recentchanges",
+		"Recentchangeslinked",
+		"Watchlist",
+	];
+
+	function _isChangesListPage() {
+		return CHANGES_LIST_PAGES.includes(
+			mw.config.get("wgCanonicalSpecialPageName"),
+		);
+	}
+
+	// The page titles and edit summaries of a line, or of a grouped line's
+	// nested lines in the enhanced view
+	function _lineText($line) {
+		return $line
+			.find(
+				".mw-title, .comment, .mw-changeslist-log-entry > a:not(.mw-userlink)",
+			)
+			.map(function () {
+				return this.textContent;
+			})
+			.get()
+			.join("\n");
+	}
+
+	function _collapseControl($run, tag) {
+		var count = $run.length;
+		var $button = $("<button>")
+			.attr({ type: "button", "aria-expanded": "false" })
+			.addClass("cdx-button")
+			.text(`${count}개 가려짐`)
+			.on("click", () => {
+				var expanded = $button.attr("aria-expanded") === "true";
+				$run.toggleClass("fw-mute-hidden", expanded);
+				$button
+					.attr("aria-expanded", String(!expanded))
+					.text(expanded ? `${count}개 가려짐` : "다시 가리기");
+			});
+		return $(`<${tag}>`).addClass("fw-mute-collapsed").append($button);
+	}
+
+	function _hideMutedLines($content) {
+		if (!_muteWords.length) return;
+		// Legacy lines are <li>; enhanced lines are <table>, grouped or not
+		var $lines = $content
+			.find("li.mw-changeslist-line, table.mw-changeslist-line")
+			.not(".fw-mute-checked")
+			.addClass("fw-mute-checked");
+		var $muted = $lines.filter(function () {
+			return shouldMute(_lineText($(this)));
+		});
+		if (!$muted.length) return;
+
+		mw.loader.load("codex-styles");
+		$muted.addClass("fw-mute-hidden");
+
+		// Collapse each run of adjacent muted lines behind one button
+		$muted.each(function () {
+			var $first = $(this);
+			if ($first.prevAll(".mw-changeslist-line").first().is($muted)) return;
+			var run = [this];
+			var $next = $first.nextAll(".mw-changeslist-line").first();
+			while ($next.is($muted)) {
+				run.push($next[0]);
+				$next = $next.nextAll(".mw-changeslist-line").first();
+			}
+			var $run = $(run);
+			// An enhanced line follows its expand checkbox
+			var $before = $first.prev(".mw-enhancedchanges-checkbox");
+			$($before[0] || this).before(
+				_collapseControl($run, $first.is("li") ? "li" : "p"),
+			);
+		});
+	}
+
 	// Load, save
 	function loadData() {
 		return JSON.parse(localStorage.getItem("muteWords") || "[]");
@@ -133,7 +210,8 @@
 	// Should mute or not?
 	function shouldMute(text) {
 		for (let i = 0; i < _muteWords.length; i++) {
-			if (text.match(_muteWords[i])) return true;
+			// A blank line in the editor would match everything
+			if (_muteWords[i] && text.match(_muteWords[i])) return true;
 		}
 		return false;
 	}
@@ -141,8 +219,13 @@
 	// Init UI
 	$(() => {
 		_initUI();
-		_showTriggerWarning();
+		if (!_isChangesListPage()) _showTriggerWarning();
 	});
+
+	// The filters on these pages reload the list and fire this hook again
+	if (_isChangesListPage()) {
+		mw.hook("wikipage.content").add(_hideMutedLines);
+	}
 
 	// Expose public APIs
 	var _FW = {};

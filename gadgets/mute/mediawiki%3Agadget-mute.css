@@ -14,3 +14,26 @@
 		url(/load.php?modules=oojs-ui.styles.icons-media&image=volumeOff&format=original&lang=ko&skin=femiwiki)
 		center / contain no-repeat;
 }
+
+/* 최근 바뀜과 주시문서 목록에서 가림 단어가 든 줄 */
+.fw-mute-hidden {
+	display: none !important;
+}
+
+.fw-mute-collapsed {
+	list-style: none;
+	margin: 0 0 1rem;
+}
+
+/* 휴대폰에서는 줄이 화면 끝까지 차므로 페미위키 스킨의 줄 안쪽 여백에 맞춥니다. */
+@media screen and (max-width: 639px) {
+	.fw-mute-collapsed {
+		padding: 0 1.3rem;
+	}
+}
+
+@media screen and (max-width: 360px) {
+	.fw-mute-collapsed {
+		padding: 0 0.85rem;
+	}
+}
