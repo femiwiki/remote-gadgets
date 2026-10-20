@@ -31,7 +31,8 @@ def sanitize_args(arr):
 
 
 def get_modified_files(wiki):
-    """return empty array if previous applied commit does not exist"""
+    """return (changed, moved) since the previously applied commit, or None
+    if that commit does not exist"""
     latest_commit = environ["GITHUB_SHA"]
 
     result = wiki.api(
@@ -56,7 +57,9 @@ def get_modified_files(wiki):
         "git",
         "diff-tree",
         "--no-commit-id",
-        "--name-only",
+        "--name-status",
+        "-M",
+        "-z",
         "-r",
         previous_commit,
         latest_commit,
@@ -68,7 +71,45 @@ def get_modified_files(wiki):
         GIT_COMMAND, capture_output=True, check=True, text=True
     )
 
-    return result.stdout.split("\n")
+    return parse_name_status(result.stdout)
+
+
+def parse_name_status(output):
+    """split `git diff-tree --name-status -M -z` output into the changed
+    files and the (old, new) pairs of renamed files"""
+    fields = output.split("\0")
+    changed = []
+    moved = []
+    i = 0
+    while i + 1 < len(fields):
+        status = fields[i]
+        if status.startswith("R"):
+            moved.append((fields[i + 1], fields[i + 2]))
+            i += 3
+        else:
+            changed.append(fields[i + 1])
+            i += 2
+    return changed, moved
+
+
+def split_moves(changed, moved):
+    """return the files to save and the renames that move a wiki page.
+
+    A renamed file is saved after its page moves, as the rename may have
+    changed its content too. A rename into or out of the target
+    directories, or one that keeps the page title, stays a plain change."""
+    changed = list(changed)
+    moves = []
+    for old, new in moved:
+        if validate_files([old, new]) != [old, new]:
+            changed += [old, new]
+            continue
+        if normalize_title(file_to_title(old)) != normalize_title(
+            file_to_title(new)
+        ):
+            moves.append((old, new))
+        changed.append(new)
+    return validate_files(changed), moves
 
 
 def validate_files(arr):
@@ -119,10 +160,8 @@ def find_duplicate_titles(files):
     return {t: fs for t, fs in titles.items() if len(fs) > 1}
 
 
-def edit_pages_on_wiki(targets, wiki):
-    logger.info("target files:" + " / ".join(targets))
-
-    SUMMARY = (
+def make_summary():
+    return (
         "Github @"
         + environ["GITHUB_ACTOR"]
         + "의 "
@@ -131,6 +170,40 @@ def edit_pages_on_wiki(targets, wiki):
         + "/commit/"
         + environ["GITHUB_SHA"][:8]
     )
+
+
+def move_pages_on_wiki(moves, wiki):
+    """move each page to its new title, leaving a redirect behind, so its
+    history follows the renamed file"""
+    SUMMARY = make_summary()
+
+    for old, new in moves:
+        old_title = file_to_title(old)
+        new_title = file_to_title(new)
+        page = wiki.pages[old_title]
+        if not page.exists:
+            logger.info(f"Not moving {old_title}: it does not exist")
+            continue
+        if wiki.pages[new_title].exists:
+            logger.warning(
+                f"Not moving {old_title}: {new_title} already exists"
+            )
+            continue
+        try:
+            logger.debug(f"Moving: {old_title} to {new_title}...")
+            page.move(new_title, SUMMARY)
+            logger.debug(f"Moved: {old_title} to {new_title}")
+        except (
+            mwclient.errors.APIError,
+            mwclient.errors.InsufficientPermission,
+        ) as e:
+            logger.warning(f"Failed to move {old_title}: {e}")
+
+
+def edit_pages_on_wiki(targets, wiki):
+    logger.info("target files:" + " / ".join(targets))
+
+    SUMMARY = make_summary()
 
     for i, FILE in enumerate(targets):
         title = file_to_title(FILE)
@@ -176,13 +249,20 @@ def main():
     FEMIWIKI.login(f"{USERNAME}@{TOKEN_ID}", PASSWORD)
 
     try:
-        MODIFIED = validate_files(get_modified_files(FEMIWIKI))
+        modified = get_modified_files(FEMIWIKI)
     except subprocess.SubprocessError:
         logger.info("Failed to load the last applied commit")
-        logger.info("Trying to apply all files...")
-        MODIFIED = get_all_files()
+        modified = None
 
-    edit_pages_on_wiki(MODIFIED, FEMIWIKI)
+    if modified is None:
+        logger.info("Trying to apply all files...")
+        CHANGED, MOVES = get_all_files(), []
+    else:
+        CHANGED, MOVES = split_moves(*modified)
+
+    # Move first, so the new title is free when the new file is saved
+    move_pages_on_wiki(MOVES, FEMIWIKI)
+    edit_pages_on_wiki(CHANGED, FEMIWIKI)
 
 
 if __name__ == "__main__":

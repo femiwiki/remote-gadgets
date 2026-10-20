@@ -3,7 +3,9 @@ from apply import (
     find_duplicate_titles,
     get_all_files,
     normalize_title,
+    parse_name_status,
     sanitize_args,
+    split_moves,
     validate_files,
 )
 
@@ -91,3 +93,43 @@ def test_find_duplicate_titles():
     assert find_duplicate_titles([space, underscore, sandbox]) == {
         "module:@ko/Citation/CS1/Date validation": [space, underscore]
     }
+
+
+def test_parse_name_status():
+    output = (
+        "M\0pages/mediawiki%3Acommon.css\0"
+        "R087\0lua/Old\0lua/New\0"
+        "D\0pages/gone\0"
+        "A\0gadgets/x/mediawiki%3Agadget-x.js\0"
+    )
+
+    assert parse_name_status(output) == (
+        [
+            "pages/mediawiki%3Acommon.css",
+            "pages/gone",
+            "gadgets/x/mediawiki%3Agadget-x.js",
+        ],
+        [("lua/Old", "lua/New")],
+    )
+    assert parse_name_status("") == ([], [])
+
+
+def test_split_moves():
+    changed = ["pages/mediawiki%3Acommon.css", "README.md"]
+    moved = [
+        ("lua/Old", "lua/New"),
+        ("lua/Date_validation", "lua/Date%20validation"),
+        ("other/Template", "lua/Template"),
+        ("lua/Retired", "attic/Retired"),
+    ]
+
+    assert split_moves(changed, moved) == (
+        [
+            "pages/mediawiki%3Acommon.css",
+            "lua/New",
+            "lua/Date%20validation",
+            "lua/Template",
+            "lua/Retired",
+        ],
+        [("lua/Old", "lua/New")],
+    )
