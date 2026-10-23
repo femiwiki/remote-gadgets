@@ -57,6 +57,26 @@ function p.renderPosts( frame )
 	return tostring( ul )
 end
 
+--- 포스트 문서의 내용을 가져옵니다.
+-- 번역 표시한 포스트는 원문에 <translate> 태그가 있으므로, 번역 확장 기능이 태그를 빼고 만든
+-- 문서를 읽습니다. 그 언어의 번역 문서가 있으면 그것을, 없으면 원문 언어 문서(root/id/ko)를,
+-- 그것도 없으면(번역 표시하지 않은 포스트) 원문을 읽습니다.
+-- @param page 포스트 문서의 이름
+-- @param langCode 언어 코드
+-- @return string|nil 내용, 포스트가 없으면 nil
+-- @return string 링크할 문서의 이름, 번역 문서가 아니면 원문
+local function postContent( page, langCode )
+	local contentLangCode = mw.language.getContentLanguage():getCode()
+	if langCode ~= contentLangCode then
+		local text = mw.title.new( page .. '/' .. langCode ):getContent()
+		if text then
+			return text, page .. '/' .. langCode
+		end
+	end
+	local text = mw.title.new( page .. '/' .. contentLangCode ):getContent()
+	return text or mw.title.new( page ):getContent(), page
+end
+
 --- 포스트 문서의 {{페미위키 블로그 포스트}}에 적힌 title과 date 값을 읽습니다.
 -- @param text 포스트 문서의 내용
 -- @param id 포스트의 id, 제목을 찾지 못할 때 대신 씁니다.
@@ -74,19 +94,28 @@ end
 -- @param root 포스트들의 공통된 문서 제목 부분, '/'는 포함 안 함.
 -- @param limit 보여줄 최다 포스트 수, nil이면 전부
 -- @param exclude 목록에서 뺄 포스트의 id, nil이면 빼지 않음
+-- @param langCode 목록을 보여줄 언어 코드, nil이면 위키 언어
 -- @return string wikitext
-local function titleList( root, limit, exclude )
+local function titleList( root, limit, exclude, langCode )
 	local lang = mw.language.getContentLanguage()
+	local dateFormat = 'Y년 n월 j일'
+	if langCode and langCode ~= '' and langCode ~= lang:getCode() then
+		lang = mw.language.new( langCode )
+		dateFormat = 'F j, Y'
+	end
 	local items = {}
 	for id = findLastId( root ), 1, -1 do
 		-- 제목과 날짜를 읽으려고 내용을 가져오며, 없는 번호는 내용이 nil이라 여기서 걸러집니다.
 		-- exists로 따로 확인하지 않으므로 비싼 파서 함수 한도가 포스트 수를 제한하지 않습니다.
-		local text = id ~= exclude and mw.title.new( root .. '/' .. id ):getContent()
+		local text, page
+		if id ~= exclude then
+			text, page = postContent( root .. '/' .. id, lang:getCode() )
+		end
 		if text then
 			local title, date = postInfo( text, id )
-			local item = '* [[' .. root .. '/' .. id .. '|' .. title .. ']]'
+			local item = '* [[' .. page .. '|' .. title .. ']]'
 			-- 날짜가 잘못 적혀 있어도 목록 전체가 오류가 되지 않게, 날짜만 뺍니다.
-			local ok, formatted = pcall( lang.formatDate, lang, 'Y년 n월 j일', date or '', true )
+			local ok, formatted = pcall( lang.formatDate, lang, dateFormat, date or '', true )
 			if date and ok then
 				item = item .. ' <span class="femiwiki-blog-list--date">' .. formatted .. '</span>'
 			end
@@ -101,12 +130,14 @@ end
 -- @param frame.args['root'] 포스트들의 공통된 문서 제목 부분, '/'는 포함 안 함.
 -- @param frame.args['limit'] 보여줄 최다 포스트 수, 없으면 3
 -- @param frame.args['exclude'] 목록에서 뺄 포스트의 id, 보통 지금 포스트
+-- @param frame.args['lang'] 목록을 보여줄 언어 코드, 보통 지금 문서의 언어
 -- @return string wikitext
 function p.renderTitles( frame )
 	return titleList(
 		frame.args['root'],
 		tonumber( frame.args['limit'] ) or 3,
-		tonumber( frame.args['exclude'] )
+		tonumber( frame.args['exclude'] ),
+		frame.args['lang']
 	)
 end
 
@@ -226,7 +257,7 @@ function p.atom( frame )
 	local updated
 	for id = findLastId( root ), 1, -1 do
 		local post = mw.title.new( root .. '/' .. id )
-		local text = post:getContent()
+		local text = postContent( root .. '/' .. id, mw.language.getContentLanguage():getCode() )
 		local published = text and rfc3339( postField( text, 'date' ) )
 		-- 발행일이 오지 않은 포스트는 아직 넣지 않습니다.
 		if published and published <= now then
