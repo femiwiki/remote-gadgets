@@ -10,28 +10,28 @@
 
 	mw.hook("wikipage.content").add(() => {
 		// ~님에 대한 부적절한 사용자명 변경 건의
-		$(".mw-changeslist a").each(function () {
-			var isLinkToSanction = $(this)
-				.html()
-				.match(/님에 대한 부적절한 사용자명 변경 건의/);
+		document.querySelectorAll(".mw-changeslist a").forEach((link) => {
+			var isLinkToSanction = link.innerHTML.match(
+				/님에 대한 부적절한 사용자명 변경 건의/,
+			);
 
 			if (isLinkToSanction) {
-				$(this).html(
-					`사용자:${substitute} 님에 대한 부적절한 사용자명 변경 건의`,
-				);
+				link.innerHTML = `사용자:${substitute} 님에 대한 부적절한 사용자명 변경 건의`;
 			}
 		});
 
 		// 사용자 문서와 사용자 이름 바꾸기 기록
-		$(".mw-changeslist .mw-redirect").each(function () {
-			if ($(this).attr("title").startsWith("사용자:")) {
-				if ($(this).html().startsWith("사용자:")) {
-					$(this).html(`사용자:${substitute2}`);
-				} else {
-					$(this).html(substitute2);
+		document
+			.querySelectorAll(".mw-changeslist .mw-redirect")
+			.forEach((link) => {
+				if (link.getAttribute("title").startsWith("사용자:")) {
+					if (link.innerHTML.startsWith("사용자:")) {
+						link.innerHTML = `사용자:${substitute2}`;
+					} else {
+						link.innerHTML = substitute2;
+					}
 				}
-			}
-		});
+			});
 	});
 })();
 // </nowiki>
