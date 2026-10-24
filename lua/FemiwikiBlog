@@ -306,4 +306,23 @@ function p.atom( frame )
 	}, '\n' )
 end
 
+--- 쉼표로 나눈 해시태그들을 {{FEDIFEEDSTAGS:}}에 넘깁니다.
+-- 틀:페미위키 블로그 포스트의 tags 매개변수에서 부릅니다. 매개변수를 <translate> 안에 두면
+-- 번역 문서마다 다른 태그를 붙일 수 있습니다. 앞뒤 공백과 "#"은 FediFeeds가 떼어 냅니다.
+-- @param frame.args[1] "OpenTofu, Terraform"처럼 쉼표로 나눈 태그들
+-- @return string 빈 문자열
+function p.tags( frame )
+	local tags = {}
+	for tag in mw.text.gsplit( frame.args[1] or '', ',', true ) do
+		tag = mw.text.trim( tag )
+		if tag ~= '' then
+			table.insert( tags, tag )
+		end
+	end
+	if #tags == 0 then
+		return ''
+	end
+	return frame:callParserFunction( 'FEDIFEEDSTAGS', tags )
+end
+
 return p
