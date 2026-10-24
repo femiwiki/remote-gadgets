@@ -23,15 +23,13 @@
 				rows: 8,
 			});
 			this.content = new OO.ui.PanelLayout({ padded: true, expanded: false });
-			this.content.$element.append(
-				this.input.$element,
-				$("<p>").text(
-					"키워드는 페미위키 서버가 아닌 사용자 브라우저에 저장됩니다." +
-						" 여러 브라우저로 페미위키를 이용하시는 분들은 각 브라우저별로" +
-						" 키워드를 등록해주시기 바랍니다.",
-				),
-			);
-			this.$body.append(this.content.$element);
+			const notice = document.createElement("p");
+			notice.textContent =
+				"키워드는 페미위키 서버가 아닌 사용자 브라우저에 저장됩니다." +
+				" 여러 브라우저로 페미위키를 이용하시는 분들은 각 브라우저별로" +
+				" 키워드를 등록해주시기 바랍니다.";
+			this.content.$element[0].append(this.input.$element[0], notice);
+			this.$body[0].append(this.content.$element[0]);
 		};
 
 		MuteEditor.prototype.getSetupProcess = function (data) {
@@ -63,7 +61,13 @@
 		};
 
 		MuteEditor.prototype.getBodyHeight = function () {
-			return this.content.$element.outerHeight(true);
+			const content = this.content.$element[0];
+			const style = window.getComputedStyle(content);
+			return (
+				content.offsetHeight +
+				parseFloat(style.marginTop) +
+				parseFloat(style.marginBottom)
+			);
 		};
 	}
 
@@ -72,7 +76,7 @@
 			if (!_windowManager) {
 				_defineEditor();
 				_windowManager = new OO.ui.WindowManager();
-				$(document.body).append(_windowManager.$element);
+				document.body.append(_windowManager.$element[0]);
 				_editor = new MuteEditor({ size: "medium" });
 				_windowManager.addWindows([_editor]);
 			}
@@ -81,15 +85,15 @@
 	}
 
 	function _initUI() {
-		$(
-			mw.util.addPortletLink(
-				"p-personal",
-				"#",
-				"뮤트",
-				"p-mute",
-				"금지어를 설정합니다.",
-			),
-		).on("click", (e) => {
+		const link = mw.util.addPortletLink(
+			"p-personal",
+			"#",
+			"뮤트",
+			"p-mute",
+			"금지어를 설정합니다.",
+		);
+		if (!link) return;
+		link.addEventListener("click", (e) => {
 			e.preventDefault();
 			_openEditor();
 		});
@@ -97,14 +101,16 @@
 
 	function _showTriggerWarning() {
 		// Do nothing if it's edit mode
-		if ($("body.action-edit").length) return;
-		if ($("html.ve-activated").length) return;
+		if (document.body.classList.contains("action-edit")) return;
+		if (document.documentElement.classList.contains("ve-activated")) return;
 
-		var text = $("#content").html();
-		if (!shouldMute(text)) return;
+		const content = document.getElementById("content");
+		if (!content || !shouldMute(content.innerHTML)) return;
 
 		// Show trigger warning
-		$("#mw-content-text").prepend(
+		const contentText = document.getElementById("mw-content-text");
+		if (!contentText) return;
+		contentText.prepend(
 			mw.util.messageBox(
 				"가림 단어가 포함된 문서입니다. 이 문서의 제목 또는 본문에 한 개 이상의 가림 단어가 있습니다.",
 				"warning",
@@ -127,65 +133,88 @@
 
 	// The page titles and edit summaries of a line, or of a grouped line's
 	// nested lines in the enhanced view
-	function _lineText($line) {
-		return $line
-			.find(
-				".mw-title, .comment, .mw-changeslist-log-entry > a:not(.mw-userlink)",
+	function _lineText(line) {
+		return Array.prototype.map
+			.call(
+				line.querySelectorAll(
+					".mw-title, .comment, .mw-changeslist-log-entry > a:not(.mw-userlink)",
+				),
+				(el) => el.textContent,
 			)
-			.map(function () {
-				return this.textContent;
-			})
-			.get()
 			.join("\n");
 	}
 
-	function _collapseControl($run, tag) {
-		var count = $run.length;
-		var $button = $("<button>")
-			.attr({ type: "button", "aria-expanded": "false" })
-			.addClass("cdx-button")
-			.text(`${count}개 가려짐`)
-			.on("click", () => {
-				var expanded = $button.attr("aria-expanded") === "true";
-				$run.toggleClass("fw-mute-hidden", expanded);
-				$button
-					.attr("aria-expanded", String(!expanded))
-					.text(expanded ? `${count}개 가려짐` : "다시 가리기");
+	function _collapseControl(run, tag) {
+		var count = run.length;
+		const button = document.createElement("button");
+		button.type = "button";
+		button.setAttribute("aria-expanded", "false");
+		button.className = "cdx-button";
+		button.textContent = `${count}개 가려짐`;
+		button.addEventListener("click", () => {
+			var expanded = button.getAttribute("aria-expanded") === "true";
+			run.forEach((line) => {
+				line.classList.toggle("fw-mute-hidden", expanded);
 			});
-		return $(`<${tag}>`).addClass("fw-mute-collapsed").append($button);
+			button.setAttribute("aria-expanded", String(!expanded));
+			button.textContent = expanded ? `${count}개 가려짐` : "다시 가리기";
+		});
+		const control = document.createElement(tag);
+		control.className = "fw-mute-collapsed";
+		control.append(button);
+		return control;
+	}
+
+	// The nearest sibling line before or after a line
+	function _siblingLine(line, forward) {
+		var sibling = forward
+			? line.nextElementSibling
+			: line.previousElementSibling;
+		while (sibling && !sibling.matches(".mw-changeslist-line")) {
+			sibling = forward
+				? sibling.nextElementSibling
+				: sibling.previousElementSibling;
+		}
+		return sibling;
 	}
 
 	function _hideMutedLines($content) {
 		if (!_muteWords.length) return;
 		// Legacy lines are <li>; enhanced lines are <table>, grouped or not
-		var $lines = $content
-			.find("li.mw-changeslist-line, table.mw-changeslist-line")
-			.not(".fw-mute-checked")
-			.addClass("fw-mute-checked");
-		var $muted = $lines.filter(function () {
-			return shouldMute(_lineText($(this)));
+		const lines = [];
+		Array.prototype.forEach.call($content, (root) => {
+			root
+				.querySelectorAll(
+					"li.mw-changeslist-line:not(.fw-mute-checked), table.mw-changeslist-line:not(.fw-mute-checked)",
+				)
+				.forEach((line) => {
+					line.classList.add("fw-mute-checked");
+					lines.push(line);
+				});
 		});
-		if (!$muted.length) return;
+		const muted = lines.filter((line) => shouldMute(_lineText(line)));
+		if (!muted.length) return;
 
 		mw.loader.load("codex-styles");
-		$muted.addClass("fw-mute-hidden");
+		muted.forEach((line) => {
+			line.classList.add("fw-mute-hidden");
+		});
 
 		// Collapse each run of adjacent muted lines behind one button
-		$muted.each(function () {
-			var $first = $(this);
-			if ($first.prevAll(".mw-changeslist-line").first().is($muted)) return;
-			var run = [this];
-			var $next = $first.nextAll(".mw-changeslist-line").first();
-			while ($next.is($muted)) {
-				run.push($next[0]);
-				$next = $next.nextAll(".mw-changeslist-line").first();
+		muted.forEach((first) => {
+			if (muted.includes(_siblingLine(first, false))) return;
+			var run = [first];
+			var next = _siblingLine(first, true);
+			while (muted.includes(next)) {
+				run.push(next);
+				next = _siblingLine(next, true);
 			}
-			var $run = $(run);
 			// An enhanced line follows its expand checkbox
-			var $before = $first.prev(".mw-enhancedchanges-checkbox");
-			$($before[0] || this).before(
-				_collapseControl($run, $first.is("li") ? "li" : "p"),
-			);
+			var before = first.previousElementSibling;
+			if (!before || !before.matches(".mw-enhancedchanges-checkbox")) {
+				before = first;
+			}
+			before.before(_collapseControl(run, first.matches("li") ? "li" : "p"));
 		});
 	}
 
@@ -217,10 +246,15 @@
 	}
 
 	// Init UI
-	$(() => {
+	function _init() {
 		_initUI();
 		if (!_isChangesListPage()) _showTriggerWarning();
-	});
+	}
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", _init);
+	} else {
+		_init();
+	}
 
 	// The filters on these pages reload the list and fire this hook again
 	if (_isChangesListPage()) {
