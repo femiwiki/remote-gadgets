@@ -7,10 +7,15 @@
 		if (Number(mw.user.options.get("rcenhancedfilters-disable")) === 1) return;
 
 		// 바뀐글 링크를 limit가 0인 링크로 바꿉니다.
-		$("#site-navigation .changes a").attr(
-			"href",
-			`${$("#site-navigation .changes a").attr("href")}?limit=0`,
+		const changesLinks = document.querySelectorAll(
+			"#site-navigation .changes a",
 		);
+		if (changesLinks.length) {
+			const href = `${changesLinks[0].getAttribute("href")}?limit=0`;
+			changesLinks.forEach((link) => {
+				link.setAttribute("href", href);
+			});
+		}
 
 		if (
 			mw.config.get("wgCanonicalSpecialPageName") === "Recentchanges" &&
@@ -45,19 +50,24 @@
 				}
 
 				// limit를 50으로 변경하는 버튼
-				var btn = $(
+				var btn = document.querySelectorAll(
 					".mw-rcfilters-ui-changesLimitPopupWidget .oo-ui-buttonSelectWidget a",
-				).eq(limitButtonIndex);
+				)[limitButtonIndex];
+				if (!btn) return;
 
 				// 버튼을 누르는 동작을 흉내냅니다. 즉 limit를 50으로 다시 설정합니다.
-				btn.trigger(
-					jQuery.Event("mousedown", { which: OO.ui.MouseButtons.LEFT }),
+				btn.dispatchEvent(
+					new MouseEvent("mousedown", { bubbles: true, button: 0 }),
 				);
-				btn[0].dispatchEvent(new MouseEvent("mouseup"));
+				btn.dispatchEvent(new MouseEvent("mouseup"));
 			});
 		}
 	}
 
-	$(init);
+	if (document.readyState === "loading") {
+		document.addEventListener("DOMContentLoaded", init);
+	} else {
+		init();
+	}
 })();
 // </nowiki>
