@@ -17,3 +17,42 @@ html.ve-active span.spoiler-text {
 html.ve-active div.spoiler-text {
 	display: block;
 }
+
+/* Classes below are set by the spoiler gadget */
+body.spoiler-ready:not(.spoiler-shown) .spoiler-show,
+body.spoiler-shown .spoiler-hide {
+	display: none;
+}
+
+body.spoiler-has-headings:not(.spoiler-shown) :is(#toc, .toc) {
+	display: none;
+}
+
+/* Fade in and out like jQuery's fadeToggle() */
+body.spoiler-ready .spoiler-text {
+	opacity: 0;
+	transition:
+		opacity 0.4s ease-in-out,
+		display 0.4s allow-discrete;
+}
+
+body.spoiler-shown span.spoiler-text {
+	display: inline;
+	opacity: 1;
+}
+
+body.spoiler-shown div.spoiler-text {
+	display: block;
+	opacity: 1;
+}
+
+@starting-style {
+	body.spoiler-shown span.spoiler-text,
+	body.spoiler-shown div.spoiler-text {
+		opacity: 0;
+	}
+}
+
+html.ve-active body .spoiler-text {
+	opacity: 1;
+}

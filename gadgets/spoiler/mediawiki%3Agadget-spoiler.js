@@ -6,42 +6,31 @@
 	"use strict";
 
 	function init($content) {
-		var $noticeTexts = $content.find(".spoiler-notice-text");
-		var $spoilerTexts = $content.find(".spoiler-text");
-		var hasSpoilingHeadings = !!$spoilerTexts.has("h1,h2,h3,h4,h5,h6").length;
+		var content = $content[0];
+		var noticeText = content.querySelector(".spoiler-notice-text");
+		if (!noticeText || !content.querySelector(".spoiler-text")) return;
 
-		if ($noticeTexts.length === 0 || $spoilerTexts.length === 0) return;
-
-		var noticeBody = $noticeTexts[0].parentElement;
+		var noticeBody = noticeText.parentElement;
 		if (noticeBody.querySelector(".spoiler-toggle-button")) return;
 
-		var $toc = $("#toc, .toc");
-		if (hasSpoilingHeadings) {
-			$toc.hide();
+		// The rest is done by spoiler-styles
+		content.querySelectorAll(".spoiler-js, .spoiler-hide").forEach((el) => {
+			el.style.display = "";
+		});
+		document.body.classList.add("spoiler-ready");
+		if (content.querySelector(".spoiler-text :is(h1,h2,h3,h4,h5,h6)")) {
+			document.body.classList.add("spoiler-has-headings");
 		}
-		$content.find(".spoiler-js").show();
 
 		var anchor = document.createElement("a");
 		anchor.textContent = "보이기";
 		anchor.classList.add("spoiler-toggle-button");
 		anchor.addEventListener("click", function (event) {
-			$spoilerTexts.fadeToggle();
-			if (hasSpoilingHeadings) {
-				$toc.toggle();
-			}
-			$noticeTexts.toggle();
-
-			if (this.textContent === "숨기기") {
-				this.textContent = "보이기";
-			} else {
-				this.textContent = "숨기기";
-			}
-
+			var shown = document.body.classList.toggle("spoiler-shown");
+			this.textContent = shown ? "숨기기" : "보이기";
 			event.preventDefault();
 		});
 		noticeBody.append(anchor);
-
-		$noticeTexts.toggle();
 	}
 
 	mw.hook("wikipage.content").add(init);
