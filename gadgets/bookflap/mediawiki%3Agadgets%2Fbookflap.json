@@ -14,6 +14,8 @@
 		"messages": [
 			"navigation",
 			"ooui-popup-widget-close-button-aria-label",
+			"skin-femiwiki-pin-hide",
+			"skin-femiwiki-pin-show",
 			"toc"
 		],
 		"type": "general"
