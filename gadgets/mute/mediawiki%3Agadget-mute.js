@@ -16,8 +16,8 @@
 			{ label: "취소", flags: ["safe", "close"] },
 		];
 
-		MuteEditor.prototype.initialize = function () {
-			MuteEditor.super.prototype.initialize.apply(this, arguments);
+		MuteEditor.prototype.initialize = function (...args) {
+			MuteEditor.super.prototype.initialize.apply(this, args);
 			this.input = new OO.ui.MultilineTextInputWidget({
 				placeholder: "감출 키워드를 한 줄에 하나씩 입력하세요.",
 				rows: 8,
