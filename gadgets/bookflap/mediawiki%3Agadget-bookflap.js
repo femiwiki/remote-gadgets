@@ -1,5 +1,5 @@
 /**
- * [[틀:책날개]]를 보조합니다.
+ * [[틀:둘러보기]]를 보조합니다.
  */
 // <nowiki>
 (() => {
@@ -12,7 +12,7 @@
 		return;
 
 	// FemiwikiSkin 6 draws the ToC outside the content and leaves a right column
-	// (FemiwikiSkin#348), so 책날개 goes there instead of buttons in the content.
+	// (FemiwikiSkin#348), so 둘러보기 goes there instead of buttons in the content.
 	if (!document.getElementById("fw-page-aside")) return;
 	outsideContent();
 
@@ -51,7 +51,7 @@
 	}
 
 	/**
-	 * Wide screens show 책날개 in the right column, unless the reader folded it
+	 * Wide screens show 둘러보기 in the right column, unless the reader folded it
 	 * away (FemiwikiSkin's fw-aside-pinned client preference). Elsewhere it is a
 	 * "둘러보기" tab in the ToC drawer, or a drawer of its own where the ToC is a
 	 * column or there is no ToC.
@@ -139,7 +139,7 @@
 			const tocHeader = toc.querySelector(".fw-toc-header");
 			if (tocHeader) tocHeader.prepend(tabs);
 			select("toc");
-			// The ToC button opens the ToC, and the strip below opens 책날개.
+			// The ToC button opens the ToC, and the strip below opens 둘러보기.
 			const tocToggle = document.getElementById("fw-toc-toggle");
 			if (tocToggle) {
 				tocToggle.addEventListener("click", () => {
@@ -199,7 +199,7 @@
 			}
 		});
 
-		// Where 책날개 is in a drawer, a strip under the title names it and
+		// Where 둘러보기 is in a drawer, a strip under the title names it and
 		// opens the drawer on it, so readers see it is there (#333).
 		var inToc = false;
 		var stripLabel = element("span", "book-flap-strip-label");
@@ -248,7 +248,7 @@
 			// Kept beside the content unless the reader folded it away. Before the
 			// skin has the preference, the class is missing and it stays.
 			var pinned = !classList.contains("fw-aside-pinned-clientpref-0");
-			// The right column takes 책날개 once it is wide enough for it.
+			// The right column takes 둘러보기 once it is wide enough for it.
 			var style = page && window.getComputedStyle(page);
 			var width =
 				style && style.display === "grid"
