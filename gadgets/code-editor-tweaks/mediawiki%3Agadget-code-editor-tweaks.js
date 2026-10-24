@@ -1,5 +1,5 @@
 // <nowiki>
-$(() => {
+(() => {
 	"use strict";
 
 	mw.hook("codeEditor.configure").add((editSession) => {
@@ -9,5 +9,5 @@ $(() => {
 			editSession.setUseSoftTabs(true);
 		}
 	});
-});
+})();
 // </nowiki>
