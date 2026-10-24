@@ -1,5 +1,5 @@
 //<nowiki>
-((mw, _$) => {
+((mw) => {
 	"use strict";
 	if (typeof mw.libs.ve.addPlugin === "undefined") {
 		return;
@@ -218,9 +218,9 @@
 	// Only Structured Discussions boards need VisualEditor core up front.
 	// Loading it everywhere costs every reader about 250 KB.
 	if (mw.config.get("wgPageContentModel") === "flow-board") {
-		mw.loader.using(["ext.visualEditor.core"]).done(() => {
+		mw.loader.using(["ext.visualEditor.core"]).then(() => {
 			addDashSequence(); // for Structured Discussions
 		});
 	}
-})(mediaWiki, jQuery);
+})(mediaWiki);
 // </nowiki>
