@@ -1,0 +1,43 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+    </style>
+    <!--Load the AJAX API-->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      (function(){
+      var url = 'https://docs.google.com/spreadsheets/d/1X3m2r7n6Gww8ZaCiKvYxgH1oPKSmbi2zArwEsZ1jCxQ/gviz/tq?sheet=<!--{$sheet}-->&headers=1';
+      var title = '<!--{$title}-->';
+      var chart;
+
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+        var query = new google.visualization.Query(url);
+        query.send(handleQueryResponse);
+      }
+
+      function handleQueryResponse(response) {
+        var data = response.getDataTable();
+
+        var options = {
+          'title': title,
+          'legend': 'top',
+          'chartArea': {left: 50, right: 10, top: 30, bottom: 50},
+          'height': <!--{$height}--> - 20
+        };
+
+        chart = new google.visualization.LineChart(document.getElementById('chart_div_<!--{$sheet}-->'));
+        chart.draw(data, options);
+      }
+    })();
+    </script>
+</head>
+<body>
+<!--Div that will hold the pie chart-->
+<div id="chart_div_<!--{$sheet}-->"></div>
+</body>
+</html>
