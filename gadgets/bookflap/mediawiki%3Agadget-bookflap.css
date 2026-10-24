@@ -58,7 +58,7 @@
 	line-height: 2em;
 }
 
-/* FemiwikiSkin 6 (FemiwikiSkin#348): 책날개 in the right column, a ToC tab
+/* FemiwikiSkin 6 (FemiwikiSkin#348): 둘러보기 in the right column, a ToC tab
    or a drawer of its own. Colours follow the skin's palette, which dark mode
    turns around. */
 body.book-flap-outside .book-flap-wrapper {
@@ -163,7 +163,7 @@ body.book-flap-outside .book-flap-wrapper {
 	gap: 1em;
 }
 
-/* 책날개 goes back to the right column only where it was folded away, not
+/* 둘러보기 goes back to the right column only where it was folded away, not
    where the column is too narrow for it. */
 .fw-aside-pinned-clientpref-1 .book-flap-tab-flap .fw-pin-show,
 .fw-aside-pinned-clientpref-1 .book-flap-drawer .fw-pin-show {
@@ -250,7 +250,7 @@ body.book-flap-outside .book-flap-wrapper {
 	color: var(--color-primary5, #5144a3);
 }
 
-/* The right column shows 책날개 itself. */
+/* The right column shows 둘러보기 itself. */
 .book-flap-aside-mode .book-flap-strip {
 	display: none;
 }
