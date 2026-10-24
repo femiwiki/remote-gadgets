@@ -58,9 +58,8 @@
 	line-height: 2em;
 }
 
-/* FemiwikiSkin 6 (FemiwikiSkin#348): 책날개 in the right column, a ToC tab
-   or a drawer of its own. Colours follow the skin's palette, which dark mode
-   turns around. */
+/* FemiwikiSkin 6 (FemiwikiSkin#348): 책날개 in the right column or a ToC tab.
+   Colours follow the skin's palette, which dark mode turns around. */
 body.book-flap-outside .book-flap-wrapper {
 	display: none !important;
 }
@@ -85,6 +84,10 @@ body.book-flap-outside .book-flap-wrapper {
 	overflow-y: auto;
 }
 
+.book-flap-aside-mode #fw-toc.book-flap-only {
+	display: none !important;
+}
+
 .book-flap-aside .book-flap-side,
 .book-flap-pane .book-flap-side {
 	max-width: none;
@@ -100,21 +103,6 @@ body.book-flap-outside .book-flap-wrapper {
 	border-bottom: 2px solid var(--color-primary4, #736ac9);
 	font-size: 0.85rem;
 	font-weight: bold;
-}
-
-/* The skin's button that folds the column away sits at the end of the first title. */
-.book-flap-aside .book-flap-title:has(.fw-pin-button) {
-	display: flex;
-	align-items: center;
-	gap: 0.3em;
-	padding: 0;
-}
-
-.book-flap-aside .book-flap-title:has(.fw-pin-button) > a,
-.book-flap-aside .book-flap-title:has(.fw-pin-button) > .mw-selflink {
-	flex: auto;
-	min-width: 0;
-	padding: 0.3rem 0;
 }
 
 .book-flap-aside .book-flap-title a,
@@ -136,21 +124,24 @@ body.book-flap-outside .book-flap-wrapper {
 	display: none;
 }
 
-.book-flap-in-toc .book-flap-tab-flap .book-flap-pane,
-.book-flap-in-drawer .book-flap-drawer .book-flap-pane {
+body:not(.book-flap-aside-mode) .book-flap-tab-flap .book-flap-pane,
+.book-flap-only .book-flap-pane {
 	display: block;
 }
 
-.book-flap-in-toc .book-flap-tab-flap .fw-toc-panel > .fw-toc-list {
+body:not(.book-flap-aside-mode)
+	.book-flap-tab-flap
+	.fw-toc-panel
+	> .fw-toc-list {
 	display: none;
 }
 
-.book-flap-in-toc .book-flap-has-tabs .fw-toc-header {
+body:not(.book-flap-aside-mode) .book-flap-has-tabs .fw-toc-header {
 	border-bottom: 1px solid var(--color-primary2, #b9b5d9);
 }
 
 /* The tabs name the panel, so the heading stays for screen readers only. */
-.book-flap-in-toc .book-flap-has-tabs .fw-toc-heading {
+body:not(.book-flap-aside-mode) .book-flap-has-tabs .fw-toc-heading {
 	position: absolute;
 	width: 1px;
 	height: 1px;
@@ -158,16 +149,9 @@ body.book-flap-outside .book-flap-wrapper {
 	clip: rect(0 0 0 0);
 }
 
-.book-flap-in-toc .book-flap-tabs {
+body:not(.book-flap-aside-mode) .book-flap-tabs {
 	display: flex;
 	gap: 1em;
-}
-
-/* 책날개 goes back to the right column only where it was folded away, not
-   where the column is too narrow for it. */
-.fw-aside-pinned-clientpref-1 .book-flap-tab-flap .fw-pin-show,
-.fw-aside-pinned-clientpref-1 .book-flap-drawer .fw-pin-show {
-	display: none;
 }
 
 .book-flap-tab {
@@ -185,24 +169,6 @@ body.book-flap-outside .book-flap-wrapper {
 	border-bottom-color: var(--color-primary4, #736ac9);
 	color: var(--color-base, #202122);
 	font-weight: bold;
-}
-
-/* The drawer of its own takes the look of the skin's ToC drawer, whose
-   classes it uses. */
-.book-flap-drawer {
-	display: none;
-	font-size: 0.85rem;
-	line-height: 1.4;
-}
-
-.book-flap-drawer.book-flap-drawer-open {
-	display: block;
-}
-
-.book-flap-drawer .fw-toc-close {
-	display: block;
-	border: 0;
-	background-color: transparent;
 }
 
 .book-flap-strip {
@@ -250,7 +216,10 @@ body.book-flap-outside .book-flap-wrapper {
 	color: var(--color-primary5, #5144a3);
 }
 
-/* The right column shows 책날개 itself. */
-.book-flap-aside-mode .book-flap-strip {
-	display: none;
+/* The skin's ToC column (1120px and up) shows the 둘러보기 tab itself, except
+   on the wide pages that keep the drawer. */
+@media screen and (min-width: 1120px) {
+	body:not(.fw-wide-content) .book-flap-strip {
+		display: none;
+	}
 }
