@@ -175,8 +175,7 @@
 
 	document.addEventListener("click", (event) => {
 		var link =
-			event.target instanceof Element &&
-			event.target.closest("a.new[href]");
+			event.target instanceof Element && event.target.closest("a.new[href]");
 		if (
 			!link ||
 			event.button !== 0 ||
