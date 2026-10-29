@@ -1,0 +1,17 @@
+{
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": true,
+		"skins": [],
+		"targets": ["desktop", "mobile"],
+		"category": "view"
+	},
+	"module": {
+		"pages": ["redlink-popup.js", "redlink-popup.css"],
+		"peers": [],
+		"dependencies": ["mediawiki.api", "mediawiki.util", "mediawiki.Title"],
+		"messages": ["cdx-dialog-close-button-label"],
+		"type": "general"
+	}
+}

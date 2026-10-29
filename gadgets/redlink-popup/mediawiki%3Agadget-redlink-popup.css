@@ -1,0 +1,37 @@
+.redlink-popup-open {
+	overflow: hidden;
+}
+
+.redlink-popup.cdx-dialog-backdrop {
+	z-index: 450;
+}
+
+.redlink-popup .cdx-dialog {
+	outline: 0;
+}
+
+.redlink-popup .cdx-dialog__body p {
+	margin: 0;
+}
+
+.redlink-popup .cdx-dialog__body .redlink-popup__heading {
+	margin-top: 1em;
+	font-weight: bold;
+}
+
+.redlink-popup .redlink-popup__results {
+	margin: 0.3em 0 0 1.2em;
+}
+
+.redlink-popup__close-icon {
+	display: block;
+	width: 20px;
+	height: 20px;
+	background-color: currentColor;
+	-webkit-mask:
+		url(/load.php?modules=oojs-ui.styles.icons-interactions&image=close&format=original&lang=ko&skin=femiwiki)
+		center / contain no-repeat;
+	mask:
+		url(/load.php?modules=oojs-ui.styles.icons-interactions&image=close&format=original&lang=ko&skin=femiwiki)
+		center / contain no-repeat;
+}
