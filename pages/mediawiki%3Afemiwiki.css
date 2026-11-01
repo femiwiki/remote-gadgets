@@ -58,3 +58,28 @@ div.dialog input[type="reset"] {
 #content .embedvideowrap {
 	height: auto !important;
 }
+
+/*
+지도(Kartographer)를 그림처럼 본문 옆에 띄움. 지도는 옛 .thumb.tright 클래스를 쓰는데 스킨은 이 클래스를 꾸미지 않음.
+좁은 화면에서는 스킨이 그림을 다루듯 띄우지 않고 가운데에 둠
+*/
+@media (min-width: 640px) {
+	.mw-kartographer-container.tright {
+		float: right;
+		clear: right;
+		margin: 0.5em 0 1.5em 1.5em;
+	}
+
+	.mw-kartographer-container.tleft {
+		float: left;
+		clear: left;
+		margin: 0.5em 1.5em 1.5em 0;
+	}
+}
+
+@media (max-width: 639px) {
+	.mw-kartographer-container.thumb {
+		width: fit-content;
+		margin: 0 auto 1em;
+	}
+}
