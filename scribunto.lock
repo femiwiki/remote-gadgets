@@ -17,7 +17,7 @@
     },
     "@en/Format link": {
       "pageid": 69546539,
-      "revid": 1114037571,
+      "revid": 1374048304,
       "title": "Module:Format link",
       "dependencies": [
         "@en/Arguments",
@@ -46,7 +46,7 @@
     },
     "@en/Infobox": {
       "pageid": 38808424,
-      "revid": 1327161879,
+      "revid": 1358325140,
       "title": "Module:Infobox",
       "dependencies": [
         "@en/Italic title",
@@ -75,7 +75,7 @@
     },
     "@en/Navbar/configuration": {
       "pageid": 66010105,
-      "revid": 1130341048,
+      "revid": 1358894823,
       "title": "Module:Navbar/configuration"
     },
     "@en/String": {
@@ -116,7 +116,7 @@
     },
     "@ko/Catalog lookup link": {
       "pageid": 2580206,
-      "revid": 41711651,
+      "revid": 41869603,
       "title": "\ubaa8\ub4c8:Catalog lookup link",
       "dependencies": [
         "@ko/Arguments"
@@ -160,17 +160,17 @@
     },
     "@ko/Citation/CS1/COinS": {
       "pageid": 1481766,
-      "revid": 36399130,
+      "revid": 41739238,
       "title": "\ubaa8\ub4c8:Citation/CS1/COinS"
     },
     "@ko/Citation/CS1/COinS/sandbox": {
       "pageid": 1478850,
-      "revid": 40568844,
+      "revid": 41787458,
       "title": "\ubaa8\ub4c8:Citation/CS1/COinS/sandbox"
     },
     "@ko/Citation/CS1/Configuration": {
       "pageid": 950942,
-      "revid": 41687804,
+      "revid": 41846076,
       "title": "\ubaa8\ub4c8:Citation/CS1/Configuration",
       "dependencies": [
         "@ko/Langname/data"
@@ -178,7 +178,7 @@
     },
     "@ko/Citation/CS1/Configuration/sandbox": {
       "pageid": 1245454,
-      "revid": 41694442,
+      "revid": 42562594,
       "title": "\ubaa8\ub4c8:Citation/CS1/Configuration/sandbox"
     },
     "@ko/Citation/CS1/Date_validation": {
@@ -188,17 +188,17 @@
     },
     "@ko/Citation/CS1/Date_validation/sandbox": {
       "pageid": 1245452,
-      "revid": 41547967,
+      "revid": 41835497,
       "title": "\ubaa8\ub4c8:Citation/CS1/Date validation/sandbox"
     },
     "@ko/Citation/CS1/Identifiers": {
       "pageid": 1481764,
-      "revid": 41468250,
+      "revid": 42133100,
       "title": "\ubaa8\ub4c8:Citation/CS1/Identifiers"
     },
     "@ko/Citation/CS1/Identifiers/sandbox": {
       "pageid": 1478847,
-      "revid": 41467510,
+      "revid": 42562596,
       "title": "\ubaa8\ub4c8:Citation/CS1/Identifiers/sandbox"
     },
     "@ko/Citation/CS1/Suggestions": {
@@ -208,7 +208,7 @@
     },
     "@ko/Citation/CS1/Suggestions/sandbox": {
       "pageid": 1392708,
-      "revid": 41640691,
+      "revid": 41787459,
       "title": "\ubaa8\ub4c8:Citation/CS1/Suggestions/sandbox"
     },
     "@ko/Citation/CS1/Utilities": {
@@ -218,17 +218,17 @@
     },
     "@ko/Citation/CS1/Utilities/sandbox": {
       "pageid": 1478848,
-      "revid": 41467534,
+      "revid": 41787457,
       "title": "\ubaa8\ub4c8:Citation/CS1/Utilities/sandbox"
     },
     "@ko/Citation/CS1/Whitelist": {
       "pageid": 950943,
-      "revid": 41692880,
+      "revid": 41726492,
       "title": "\ubaa8\ub4c8:Citation/CS1/Whitelist"
     },
     "@ko/Citation/CS1/Whitelist/sandbox": {
       "pageid": 1245455,
-      "revid": 41694443,
+      "revid": 42562595,
       "title": "\ubaa8\ub4c8:Citation/CS1/Whitelist/sandbox"
     },
     "@ko/Color contrast": {
@@ -297,7 +297,7 @@
     },
     "@ko/Langname/data": {
       "pageid": 930466,
-      "revid": 41251596,
+      "revid": 41748448,
       "title": "\ubaa8\ub4c8:Langname/data"
     },
     "@ko/Navbar": {

@@ -32,10 +32,10 @@ new parameters that support access icons:
 require('strict');
 local getArgs = require ('Module:@ko/Arguments').getArgs;
 local lock_icons = {															--icon classes are defined in Module:Citation/CS1/styles.css
-	['free'] = {'id-lock-free', '자유롭게 접근 가능'},
-	['registration'] = {'id-lock-registration', '무료 계정 등록 필요'},
-	['limited'] = {'id-lock-limited', '구독 필요 (일정 한도 내 자유 접근)'},
-	['subscription'] = {'id-lock-subscription', '유료 구독 필요'},
+	['free'] = {'id-lock-free', '무료로 이용 가능'},
+	['registration'] = {'id-lock-registration', '무료 등록 필요함'},
+	['limited'] = {'id-lock-limited', '제한된 기간 동안 무료로 이용 가능, 일반적으로 구독 필요함'},
+	['subscription'] = {'id-lock-subscription', '유료 구독 필요함'},
 	}
 
 
@@ -101,10 +101,11 @@ Templates using this module should set:
 
 local function icon_index_get (args, k)
 	local icon;
-	local param_name = (1 == k and is_set (args['url-access']) and 'url-access') or table.concat ({'url-access', k});	-- make an enumerated parameter name
+	local param_name = (1 == k and (is_set (args['url접근']) and 'url접근' or is_set (args['url-access']) and 'url-access')) or (is_set (args[table.concat ({'url접근', k})]) and table.concat ({'url접근', k}) or table.concat ({'url-access', k}));	-- make an enumerated parameter name
+	local url_access_all_name = is_set (args['url접근전체']) and 'url접근전체' or 'url-access-all';
 
-	if is_set (args['url-access-all']) and lock_icons[args['url-access-all']] then	-- if set and valid
-		icon = args['url-access-all'];											-- tentatively 
+	if is_set (args[url_access_all_name]) and lock_icons[args[url_access_all_name]] then	-- if set and valid
+		icon = args[url_access_all_name];											-- tentatively 
 
 	elseif is_set (args[param_name]) and lock_icons[args[param_name]] then		-- if set and valid
 		icon = args[param_name];												-- tentatively
@@ -113,11 +114,13 @@ local function icon_index_get (args, k)
 		return nil;																-- neither |url-access-all= nor |url-accessn= set so return nil
 	end
 
-	if args['allow_icons'] and args['allow_icons']:find ('none') then			-- if 'none' keyword is present
+	local allow_icons = args['아이콘허용'] or args['allow_icons'];
+
+	if allow_icons and (allow_icons:find ('none') or allow_icons:find ('없음')) then			-- if 'none' keyword is present
 		return nil;																-- icons display not allowed
 	end
 
-	if not is_set (args['allow_icons']) or args['allow_icons']:find ('all') or args['allow_icons']:find (icon) then	--if all allowed or specified icon is allowed
+	if not is_set (allow_icons) or allow_icons:find ('all') or allow_icons:find ('전체') or allow_icons:find (icon) then	--if all allowed or specified icon is allowed
 		return icon;															-- return selected icon as index into icon table
 	end
 end
@@ -141,27 +144,28 @@ local function _main (args, frame)
 		local result = {};
 		local label;
 		
-		local article_suffix = args['article-suffix'] or args['article-postfix'] or '';
-		local link_prefix = args['link-prefix'] or '';
-		local link_suffix = args['link-suffix'] or args['link-postfix'] or '';
-		local item_prefix = args['item-prefix'] or '';
-		local item_suffix = args['item-suffix'] or args['item-postfix'] or '';
-		local list_separator = args['list-separator'] or ', ';
-		local leadout_suffix = args['leadout-suffix'] or args['leadout-postfix'] or ' ';
+		local article_suffix = args['문서접미사'] or args['article-suffix'] or args['article-postfix'] or '';
+		local link_prefix = args['링크접두사'] or args['link-prefix'] or '';
+		local link_suffix = args['링크접미사'] or args['link-suffix'] or args['link-postfix'] or '';
+		local item_prefix = args['항목접두사'] or args['item-prefix'] or '';
+		local item_suffix = args['항목접미사'] or args['item-suffix'] or args['item-postfix'] or '';
+		local list_separator = args['목록구분자'] or args['list-separator'] or ', ';
+		local leadout_suffix = args['마지막접미사'] or args['leadout-suffix'] or args['leadout-postfix'] or ' ';
+		local leadout_val = args['목록마지막'] or args['list-leadout'];
 		local list_leadout;
 
 		local icon_index;
 		
-		if is_set (args['list-leadout']) then
+		if is_set (leadout_val) then
 			list_leadout = table.concat ({
-				mw.ustring.gsub (args['list-leadout'], '^(%a)', ' %1'),			-- insert leading space if first character is a letter
+				mw.ustring.gsub (leadout_val, '^(%a)', ' %1'),			-- insert leading space if first character is a letter
 				leadout_suffix,
 			});
 		else
 			list_leadout = '';
 		end
 		
-		label = make_label (args['article-link'], args['article-name'], article_suffix);
+		label = make_label (args['문서링크'] or args['article-link'], args['문서이름'] or args['article-name'], article_suffix);
 
 		for k, item in ipairs (args) do											-- for each of the positional parameters
 			item = mw.text.trim (item);											-- remove extraneous whitespace
@@ -206,7 +210,7 @@ local function _main (args, frame)
 			mw.ustring.match(frame:getTitle(), '/연습장$') or '',
 			'/styles.css',
 		})});
-		if is_set (args['list-leadout']) then
+		if is_set (leadout_val) then
 			out_text = table.concat ({out_text, label, mw.text.listToText (result, list_separator, list_leadout)});
 		else
 			out_text = table.concat ({out_text, label, table.concat (result, list_separator)});

@@ -49,6 +49,10 @@ local function has_list_class(args_to_check)
 	end
 end
 
+local function isUntitledChildBox(sval)
+	return sval and ( sval:match( '^%s*<%s*[Tt][Rr]' ) or sval:match( '^%s*\127[^\127]*UNIQ%-%-templatestyles%-%x+%-QINU[^\127]*\127%s*<%s*[Tt][Rr]' ) )
+end
+
 local function fixChildBoxes(sval, tt)
 	local function notempty( s ) return s and s:match( '%S' ) end
 	
@@ -159,6 +163,7 @@ local function addRow(rowArgs)
 		root
 			:tag('tr')
 				:addClass(rowArgs.rowclass)
+				:addClass( isUntitledChildBox( rowArgs.header ) and 'infobox-hiddenrow' or nil )
 				:cssText(rowArgs.rowstyle)
 				:tag('th')
 					:attr('colspan', '2')
@@ -191,6 +196,8 @@ local function addRow(rowArgs)
 					:cssText(rowArgs.rowcellstyle)
 					:wikitext(rowArgs.label)
 					:done()
+		else
+			row:addClass( isUntitledChildBox( rowArgs.data ) and 'infobox-hiddenrow' or nil )
 		end
 
 		local dataCell = row:tag('td')
@@ -231,6 +238,7 @@ local function renderAboveRow()
 	
 	root
 		:tag('tr')
+			:addClass( isUntitledChildBox( args.above ) and 'infobox-hiddenrow' or nil )
 			:tag('th')
 				:attr('colspan', '2')
 				:addClass('infobox-above')
@@ -248,6 +256,7 @@ local function renderBelowRow()
 	
 	root
 		:tag('tr')
+			:addClass( isUntitledChildBox( args.below ) and 'infobox-hiddenrow' or nil )
 			:tag('td')
 				:attr('colspan', '2')
 				:addClass('infobox-below')
@@ -265,6 +274,7 @@ local function addSubheaderRow(subheaderArgs)
 		
 		local row = root:tag('tr')
 		row:addClass(subheaderArgs.rowclass)
+		row:addClass( isUntitledChildBox( subheaderArgs.data ) and 'infobox-hiddenrow' or nil )
 
 		local dataCell = row:tag('td')
 		dataCell
@@ -309,6 +319,7 @@ local function addImageRow(imageArgs)
 		
 		local row = root:tag('tr')
 		row:addClass(imageArgs.rowclass)
+		row:addClass( isUntitledChildBox( imageArgs.data ) and 'infobox-hiddenrow' or nil )
 
 		local dataCell = row:tag('td')
 		dataCell

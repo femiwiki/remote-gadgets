@@ -48,8 +48,8 @@ local function parseLink(link)
 	-- Parse a link and return a table with the link's components.
 	-- These components are:
 	-- - link: the link, stripped of any initial colon (always present)
-	-- - page: the page name (always present)
-	-- - section: the page name (may be nil)
+	-- - page: the page name (may be nil)
+	-- - section: the section name (may be nil)
 	-- - display: the display text, if manually entered after a pipe (may be nil)
 	link = removeInitialColon(link)
 
@@ -75,7 +75,7 @@ local function parseLink(link)
 	if postHash and postHash ~= '' then
 		section = postHash
 	end
-	
+
 	return {
 		link = link,
 		page = page,
@@ -178,12 +178,15 @@ function p._formatLink(options)
 			end
 		end
 	end
+
+	-- Prepend colon if appropriate
+	local colon = parsed.page and ":" or ""
 	
 	-- Format the result as a link
 	if parsed.link == display then
-		return mw.ustring.format('[[:%s]]%s', parsed.link, category)
+		return mw.ustring.format('[[%s%s]]%s', colon, parsed.link, category)
 	else
-		return mw.ustring.format('[[:%s|%s]]%s', parsed.link, display, category)
+		return mw.ustring.format('[[%s%s|%s]]%s', colon, parsed.link, display, category)
 	end
 end
 

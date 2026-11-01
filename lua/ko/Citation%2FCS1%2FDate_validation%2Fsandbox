@@ -439,10 +439,10 @@ local patterns_t = {
 	['Sy4-y2'] = {'^(%D-) +(([1-9]%d)%d%d)[%-–]((%d%d)[a-zA-Z]?)$'},						-- special case Winter/Summer year-year (YYYY-YY); year separated with unspaced endash
 	['Sy-y'] = {'^(%D-) +([1-9]%d%d%d?)[%-–](([1-9]%d%d%d?)[a-zA-Z]?)$'},						-- special case Winter/Summer year-year; year separated with unspaced endash
 	['y-y'] = {'^([1-9]%d%d%d?)[%-–](([1-9]%d%d%d?)[a-zA-Z]?)$', 'y', 'a', 'y2'},							-- year range: YYY-YYY or YYY-YYYY or YYYY–YYYY; separated by unspaced endash; 100-9999
-	['y4-y2'] = {'^(([1-9]%d)%d%d)[%-–]((%d%d)[a-zA-Z]?)$', 'y', 'c', 'a', 'y2'},								-- year range: YYYY–YY; separated by unspaced endash
+	['y4-y2'] = {'^(([1-9]%d)%d%d)–((%d%d)[a-zA-Z]?)$', 'y', 'c', 'a', 'y2'},								-- year range: YYYY–YY; separated by unspaced endash
 	['y'] = {'^(([1-9]%d%d%d?)[a-zA-Z]?)$', 'a', 'y'},												-- year; here accept either YYY or YYYY
 
---	['y-m'] = {'^([1-9]%d%d%d)%-(%d%d?)$', 'y', 'm'},							-- 로컬 시작
+	['y-m'] = {'^([1-9][0-9][0-9][0-9])%-([0-9][0-9]?)$', 'y', 'm'},							-- 로컬 시작
 	['ymd_ko'] = {'^(([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년 ([1-9][0-9]?월) ([1-9][0-9]?)일$', 'a', 'y', 'm', 'd'},
 	['y-y_ko'] = {'^([1-9][0-9][0-9][0-9]?)년[%-~](([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년$', 'y', 'a', 'y2'},
 	['y_ko'] = {'^(([1-9][0-9][0-9][0-9]?)[a-zA-Z]?)년$', 'a', 'y'},
@@ -468,7 +468,8 @@ set, the editor intended to embargo a PMC but |pmc-embargo-date= does not hold a
 local function is_valid_embargo_date (v)
 	if v:match (patterns_t['ymd'][1]) or										-- ymd
 		v:match (patterns_t['Mdy'][1]) or										-- dmy
-		v:match (patterns_t['dMy'][1]) then										-- mdy
+		v:match (patterns_t['dMy'][1]) or										-- mdy
+		v:match (patterns_t['ymd_ko'][1]) then									-- 로컬
 			return true, v;
 	end
 	return false, '9999';														-- if here not good date so return false and set embargo date to long time in future
@@ -681,17 +682,17 @@ local function check_date (date_string, param, tCOinS_date)
 		end
 		anchor_year = year;
 		
---	elseif mw.ustring.match(date_string, patterns_t['y-m'][1]) then				-- YYYY-MM
---		year, month = mw.ustring.match(date_string, patterns_t['y-m'][1]);
---		if not is_valid_year(year) then return false; end
---		month = tonumber(month);
---		if 12 < month or 1 > month then return false; end
+	elseif mw.ustring.match(date_string, patterns_t['y-m'][1]) then				-- YYYY-MM
+		year, month = mw.ustring.match(date_string, patterns_t['y-m'][1]);
+		if not is_valid_year(year) then return false; end
+		month = tonumber(month);
+		if 12 < month or 1 > month then return false; end
 --		if tonumber(year) % 100 < month then
 --			if not in_array (param, {'access-date', 'archive-date'}) then
 --				set_message ('maint_ambiguous_date_format')
 --			end
 --		end					
---		anchor_year = year;
+		anchor_year = year;
 	
 	elseif mw.ustring.match(date_string, patterns_t['y-y_ko'][1]) then
 		year, anchor_year, year2 = mw.ustring.match(date_string, patterns_t['y-y_ko'][1]);
@@ -934,7 +935,7 @@ local function year_date_check (year_string, year_origin, date_string, date_orig
 
 	year = year_string:match ('(%d%d%d%d?)');
 
-	if date_string:match ('%d%d%d%d%-%d%d%-%d%d') then							--special case where both date and year are required YYYY-MM-DD and YYYYx
+	if date_string:match ('%d%d%d%d%-%d%d%-%d%d') or mw.ustring.match(date_string, patterns_t['y-m'][1]) then	--special case where both date and year are required YYYY-MM-DD and YYYYx
 		date1 = date_string:match ('(%d%d%d%d)');
 		year = year_string:match ('(%d%d%d%d)');
 		if year ~= date1 then
@@ -1134,7 +1135,7 @@ local re_formats = {
 
 local function reformatter (date, pattern_idx, format_param, mon_len)
 	if not in_array (pattern_idx, {'ymd', 'Mdy', 'Md-dy', 'dMy', 'yMd', 'd-dMy', 'dM-dMy', 'Md-Mdy', 'dMy-dMy', 'Mdy-Mdy', 'My-My', 'M-My', 'My',
-		'ymd_ko', 'ym_ko', 'y_ko', 'y', 'y-y', 'y4-y2', 'y-y_ko', 'ym-ym_ko', 'ym-m_ko', 'ymd-ymd_ko', 'ymd-md_ko', 'ymd-d_ko'}) then		-- 로컬
+		'ymd_ko', 'ym_ko', 'y_ko', 'y', 'y-y', 'y4-y2', 'y-m', 'y-y_ko', 'ym-ym_ko', 'ym-m_ko', 'ymd-ymd_ko', 'ymd-md_ko', 'ymd-d_ko'}) then		-- 로컬
 		return;																	-- not in this set of date format patterns_t then not a reformattable date
 	end
 	

@@ -122,7 +122,7 @@ local basic_arguments = {
 	['chapter-url'] = true,
 	['city'] = false,				-- cite interview -- DEPRECATED
 	['citeseerx'] = true,
-	['class'] = false,															-- cite arxiv only; general use deprecated
+	['class'] = true,
 	['coauthor'] = false,			-- deprecated
 	['coauthors'] = false,			-- deprecated
 	['collaboration'] = true,
@@ -459,7 +459,6 @@ local basic_arguments = {
 	['보존날짜'] = true,
 	['보존일자'] = true,
 	['분'] = true,
-	['클래스'] = true,
 	['분류없음'] = true,
 	['삽화'] = true,
 	['성'] = true,
@@ -531,6 +530,7 @@ local basic_arguments = {
 	['콘퍼런스'] = true,
 	['콘퍼런스url'] = true,
 	['콜사인'] = false,
+	['클래스'] = true,
 	['통신사'] = true,
 	['판'] = true,
 	['페이지'] = true,
@@ -732,6 +732,8 @@ local arxiv_basic_arguments = {
 	['arxiv'] = true,															-- cite arxiv and arxiv identifiers
 	['class'] = true,															-- cite arxiv only
 	['eprint'] = true,															-- cite arxiv and arxiv identifiers
+	['전자문서'] = true,
+	['클래스'] = true,
 }
 
 

@@ -13,7 +13,7 @@ return {
 		['plainlinks'] = 'plainlinks', -- plainlinks
 		['horizontal_list'] = 'hlist', -- horizontal list class
 		['mini'] = 'navbar-mini', -- class indicating small links in the navbar
-		['this_box'] = 'navbar-boxtext',
+		['box_text'] = 'navbar-boxtext',
 		['brackets'] = 'navbar-brackets',
 		-- 'collapsible' is the key for a class to indicate the navbar is
 		-- setting up the collapsible element in addition to the normal
