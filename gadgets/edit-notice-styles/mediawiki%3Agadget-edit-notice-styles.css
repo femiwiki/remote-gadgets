@@ -73,7 +73,7 @@ a:active .fw-edit-login-button-primary {
 }
 /* Dark mode: the tonal button turns around, the green stays */
 html.skin-theme-clientpref-night
-.fw-edit-login-button:not(.fw-edit-login-button-primary) {
+	.fw-edit-login-button:not(.fw-edit-login-button-primary) {
 	border-color: #36355b;
 	background-color: #36355b;
 	color: #c3bffd;
