@@ -142,7 +142,7 @@ local function coins_cleanup (value)
 		replaced, value = coins_replace_math_stripmarker (value);				-- replace math stripmarker with text representation of the equation
 	end
 
-	value = value:gsub (cfg.stripmarkers['math'], "수식 렌더링 오류");			-- one or more couldn't be replaced; insert vague error message		-- 로컬
+	value = value:gsub (cfg.stripmarkers['math'], "MATH RENDER ERROR");			-- one or more couldn't be replaced; insert vague error message
 	
 	value = mw.text.unstripNoWiki (value);										-- replace nowiki stripmarkers with their content
 	value = value:gsub ('<span class="nowrap" style="padding%-left:0%.1em;">&#39;(s?)</span>', "'%1");	-- replace {{'}} or {{'s}} with simple apostrophe or apostrophe-s

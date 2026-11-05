@@ -153,6 +153,13 @@ local function is_embargoed (embargo)
 		local lang = mw.getContentLanguage();
 		local good1, embargo_date, todays_date;
 		good1, embargo_date = pcall (lang.formatDate, lang, 'U', embargo);
+		if not good1 then
+			local y, m, d = embargo:match("(%d%d%d%d)%s*년%s*([1-9]%d*)%s*월%s*([1-9]%d*)%s*일");
+			if y and m and d then
+				local formatted_date = string.format("%04d-%02d-%02d", tonumber(y), tonumber(m), tonumber(d));
+				good1, embargo_date = pcall (lang.formatDate, lang, 'U', formatted_date);
+			end
+		end
 		todays_date = lang:formatDate ('U');
 	
 		if good1 then															-- if embargo date is a good date
@@ -588,9 +595,18 @@ local function doi (options)
 			if 4 < inactive:len() then											-- inactive date has more than just a year (could be anything)
 				local lang_obj = mw.getContentLanguage();						-- get a language object for this wiki
 				good, inactive_month = pcall (lang_obj.formatDate, lang_obj, 'F', inactive);	-- try to get the month name from the inactive date
-				if not good then
-					inactive_month = nil;										-- something went wrong so make sure this is unset
+				if not good then		-- 로컬 시작
+					local lang_en = mw.language.new('en');
+					good, inactive_month = pcall (lang_en.formatDate, lang_en, 'n', inactive);
+					if good then inactive_month = inactive_month .. "월" end
 				end
+
+				if not good then
+					local m = inactive:match("년%s*([1-9]%d*)월");
+					if m and tonumber(m) <= 12 then
+						inactive_month = m .. "월";
+					end
+				end		-- 로컬 끝
 			end
 		end																		-- otherwise, |doi-broken-date= has something but it isn't a date
 		
@@ -649,44 +665,6 @@ local function doi (options)
 		}) .. (inactive or '');
 
 	return text;
-end
-
-
---[[--------------------------< E R A M >----------------------------------------------------------------------
-
-로컬. ERAM 데이터베이스 식별자. 예: 001.0031cj.
-
-]]
-
-local function eram(id)
-	local handler = cfg.id_handlers['ERAM'];
-	local err_cat = '';
-
-	if not id:match('^%d%d%d%.%d%d%d%dcj$') then								-- not temporary, is it normal format?
-		err_cat = ' ' .. set_error('err_bad_eram');								-- no, set an error message
-	end
-	
-	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
-		prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
-end
-
-
---[[--------------------------< E u D M L >--------------------------------------------------------------------
-
-로컬. 다섯 자리 이상의 숫자열로 구성됨.
-
-]]
-
-local function eudml(id)
-	local handler = cfg.id_handlers['EUDML'];
-	local err_cat = '';
-	
-	if not id:match('^%d%d%d%d%d+$') then
-		err_cat = ' ' .. set_error( 'err_bad_eudml' );
-	end
-	
-	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
-		prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
 end
 
 
@@ -868,13 +846,13 @@ local function asin (options)
 	end
 	if (not is_set (domain)) or in_array (domain, {'us'}) then					-- default: United States
 		domain = "com";
-	elseif in_array (domain, {'jp', 'uk'}) then									-- Japan, United Kingdom
+	elseif in_array (domain, {'jp', 'uk', 'za'}) then							-- Japan, United Kingdom, South Africa
 		domain = "co." .. domain;
 	elseif in_array (domain, {'z.cn'}) then 									-- China
 		domain = "cn";
-	elseif in_array (domain, {'au', 'br', 'mx', 'sg', 'tr'}) then				-- Australia, Brazil, Mexico, Singapore, Turkey
+	elseif in_array (domain, {'au', 'be', 'br', 'mx', 'sg', 'tr'}) then			-- Australia, Belgium, Brazil, Mexico, Singapore, Turkey
 		domain = "com." .. domain;
-	elseif not in_array (domain, {'ae', 'ca', 'cn', 'de', 'es', 'fr', 'in', 'it', 'nl', 'pl', 'sa', 'se', 'co.jp', 'co.uk', 'com', 'com.au', 'com.br', 'com.mx', 'com.sg', 'com.tr'}) then -- Arabic Emirates, Canada, China, Germany, Spain, France, Indonesia, Italy, Netherlands, Poland, Saudi Arabia, Sweden (as of 2021-03 Austria (.at), Liechtenstein (.li) and Switzerland (.ch) still redirect to the German site (.de) with special settings, so don't maintain local ASINs for them)
+	elseif not in_array (domain, {'ae', 'ca', 'cn', 'de', 'eg', 'es', 'fr', 'ie', 'in', 'it', 'nl', 'pl', 'sa', 'se', 'co.jp', 'co.uk', 'com', 'com.au', 'com.br', 'com.mx', 'com.sg', 'com.tr'}) then -- Arabic Emirates, Canada, China, Germany, Egypt, Spain, France, Ireland, Indonesia, Italy, Netherlands, Poland, Saudi Arabia, Sweden (as of 2021-03 Austria (.at), Liechtenstein (.li) and Switzerland (.ch) still redirect to the German site (.de) with special settings, so don't maintain local ASINs for them)
 		err_flag = set_message ('err_bad_asin_tld');							-- unsupported asin-tld value
 	end
 	local handler = options.handler;
@@ -1183,88 +1161,6 @@ local function mr (options)
 	
 	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
 			prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
-end
-
-
---[[--------------------------< N A I D >----------------------------------------------------------------------
-
-NAID must be eleven or twelve digits starts with non-zero.
-
-]]
-
-local function naid(options)
-	local id = options.id;
-	local handler = options.handler;
-
-	if not id:match ("^[1-9]%d%d%d%d%d%d%d%d%d%d%d?$") then
-		set_message ('err_bad_naid');											-- set an error message
-		options.coins_list_t['NAID'] = nil;										-- when error, unset so not included in COinS
-	end
-
-	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
-		prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
-end
-
-
---[[--------------------------< N C I D >----------------------------------------------------------------------
-
-로컬. NCID must be two uppercase alphabets + seven digits + X or a digit.
-検査方法については https://catill.bitbucket.io/CM/furoku2_1.html の「ID及びBHNT(前後誌データID)」の項を参照
-
-
-
-local function ncid(options)
-	local id = options.id;
-	local handler = options.handler;
-	local err_flag;
-
-	if not id:match('^[AB][A-DN]%d%d%d%d%d%d%d[%dX]$') then
-		err_flag = true;
-	else
-		local c1, c2 = id:byte(1, 2);											-- 最初の2文字を文字コードに変換
-		if c1 == 65 and (c2 == 67 or c2 == 68) then
-			err_flag = true;													-- 'AC'もしくは'AD'で始まるidは無効
-		else
-			local work = (c1 - 64) % 10 * 9 + (c2 - 64) % 10 * 8;				-- 規則に従って最初の2文字を数値に変換し、作業用変数に加算する
-			for i= 3, 9 do
-				work = work + tonumber(id:sub(i, i)) * (10 - i);				-- 3文字目から9文字目までを数値に変換し、規則に従って作業用変数に加算する
-			end
-			local c = id:sub(10, 10);											-- 末尾の文字（チェックディジット）
-			if work % 11 ~= (c == 'X' and 10 or tonumber(c)) then
-				err_flag = true;												-- チェックディジットが合わなければエラー
-			end
-		end
-	end
-	
-	if err_flag then
-		set_message ('err_bad_ncid');											-- set an error message
-		options.coins_list_t['NCID'] = nil;										-- when error, unset so not included in COinS
-	end
-
-	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
-		prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
-end
-]]
-
-
---[[--------------------------< N U M D A M >-----------------------------------------------------------------------
-
-로컬. Numdam 식별자는 하나의 대문자 자모 문자열과 빈 문자열일 수 있는 다섯 개의 숫자 및 하이픈 문자열로 구성되며, 밑줄로 분리됨.
-
-]]
-
-local function numdam(id)
-	local handler = cfg.id_handlers['NUMDAM'];
-	local err_cat = '';
-	
-	if id:match('^%u+_[%d-]*_[^_]*_[%d-]*_[%d-]*_[%d-]*_0$') then
-		add_maint_cat ('numdam');
-	else
-		err_cat = ' ' .. set_error( 'err_bad_numdam' );
-	end
-	
-	return external_link_id ({link = handler.link, label = handler.label, q = handler.q, redirect = handler.redirect,
-		prefix = handler.prefix, id = id, separator = handler.separator, encode = handler.encode});
 end
 
 

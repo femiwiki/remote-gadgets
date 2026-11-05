@@ -840,7 +840,7 @@ local title_types = {
 	['mailinglist'] = '메일링 리스트',
 	['map'] = '지도',
 	['podcast'] = '팟캐스트',
-	['pressrelease'] = '보도 자료',
+	['pressrelease'] = '보도자료',
 	['report'] = '보고서',
 	['techreport'] = '기술 보고서',
 	['thesis'] = '학위논문',
@@ -1145,7 +1145,7 @@ local error_conditions = {
 		message = '$2에 $1가 있음(위치 $3)',
 		anchor = 'invisible_char',
 		category = '인용 오류 - 보이지 않는 문자',
-		hidden = false },
+		hidden = true },
 	missing_name = {
 		message = '이름 목록에서 <code style="'..code_style..'">&#124;성$2=</code>이(가) 없음', -- 수정 필요
 		anchor = 'missing_name',

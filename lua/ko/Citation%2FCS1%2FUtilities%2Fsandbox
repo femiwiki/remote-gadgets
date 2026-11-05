@@ -557,6 +557,79 @@ local function strip_apostrophe_markup (argument)
 end
 
 
+--[[--------------------------< O R D I N A L _ T O _ A R A B I C >--------------------------------------------
+
+로컬: 영어 서수를 일반 숫자로 변환합니다.
+Converts English ordinals (First, Second, 1st, 2nd, etc.) to Arabic numerals (1, 2, etc.)
+
+]]
+
+	local ord_ones = {															-- first부터 ninety-ninth까지 지원
+		['first'] = 1, ['second'] = 2, ['third'] = 3, ['fourth'] = 4, ['fifth'] = 5,
+		['sixth'] = 6, ['seventh'] = 7, ['eighth'] = 8, ['ninth'] = 9, ['tenth'] = 10,
+		['eleventh'] = 11, ['twelfth'] = 12, ['thirteenth'] = 13, ['fourteenth'] = 14,
+		['fifteenth'] = 15, ['sixteenth'] = 16, ['seventeenth'] = 17, ['eighteenth'] = 18,
+		['nineteenth'] = 19
+	}
+	
+	local ord_tens = {
+		['twentieth'] = 20, ['thirtieth'] = 30, ['fortieth'] = 40, ['fiftieth'] = 50,
+		['sixtieth'] = 60, ['seventieth'] = 70, ['eightieth'] = 80, ['ninetieth'] = 90
+	}
+	
+	local tens_prefix = {
+		['twenty'] = 20, ['thirty'] = 30, ['forty'] = 40, ['fifty'] = 50,
+		['sixty'] = 60, ['seventy'] = 70, ['eighty'] = 80, ['ninety'] = 90
+	}
+
+local function ordinal_to_arabic (edition)
+	if not is_set (edition) then
+		return edition;
+	end
+
+	local ed_trim = mw.text.trim (edition)
+	local ed_lower = mw.ustring.lower (ed_trim)
+	
+	local num_str, suffix = mw.ustring.match(ed_lower, "^(%d+)([a-z][a-z])$")	-- 숫자 + 영문 패턴 확인(1st, 2nd, ...)
+	
+	if num_str and suffix then
+		local num = tonumber(num_str)
+		if not num then return edition end
+		local mod10 = num % 10
+		local mod100 = num % 100
+		local valid_suffix = 'th'
+		
+		if mod10 == 1 and mod100 ~= 11 then										-- 접미사 패턴 확인
+			valid_suffix = 'st'
+		elseif mod10 == 2 and mod100 ~= 12 then
+			valid_suffix = 'nd'
+		elseif mod10 == 3 and mod100 ~= 13 then
+			valid_suffix = 'rd'
+		end
+		
+		if suffix == valid_suffix then											-- 접미사가 규칙과 일치할 때만 숫자로 반환(예: 2st는 무시)
+			return num_str
+		end
+		return edition;															-- 접미사가 틀리면 원본 반환
+	end
+
+	if ord_ones[ed_lower] then													-- 단일 단어 매칭(예: first, twelfth, ninetieth)
+		return tostring(ord_ones[ed_lower])
+	elseif ord_tens[ed_lower] then
+		return tostring(ord_tens[ed_lower])
+	end
+
+	local prefix, word_suffix = mw.ustring.match(ed_lower, "^([a-z]+)%-([a-z]+)$")	-- 하이픈(-)으로 연결된 합성어 매칭(예: twenty-first -> 20 + 1 = 21)
+	if prefix and word_suffix then
+		if tens_prefix[prefix] and ord_ones[word_suffix] then
+			return tostring(tens_prefix[prefix] + ord_ones[word_suffix])
+		end
+	end
+	
+	return edition;																-- 숫자도 아니고 영단어 서수도 아닌 경우(변환 불가) 원본 그대로 반환
+end
+
+
 --[[--------------------------< S E T _ S E L E C T E D _ M O D U L E S >--------------------------------------
 
 Sets local cfg table to same (live or sandbox) as that used by the other modules.
@@ -589,6 +662,7 @@ return {
 	set_message = set_message,
 	set_selected_modules = set_selected_modules,
 	strip_apostrophe_markup = strip_apostrophe_markup,
+	ordinal_to_arabic = ordinal_to_arabic,	-- 로컬
 	substitute = substitute,
 	wrap_style = wrap_style,
 
