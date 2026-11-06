@@ -24,10 +24,13 @@
 		);
 	}
 
-	& .gallerytext > p {
+	& .gallerytext {
 		white-space: normal;
-		margin: 0;
 		text-align: center;
+
+		& > p {
+			margin: 0;
+		}
 	}
 
 	& li.gallerybox div.thumb {
