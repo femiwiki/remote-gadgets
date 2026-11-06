@@ -1,3 +1,5 @@
+/* CSS 중첩 문법을 씁니다. 위키의 편집기는 이를 오류로 표시하지만 그대로 저장해도 됩니다. */
+
 .imageview-open {
 	overflow: hidden;
 }
@@ -14,11 +16,22 @@
 	background-color: rgba(0, 0, 0, 0.9);
 	color-scheme: dark;
 	outline: 0;
-}
 
-@media (min-width: 640px) {
-	.imageview {
+	@media (min-width: 640px) {
 		padding: 56px;
+	}
+
+	& .imageview__close {
+		position: absolute;
+		top: 6px;
+		right: 6px;
+		color: var(--color-inverted-fixed, #fff);
+
+		&:hover,
+		&:active {
+			background-color: rgba(255, 255, 255, 0.1);
+			color: var(--color-inverted-fixed, #fff);
+		}
 	}
 }
 
@@ -36,19 +49,6 @@
 
 .imageview__progress {
 	position: absolute;
-}
-
-.imageview .imageview__close {
-	position: absolute;
-	top: 6px;
-	right: 6px;
-	color: var(--color-inverted-fixed, #fff);
-}
-
-.imageview .imageview__close:hover,
-.imageview .imageview__close:active {
-	background-color: rgba(255, 255, 255, 0.1);
-	color: var(--color-inverted-fixed, #fff);
 }
 
 .imageview__close-icon {
