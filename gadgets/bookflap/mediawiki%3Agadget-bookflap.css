@@ -1,4 +1,4 @@
-/* CSS placed here will be applied to all skins */
+/* CSS 중첩 문법을 씁니다. 위키의 편집기는 이를 오류로 표시하지만 그대로 저장해도 됩니다. */
 
 .book-flap-wrapper {
 	width: 100%;
@@ -8,41 +8,43 @@
 	font-size: 0.8rem;
 }
 
-.book-flap-side .book-flap-body {
-	margin: 0;
-}
+.book-flap-side {
+	& .book-flap-body {
+		margin: 0;
 
-.book-flap-side .book-flap-title a {
-	text-decoration: none;
-}
+		& > p {
+			margin: 0 0 0.3em 0;
+		}
 
-.book-flap-side .book-flap-body > p {
-	margin: 0 0 0.3em 0;
-}
+		& ul {
+			list-style-type: none;
+			margin: 0;
+			padding-left: 0;
+		}
 
-.book-flap-side .book-flap-body ul {
-	list-style-type: none;
-	margin: 0;
-	padding-left: 0;
-}
+		& ul li {
+			margin-bottom: 0.3em;
+			list-style-type: none;
+		}
 
-.book-flap-side .book-flap-body ul li {
-	margin-bottom: 0.3em;
-	list-style-type: none;
-}
+		& > ul > li > ul {
+			margin-top: 0.3em;
+			border-top: 1px solid var(--color-primary2, #b9b5d9);
+			padding-top: 0.3em;
+		}
 
-.book-flap-side .book-flap-body > ul > li > ul {
-	margin-top: 0.3em;
-	border-top: 1px solid var(--color-primary2, #b9b5d9);
-	padding-top: 0.3em;
-}
+		& > ul > li {
+			margin-top: 1em;
+		}
 
-.book-flap-side .book-flap-body > ul > li {
-	margin-top: 1em;
-}
+		& li li li {
+			padding-left: 0.5em;
+		}
+	}
 
-.book-flap-side .book-flap-body li li li {
-	padding-left: 0.5em;
+	& .book-flap-title a {
+		text-decoration: none;
+	}
 }
 
 .bookflap-collapse-button {
@@ -108,13 +110,13 @@ body.book-flap-outside .book-flap-wrapper {
 	align-items: center;
 	gap: 0.3em;
 	padding: 0;
-}
 
-.book-flap-aside .book-flap-title:has(.fw-pin-button) > a,
-.book-flap-aside .book-flap-title:has(.fw-pin-button) > .mw-selflink {
-	flex: auto;
-	min-width: 0;
-	padding: 0.3rem 0;
+	& > a,
+	& > .mw-selflink {
+		flex: auto;
+		min-width: 0;
+		padding: 0.3rem 0;
+	}
 }
 
 .book-flap-aside .book-flap-title a,
@@ -224,14 +226,19 @@ body.book-flap-outside .book-flap-wrapper {
 	font-size: 0.85rem;
 	text-align: left;
 	cursor: pointer;
-}
 
-.book-flap-strip:hover {
-	background-color: var(--background-color-interactive, #eaecf0);
-}
+	&:hover {
+		background-color: var(--background-color-interactive, #eaecf0);
+	}
 
-.book-flap-strip:active {
-	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+	&:active {
+		box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+	}
+
+	&::after {
+		content: "›";
+		color: var(--color-primary5, #5144a3);
+	}
 }
 
 .book-flap-strip-label {
@@ -245,11 +252,6 @@ body.book-flap-outside .book-flap-wrapper {
 	font-weight: bold;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-}
-
-.book-flap-strip::after {
-	content: "›";
-	color: var(--color-primary5, #5144a3);
 }
 
 /* The right column shows 둘러보기 itself. */
