@@ -1,3 +1,5 @@
+/* CSS 중첩 문법을 씁니다. 위키의 편집기는 이를 오류로 표시하지만 그대로 저장해도 됩니다. */
+
 .redlink-popup-open {
 	overflow: hidden;
 }
@@ -6,21 +8,25 @@
 	z-index: 450;
 }
 
-.redlink-popup .cdx-dialog {
-	outline: 0;
-}
+.redlink-popup {
+	& .cdx-dialog {
+		outline: 0;
+	}
 
-.redlink-popup .cdx-dialog__body p {
-	margin: 0;
-}
+	& .cdx-dialog__body {
+		& p {
+			margin: 0;
+		}
 
-.redlink-popup .cdx-dialog__body .redlink-popup__heading {
-	margin-top: 1em;
-	font-weight: bold;
-}
+		& .redlink-popup__heading {
+			margin-top: 1em;
+			font-weight: bold;
+		}
+	}
 
-.redlink-popup .redlink-popup__results {
-	margin: 0.3em 0 0 1.2em;
+	& .redlink-popup__results {
+		margin: 0.3em 0 0 1.2em;
+	}
 }
 
 .redlink-popup__close-icon {
