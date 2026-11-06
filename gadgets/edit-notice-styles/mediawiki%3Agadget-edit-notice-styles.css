@@ -1,11 +1,13 @@
+/* CSS 중첩 문법을 씁니다. 위키의 편집기는 이를 오류로 표시하지만 그대로 저장해도 됩니다. */
+
 /* 편집 불가 안내: MediaWiki:Badaccess-groups and MediaWiki:Confirmedittext (femiwiki/femiwiki#300) */
 .fw-edit-login,
 .fw-edit-confirm {
 	margin: 0.5em 0;
-}
-.fw-edit-login p,
-.fw-edit-confirm p {
-	margin: 0.5em 0;
+
+	& p {
+		margin: 0.5em 0;
+	}
 }
 .fw-edit-login-title {
 	font-size: 1.25em;
@@ -16,11 +18,12 @@
 	flex-wrap: wrap;
 	gap: 0.75em;
 	margin: 1em 0 1.5em !important;
-}
-.fw-edit-login-buttons a {
-	text-decoration: none !important;
-	background: none !important;
-	padding: 0 !important;
+
+	& a {
+		text-decoration: none !important;
+		background: none !important;
+		padding: 0 !important;
+	}
 }
 /* The design guide's buttons: 0.3em corners and the edit button's shadow */
 .fw-edit-login-button {
@@ -32,25 +35,29 @@
 	color: #5144a3;
 	font-weight: bold;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-a:hover .fw-edit-login-button {
-	background-color: #dfddf8;
-}
-a:active .fw-edit-login-button {
-	background-color: #d3cff4;
-	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+
+	a:hover & {
+		background-color: #dfddf8;
+	}
+
+	a:active & {
+		background-color: #d3cff4;
+		box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+	}
 }
 /* The one primary action on the screen: green */
 .fw-edit-login-button-primary {
 	border-color: #8ca534;
 	background-color: #bad75b;
 	color: #414f0a;
-}
-a:hover .fw-edit-login-button-primary {
-	background-color: #acc94d;
-}
-a:active .fw-edit-login-button-primary {
-	background-color: #8ca534;
+
+	a:hover & {
+		background-color: #acc94d;
+	}
+
+	a:active & {
+		background-color: #8ca534;
+	}
 }
 /* Logged-out readers: the sign-up card answers everything, so the other reasons are hidden */
 #mw-content-text:has(.fw-edit-login) > p:first-child,
