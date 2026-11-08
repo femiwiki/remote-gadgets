@@ -73,12 +73,30 @@ body:has(.mw-parser-output .toclimit-7) #fw-toc .fw-toc-level-6 > .fw-toc-list {
 	display: none;
 }
 
-body:has(.mw-parser-output .toclimit-2) #fw-toc .fw-toc-level-1:has(.fw-toc-current) > .fw-toc-link,
-body:has(.mw-parser-output .toclimit-3) #fw-toc .fw-toc-level-2:has(.fw-toc-current) > .fw-toc-link,
-body:has(.mw-parser-output .toclimit-4) #fw-toc .fw-toc-level-3:has(.fw-toc-current) > .fw-toc-link,
-body:has(.mw-parser-output .toclimit-5) #fw-toc .fw-toc-level-4:has(.fw-toc-current) > .fw-toc-link,
-body:has(.mw-parser-output .toclimit-6) #fw-toc .fw-toc-level-5:has(.fw-toc-current) > .fw-toc-link,
-body:has(.mw-parser-output .toclimit-7) #fw-toc .fw-toc-level-6:has(.fw-toc-current) > .fw-toc-link {
+body:has(.mw-parser-output .toclimit-2)
+	#fw-toc
+	.fw-toc-level-1:has(.fw-toc-current)
+	> .fw-toc-link,
+body:has(.mw-parser-output .toclimit-3)
+	#fw-toc
+	.fw-toc-level-2:has(.fw-toc-current)
+	> .fw-toc-link,
+body:has(.mw-parser-output .toclimit-4)
+	#fw-toc
+	.fw-toc-level-3:has(.fw-toc-current)
+	> .fw-toc-link,
+body:has(.mw-parser-output .toclimit-5)
+	#fw-toc
+	.fw-toc-level-4:has(.fw-toc-current)
+	> .fw-toc-link,
+body:has(.mw-parser-output .toclimit-6)
+	#fw-toc
+	.fw-toc-level-5:has(.fw-toc-current)
+	> .fw-toc-link,
+body:has(.mw-parser-output .toclimit-7)
+	#fw-toc
+	.fw-toc-level-6:has(.fw-toc-current)
+	> .fw-toc-link {
 	border-left-color: var(--color-primary4, #736ac9);
 	color: var(--color-base, #202122);
 	font-weight: bold;
