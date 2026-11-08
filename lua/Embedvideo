@@ -50,6 +50,13 @@ function p.embedvideo(service, frame)
     args[k] = nil
   end
 
+  -- Thumbnails float right unless an alignment is given. EmbedVideo adds
+  -- mw-halign-right to the figure, which floats it. The legacy .thumb.tright
+  -- wrapper no longer floats since MediaWiki dropped legacy media styles.
+  if thumb and alignment == '' then
+    alignment = 'right'
+  end
+
   local tag = frame:callParserFunction{
     name = "#ev",
     args = {
@@ -64,16 +71,6 @@ function p.embedvideo(service, frame)
       valignment
     }
   }
-
-  if thumb then
-    tag = frame:callParserFunction{
-      name = '#tag:div',
-      args = {
-        tag,
-        class = 'thumb tright'
-      }
-    }
-  end
 
   return tag
 end
