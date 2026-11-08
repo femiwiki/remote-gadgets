@@ -1,9 +1,5 @@
 // <nowiki>
-// Sends two Google Analytics events so the click-through rate of the
-// RelatedArticles cards ("더 읽을거리") at the end of an article can be
-// measured: related_articles_view when at least half of the card list is on
-// screen, and related_articles_click when a card is followed. The Google tag
-// itself comes from PageViewInfoGA, so nothing is sent where it is not loaded.
+// GA4 events for the RelatedArticles cards, through the gtag() PageViewInfoGA defines
 (() => {
 	const container = document.querySelector(".read-more-container");
 	if (!container || typeof window.gtag !== "function") {
