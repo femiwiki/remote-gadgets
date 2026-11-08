@@ -58,3 +58,46 @@ div.dialog input[type="reset"] {
 #content .embedvideowrap {
 	height: auto !important;
 }
+
+/*
+[[틀:목차 숨김]]이 본문 밖에 있는 스킨의 목차에서도 단계를 줄이도록 함.
+틀의 TemplateStyles는 본문 안쪽에만 닿음.
+숨긴 단계의 문단을 읽을 때는 그 위 단계를 현재 문단으로 표시함.
+*/
+body:has(.mw-parser-output .toclimit-2) #fw-toc .fw-toc-level-1 > .fw-toc-list,
+body:has(.mw-parser-output .toclimit-3) #fw-toc .fw-toc-level-2 > .fw-toc-list,
+body:has(.mw-parser-output .toclimit-4) #fw-toc .fw-toc-level-3 > .fw-toc-list,
+body:has(.mw-parser-output .toclimit-5) #fw-toc .fw-toc-level-4 > .fw-toc-list,
+body:has(.mw-parser-output .toclimit-6) #fw-toc .fw-toc-level-5 > .fw-toc-list,
+body:has(.mw-parser-output .toclimit-7) #fw-toc .fw-toc-level-6 > .fw-toc-list {
+	display: none;
+}
+
+body:has(.mw-parser-output .toclimit-2)
+	#fw-toc
+	.fw-toc-level-1:has(.fw-toc-current)
+	> .fw-toc-link,
+body:has(.mw-parser-output .toclimit-3)
+	#fw-toc
+	.fw-toc-level-2:has(.fw-toc-current)
+	> .fw-toc-link,
+body:has(.mw-parser-output .toclimit-4)
+	#fw-toc
+	.fw-toc-level-3:has(.fw-toc-current)
+	> .fw-toc-link,
+body:has(.mw-parser-output .toclimit-5)
+	#fw-toc
+	.fw-toc-level-4:has(.fw-toc-current)
+	> .fw-toc-link,
+body:has(.mw-parser-output .toclimit-6)
+	#fw-toc
+	.fw-toc-level-5:has(.fw-toc-current)
+	> .fw-toc-link,
+body:has(.mw-parser-output .toclimit-7)
+	#fw-toc
+	.fw-toc-level-6:has(.fw-toc-current)
+	> .fw-toc-link {
+	border-left-color: var(--color-primary4, #736ac9);
+	color: var(--color-base, #202122);
+	font-weight: bold;
+}
