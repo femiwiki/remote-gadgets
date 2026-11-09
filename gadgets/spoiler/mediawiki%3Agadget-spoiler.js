@@ -22,15 +22,18 @@
 			document.body.classList.add("spoiler-has-headings");
 		}
 
-		var anchor = document.createElement("a");
-		anchor.textContent = "보이기";
-		anchor.classList.add("spoiler-toggle-button");
-		anchor.addEventListener("click", function (event) {
+		// A real button, so Tab reaches it and Enter or Space presses it.
+		var button = document.createElement("button");
+		button.type = "button";
+		button.textContent = "보이기";
+		button.className = "spoiler-toggle-button";
+		button.setAttribute("aria-expanded", "false");
+		button.addEventListener("click", () => {
 			var shown = document.body.classList.toggle("spoiler-shown");
-			this.textContent = shown ? "숨기기" : "보이기";
-			event.preventDefault();
+			button.textContent = shown ? "숨기기" : "보이기";
+			button.setAttribute("aria-expanded", String(shown));
 		});
-		noticeBody.append(anchor);
+		noticeBody.append(button);
 	}
 
 	mw.hook("wikipage.content").add(init);
