@@ -18,6 +18,11 @@ html.ve-active div.spoiler-text {
 	display: block;
 }
 
+/* The gadget's button takes the text's font; 틀:스포일러 draws the rest. */
+.spoiler-toggle-button {
+	font: inherit;
+}
+
 /* Classes below are set by the spoiler gadget */
 body.spoiler-ready:not(.spoiler-shown) .spoiler-show,
 body.spoiler-shown .spoiler-hide {
