@@ -252,6 +252,13 @@ body.book-flap-outside .book-flap-wrapper {
 	font-weight: bold;
 	white-space: nowrap;
 	text-overflow: ellipsis;
+
+	/* A logo in 버튼 텍스트 stays the height of a line. */
+	& img {
+		width: auto;
+		max-height: 1.4em;
+		vertical-align: middle;
+	}
 }
 
 /* The right column shows 둘러보기 itself. */

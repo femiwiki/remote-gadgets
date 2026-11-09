@@ -25,6 +25,34 @@
 		return el;
 	}
 
+	/**
+	 * What the strip under the title calls one 둘러보기: the template's
+	 * 버튼 텍스트 if it has one, else the title. The label sits inside a button,
+	 * so links are unwrapped, and its own colours give way to the strip's.
+	 */
+	function stripName(raw) {
+		const label = raw.querySelector(".book-flap-label");
+		if (label && (label.textContent.trim() || label.querySelector("img"))) {
+			const name = document.createDocumentFragment();
+			const clone = label.cloneNode(true);
+			clone.querySelectorAll("a").forEach((link) => {
+				link.replaceWith(...link.childNodes);
+			});
+			clone.querySelectorAll("[style]").forEach((el) => {
+				el.removeAttribute("style");
+			});
+			name.append(...clone.childNodes);
+			return name;
+		}
+		return Array.prototype.map
+			.call(
+				raw.querySelectorAll(".book-flap-title"),
+				(title) => title.textContent,
+			)
+			.join("")
+			.trim();
+	}
+
 	function makeCollapsible(root) {
 		root.querySelectorAll(".book-flap-body > ul > li").forEach((li) => {
 			const hidable = Array.prototype.filter.call(
@@ -205,18 +233,13 @@
 		var stripLabel = element("span", "book-flap-strip-label");
 		stripLabel.textContent = mw.msg("navigation");
 		var stripTitles = element("span", "book-flap-strip-titles");
-		stripTitles.textContent = Array.prototype.map
-			.call(raws, (raw) =>
-				Array.prototype.map
-					.call(
-						raw.querySelectorAll(".book-flap-title"),
-						(title) => title.textContent,
-					)
-					.join("")
-					.trim(),
-			)
+		Array.prototype.map
+			.call(raws, stripName)
 			.filter(Boolean)
-			.join(" · ");
+			.forEach((name, i) => {
+				if (i > 0) stripTitles.append(" · ");
+				stripTitles.append(name);
+			});
 		strip = element("button", "book-flap-strip skin-fw-unprintable", {
 			type: "button",
 			"aria-expanded": "false",
