@@ -2,3 +2,10 @@
 	background: none;
 	border: none;
 }
+
+/* Logged-out readers get an empty placeholder that anon-sitenotice fills
+   after page load: hide the notice box until then, and for good when there
+   is no notice to show */
+#localNotice:has(#fw-anon-sitenotice:empty) {
+	display: none;
+}

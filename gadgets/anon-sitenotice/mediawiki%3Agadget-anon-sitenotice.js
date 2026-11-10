@@ -7,6 +7,7 @@
 	if (!placeholder) {
 		return;
 	}
+	const notice = placeholder.closest("#localNotice") || placeholder;
 
 	new mw.Api()
 		.get({
@@ -24,7 +25,6 @@
 		})
 		.then((data) => {
 			const parse = data.parse;
-			const notice = placeholder.closest("#localNotice") || placeholder;
 			// An empty message parses to nothing, or to "-" which disables it
 			const text = parse.text.trim();
 			if (text === "" || text === "<p>-\n</p>") {
@@ -34,6 +34,8 @@
 			mw.loader.load(parse.modulestyles.concat(parse.modules));
 			placeholder.innerHTML = text;
 			mw.hook("wikipage.content").fire($(placeholder));
-		});
+		})
+		// A deleted MediaWiki:Sitenotice answers missingtitle
+		.catch(() => notice.remove());
 })();
 // </nowiki>
