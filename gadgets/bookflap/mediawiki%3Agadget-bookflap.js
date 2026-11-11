@@ -4,12 +4,7 @@
 // <nowiki>
 (() => {
 	var raws = document.querySelectorAll(".book-flap-raw");
-	if (
-		mw.config.get("skin") !== "femiwiki" ||
-		raws.length === 0 ||
-		mw.config.get("wgPageContentModel") === "flow-board"
-	)
-		return;
+	if (mw.config.get("skin") !== "femiwiki" || raws.length === 0) return;
 
 	// FemiwikiSkin 6 draws the ToC outside the content and leaves a right column
 	// (FemiwikiSkin#348), so 둘러보기 goes there instead of buttons in the content.
