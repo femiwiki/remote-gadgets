@@ -214,13 +214,6 @@
 			sequences: ["dash"],
 		});
 	}
-	mw.libs.ve.addPlugin(addDashSequence); // for VisualEditor
-	// Only Structured Discussions boards need VisualEditor core up front.
-	// Loading it everywhere costs every reader about 250 KB.
-	if (mw.config.get("wgPageContentModel") === "flow-board") {
-		mw.loader.using(["ext.visualEditor.core"]).then(() => {
-			addDashSequence(); // for Structured Discussions
-		});
-	}
+	mw.libs.ve.addPlugin(addDashSequence);
 })(mediaWiki);
 // </nowiki>
