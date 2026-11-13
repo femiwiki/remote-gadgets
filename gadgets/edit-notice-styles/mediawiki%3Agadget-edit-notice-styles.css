@@ -61,6 +61,7 @@
 }
 /* Logged-out readers: the sign-up card answers everything, so the other reasons are hidden */
 #mw-content-text:has(.fw-edit-login) > p:first-child,
+.ve-ui-mwNoticesPopupTool-item:has(.fw-edit-login) > p:first-child,
 #mw-content-text:has(> .permissions-errors > :only-child .fw-edit-confirm)
 	> p:first-child {
 	display: none;
@@ -71,7 +72,10 @@
 	list-style: none;
 }
 .permissions-errors:has(.fw-edit-login)
-	> li:not(.mw-permissionerror-badaccess-groups) {
+	> li:not(
+		.mw-permissionerror-badaccess-groups,
+		.mw-permissionerror-unifiedextensionforfemiwiki-logged-out-edit-limit
+	) {
 	display: none;
 }
 .permissions-errors:has(.fw-edit-confirm) {
