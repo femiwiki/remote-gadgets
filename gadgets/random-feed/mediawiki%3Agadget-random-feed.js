@@ -1,6 +1,5 @@
 // <nowiki>
-// Random pages below the footer, as RelatedArticles cards. Each batch is
-// fetched well before the reader reaches it, so the cards are already there.
+// Random pages below the footer as RelatedArticles cards, fetched ahead of the reader
 (() => {
 	if (
 		mw.config.get("wgIsMainPage") ||
@@ -171,9 +170,8 @@
 		return batch;
 	};
 
-	// The batches that load on scroll come in a row, each asked for as soon
-	// as the one before arrives, so a fast reader does not outrun them. The
-	// button's batch is fetched once the button is near.
+	// Scroll batches come in a row, each asked for as soon as the one before
+	// arrives, so a fast reader does not outrun them
 	let chaining = false;
 	const fetchAhead = () => {
 		if (fetched >= AUTO_BATCHES) {
@@ -337,9 +335,8 @@
 			block: "start",
 		});
 		heading.focus({ preventScroll: true });
-		// RelatedArticles and lazy images above still change height during and
-		// after the scroll, so hold the feed in place for a moment, until the
-		// reader scrolls on their own.
+		// RelatedArticles and lazy images above still grow after the scroll, so
+		// hold the feed in place until the reader scrolls on their own
 		const land = () => section.scrollIntoView({ block: "start" });
 		const pin = new ResizeObserver(land);
 		const unpin = () => {
