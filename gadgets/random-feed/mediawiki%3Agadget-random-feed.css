@@ -21,7 +21,7 @@
 	vertical-align: middle;
 }
 
-.fw-random-feed-skeleton[hidden],
+.fw-random-feed-pending[hidden],
 .fw-random-feed-more[hidden],
 .fw-random-feed-back[hidden] {
 	display: none;
@@ -96,4 +96,10 @@
 .fw-random-feed-back:focus-visible {
 	outline: 2px solid #fff;
 	outline-offset: -4px;
+}
+
+/* Each batch is a list of its own, so one far off screen can be emptied */
+.fw-random-feed-batches > ul + ul,
+.fw-random-feed-pending {
+	margin-top: 12px;
 }
