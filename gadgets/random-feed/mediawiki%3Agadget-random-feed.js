@@ -13,10 +13,8 @@
 		return;
 	}
 
-	const BATCH_SIZE = 8;
-	// The API answer is never cached, so only this many batches load on
-	// scroll; after that the reader asks for more with a button.
-	const AUTO_BATCHES = 3;
+	// TextExtracts gives at most 20 extracts a request
+	const BATCH_SIZE = 20;
 	const api = new mw.Api();
 	const seen = new Set([mw.config.get("wgTitle")]);
 	const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -32,37 +30,42 @@
 		return el;
 	};
 
-	const fetchBatch = () =>
-		api
+	const fetchBatch = () => {
+		// Nor the cards the RelatedArticles list shows by now
+		for (const li of document.querySelectorAll(
+			".read-more-container-card-list li[title]",
+		)) {
+			seen.add(li.title);
+		}
+		return api
 			.get({
 				action: "query",
 				formatversion: 2,
 				generator: "random",
 				grnnamespace: 0,
 				grnfilterredir: "nonredirects",
-				// A few spare pages for the ones already shown
-				grnlimit: BATCH_SIZE + 4,
+				grnlimit: BATCH_SIZE,
 				prop: "pageimages|extracts",
 				piprop: "thumbnail",
 				pithumbsize: 250,
 				exintro: 1,
 				explaintext: 1,
 				exsentences: 1,
-				exlimit: BATCH_SIZE + 4,
+				exlimit: BATCH_SIZE,
 			})
 			.then((data) => {
-				const pages = ((data.query && data.query.pages) || [])
-					.filter((page) => !seen.has(page.title))
-					.slice(0, BATCH_SIZE);
+				const pages = ((data.query && data.query.pages) || []).filter(
+					(page) => !seen.has(page.title),
+				);
 				for (const page of pages) {
 					seen.add(page.title);
-					// Warm the image cache too, so cards appear whole
 					if (page.thumbnail) {
 						new Image().src = page.thumbnail.source;
 					}
 				}
 				return pages;
 			});
+	};
 
 	const card = (page) => {
 		const li = element("li");
@@ -106,8 +109,7 @@
 		return li;
 	};
 
-	// The section goes in at once, so the random page link has a target;
-	// cards come only when the reader nears it.
+	// The section goes in at once, so the random page link has a target
 	const section = element("section", "fw-random-feed noprint");
 	section.setAttribute("aria-labelledby", "fw-random-feed-heading");
 	const container = element(
@@ -123,18 +125,22 @@
 	heading.id = "fw-random-feed-heading";
 	heading.tabIndex = -1;
 	heading.append(element("span", "fw-random-feed-label", mw.msg("randompage")));
-	const list = element("ul", "read-more-container-card-list");
-	const skeletons = [skeleton(), skeleton()];
-	list.append(...skeletons);
+	const batches = element("div", "fw-random-feed-batches");
+	const pending = element(
+		"ul",
+		"read-more-container-card-list fw-random-feed-pending",
+	);
+	pending.append(skeleton(), skeleton());
 	const sentinel = element("div", "fw-random-feed-sentinel");
-	const more = element(
+	// Only after a failed request, to try again
+	const retry = element(
 		"button",
 		"fw-random-feed-more",
 		mw.msg("gadget-random-feed-more"),
 	);
-	more.type = "button";
-	more.hidden = true;
-	aside.append(heading, list, sentinel, more);
+	retry.type = "button";
+	retry.hidden = true;
+	aside.append(heading, batches, pending, sentinel, retry);
 	container.append(aside);
 	section.append(container);
 	footer.after(section);
@@ -156,101 +162,88 @@
 	matchFooter();
 	new ResizeObserver(matchFooter).observe(footer);
 
+	// Batches far off screen give up their cards and keep only their height,
+	// so the page stays light however far the reader goes
+	const pagesOf = new Map();
+	const unloader = new IntersectionObserver(
+		(entries) => {
+			for (const { target, isIntersecting } of entries) {
+				const empty = !target.firstChild;
+				if (isIntersecting && empty) {
+					target.append(...pagesOf.get(target).map(card));
+					target.style.height = "";
+				} else if (!isIntersecting && !empty) {
+					target.style.height = `${target.offsetHeight}px`;
+					target.replaceChildren();
+				}
+			}
+		},
+		{ rootMargin: "300% 0px" },
+	);
+
+	// Two batches in hand: each asked for as soon as the one before arrives
 	const queue = [];
-	let fetched = 0;
-	let shown = 0;
-	let busy = false;
-
-	const fetchInto = () => {
-		const batch = fetchBatch();
-		// A batch fetched ahead may fail unseen; showNext() handles it if shown
-		batch.catch(() => {});
-		queue.push(batch);
-		fetched++;
-		return batch;
-	};
-
-	// Scroll batches come in a row, each asked for as soon as the one before
-	// arrives, so a fast reader does not outrun them
 	let chaining = false;
 	const fetchAhead = () => {
-		if (fetched >= AUTO_BATCHES) {
+		if (queue.length >= 2) {
 			chaining = false;
 			return;
 		}
 		chaining = true;
-		fetchInto().then(fetchAhead, () => {
+		const batch = fetchBatch();
+		// A batch fetched ahead may fail unseen; showNext() handles it if shown
+		batch.catch(() => {});
+		queue.push(batch);
+		batch.then(fetchAhead, () => {
 			chaining = false;
 		});
 	};
 	const prefetch = () => {
-		if (fetched < AUTO_BATCHES) {
-			if (!chaining) {
-				fetchAhead();
-			}
-		} else if (shown >= AUTO_BATCHES && queue.length === 0) {
-			fetchInto();
+		if (!chaining) {
+			fetchAhead();
 		}
 	};
 
+	let busy = false;
+	let stopped = false;
 	const showNext = () => {
-		if (busy) {
+		if (busy || stopped) {
 			return;
 		}
 		busy = true;
 		section.setAttribute("aria-busy", "true");
 		prefetch();
 		const batch = queue.shift();
+		prefetch();
 		const settle = () => {
 			busy = false;
 			section.removeAttribute("aria-busy");
 		};
 		batch.then(
 			(pages) => {
-				// Cards the RelatedArticles list already shows
-				for (const li of document.querySelectorAll(
-					".read-more-container-card-list li[title]",
-				)) {
-					if (!section.contains(li)) {
-						seen.add(li.title);
-					}
-				}
-				for (const page of pages) {
-					list.insertBefore(card(page), skeletons[0]);
-				}
-				shown++;
+				const list = element("ul", "read-more-container-card-list");
+				pagesOf.set(list, pages);
+				list.append(...pages.map(card));
+				batches.append(list);
+				unloader.observe(list);
 				settle();
-				if (shown < AUTO_BATCHES) {
-					prefetch();
-				} else {
-					for (const s of skeletons) {
-						s.hidden = true;
-					}
-					more.hidden = false;
-				}
 				// Look again: the sentinel may still be in range
 				observer.unobserve(sentinel);
 				observer.observe(sentinel);
 			},
 			() => {
 				settle();
-				for (const s of skeletons) {
-					s.hidden = true;
-				}
-				more.hidden = false;
+				stopped = true;
+				pending.hidden = true;
+				retry.hidden = false;
 			},
 		);
 	};
 
 	const observer = new IntersectionObserver(
 		(entries) => {
-			if (!entries.some((entry) => entry.isIntersecting)) {
-				return;
-			}
-			if (shown < AUTO_BATCHES) {
+			if (entries.some((entry) => entry.isIntersecting)) {
 				showNext();
-			} else {
-				prefetch();
 			}
 		},
 		{ rootMargin: "0px 0px 200% 0px" },
@@ -269,11 +262,10 @@
 	);
 	early.observe(footer);
 
-	more.addEventListener("click", () => {
-		more.hidden = true;
-		for (const s of skeletons) {
-			s.hidden = false;
-		}
+	retry.addEventListener("click", () => {
+		retry.hidden = true;
+		pending.hidden = false;
+		stopped = false;
 		showNext();
 	});
 
@@ -327,7 +319,7 @@
 			return;
 		}
 		ev.preventDefault();
-		if (shown === 0) {
+		if (!batches.firstChild) {
 			showNext();
 		}
 		section.scrollIntoView({
