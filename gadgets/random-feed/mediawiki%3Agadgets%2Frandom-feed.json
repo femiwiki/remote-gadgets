@@ -1,0 +1,27 @@
+{
+	"settings": {
+		"rights": [],
+		"default": true,
+		"hidden": true,
+		"skins": [],
+		"category": "view",
+		"actions": ["view"],
+		"namespaces": [0]
+	},
+	"module": {
+		"pages": ["random-feed.js", "random-feed.css"],
+		"peers": [],
+		"dependencies": [
+			"ext.relatedArticles.styles",
+			"mediawiki.api",
+			"mediawiki.util"
+		],
+		"messages": [
+			"gadget-random-feed-back",
+			"gadget-random-feed-heading",
+			"gadget-random-feed-more",
+			"randompage"
+		],
+		"type": "general"
+	}
+}
