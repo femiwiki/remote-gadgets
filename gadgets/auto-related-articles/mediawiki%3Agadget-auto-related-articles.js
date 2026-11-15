@@ -27,8 +27,6 @@
 				: [];
 			let allLinks = linkshere.concat(links);
 			allLinks = allLinks.sort((_a, _b) => 0.5 - Math.random());
-			// TODO: If the number of links is less than mw.config.get( 'wgRelatedArticlesCardLimit', 3 ),
-			// Get random pages.
 			const articles = {};
 			for (const l of allLinks) {
 				articles[l] = true;
