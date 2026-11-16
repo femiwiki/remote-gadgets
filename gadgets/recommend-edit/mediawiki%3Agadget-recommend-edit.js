@@ -1,14 +1,18 @@
 // <nowiki>
 "use strict";
 (() => {
+	const body = document.body;
+	// 계정 없는 사람이 편집할 수 있는 주제 문서를 볼 때만 표시 (토론, 특수 문서, 역사 등은 제외)
 	if (
-		// 편집 불가한 경우에만 표시
-		document.body.classList.contains("mw-editable") ||
-		// 주제 이름공간에서만 표시(특수 문서 등은 제외)
-		!document.body.classList.contains("ns-subject") ||
-		// 보기에서만 표시 (역사 등은 제외)
-		!document.body.classList.contains("action-view")
+		mw.user.isNamed() ||
+		!body.classList.contains("mw-editable") ||
+		!body.classList.contains("ns-subject") ||
+		!body.classList.contains("action-view")
 	) {
+		return;
+	}
+	const editLink = document.querySelector("#ca-ve-edit a, #ca-edit a");
+	if (!editLink) {
 		return;
 	}
 
@@ -20,32 +24,8 @@
 	const icon = document.createElement("span");
 	icon.classList.add("oo-ui-icon-edit");
 	element.append(icon);
-	// OOUI windows load on the first click, not with every page
-	element.addEventListener("click", async (_e) => {
-		await mw.loader.using("oojs-ui-windows");
-		OO.ui
-			.confirm("내용을 직접 고칠 수 있습니다.", {
-				actions: [
-					{
-						action: "accept",
-						label: OO.ui.deferMsg("userlogin-joinproject"),
-						flags: ["primary", "progressive"],
-					},
-					{
-						action: "reject",
-						label: OO.ui.deferMsg("ooui-dialog-message-reject"),
-						flags: "safe",
-					},
-				],
-			})
-			.done((confirmed) => {
-				if (confirmed) {
-					window.location.href = new mw.Title("Special:CreateAccount").getUrl({
-						returnto: mw.config.get("wgPageName"),
-					});
-				}
-			});
-	});
+	// The link's own handlers check the daily limit and open the editor
+	element.addEventListener("click", () => editLink.click());
 
 	const content = document.querySelector("#content");
 	content.append(element);
