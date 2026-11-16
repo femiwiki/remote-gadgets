@@ -1,8 +1,20 @@
 // <nowiki>
 // GA4 events for the RelatedArticles cards, through the gtag() PageViewInfoGA defines
 (() => {
+	if (typeof window.gtag !== "function") {
+		return;
+	}
+
+	// UnifiedExtensionForFemiwiki's "더 둘러보기", which replaces RelatedArticles
+	mw.hook("ext.unifiedExtensionForFemiwiki.explore.click").add((click) => {
+		window.gtag("event", "explore_click", {
+			link_position: click.position,
+			source: click.source,
+		});
+	});
+
 	const container = document.querySelector(".read-more-container");
-	if (!container || typeof window.gtag !== "function") {
+	if (!container) {
 		return;
 	}
 
