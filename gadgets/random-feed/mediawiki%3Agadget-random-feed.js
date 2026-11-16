@@ -45,17 +45,21 @@
 				grnnamespace: 0,
 				grnfilterredir: "nonredirects",
 				grnlimit: BATCH_SIZE,
-				prop: "pageimages|extracts",
+				prop: "pageimages|extracts|pageprops",
 				piprop: "thumbnail",
 				pithumbsize: 250,
 				exintro: 1,
 				explaintext: 1,
 				exsentences: 1,
 				exlimit: BATCH_SIZE,
+				// Disambiguator marks disambiguation pages, which only list other pages
+				ppprop: "disambiguation",
 			})
 			.then((data) => {
 				const pages = ((data.query && data.query.pages) || []).filter(
-					(page) => !seen.has(page.title),
+					(page) =>
+						!seen.has(page.title) &&
+						!(page.pageprops && "disambiguation" in page.pageprops),
 				);
 				for (const page of pages) {
 					seen.add(page.title);
