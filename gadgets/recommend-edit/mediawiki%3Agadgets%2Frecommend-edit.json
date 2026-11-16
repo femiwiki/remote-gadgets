@@ -15,11 +15,7 @@
 			"oojs-ui.styles.icons-editing-core",
 			"ext.gadget.floating-buttons"
 		],
-		"messages": [
-			"tooltip-ca-edit",
-			"userlogin-joinproject",
-			"ooui-dialog-message-reject"
-		],
+		"messages": ["tooltip-ca-edit"],
 		"type": "general"
 	}
 }
