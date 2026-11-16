@@ -1,6 +1,14 @@
 // <nowiki>
 // Random pages below the footer as RelatedArticles cards, fetched ahead of the reader
 (() => {
+	// UnifiedExtensionForFemiwiki's own "더 둘러보기" takes over where it is on
+	if (
+		["loading", "loaded", "executing", "ready"].includes(
+			mw.loader.getState("ext.unifiedExtensionForFemiwiki.explore"),
+		)
+	) {
+		return;
+	}
 	if (
 		mw.config.get("wgIsMainPage") ||
 		!mw.config.get("wgArticleId") ||

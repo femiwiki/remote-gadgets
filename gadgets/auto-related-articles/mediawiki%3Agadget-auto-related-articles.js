@@ -1,5 +1,13 @@
 // <nowiki>
 (() => {
+	// UnifiedExtensionForFemiwiki's own "더 둘러보기" takes over where it is on
+	if (
+		["loading", "loaded", "executing", "ready"].includes(
+			mw.loader.getState("ext.unifiedExtensionForFemiwiki.explore"),
+		)
+	) {
+		return;
+	}
 	const api = new mw.Api();
 	const title = mw.config.get("wgPageName");
 	api
