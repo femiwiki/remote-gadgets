@@ -12,6 +12,7 @@
 		"pages": ["random-feed.js", "random-feed.css"],
 		"peers": [],
 		"dependencies": [
+			"ext.relatedArticles.readMore",
 			"ext.relatedArticles.styles",
 			"mediawiki.api",
 			"mediawiki.util"
