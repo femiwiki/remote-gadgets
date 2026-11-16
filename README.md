@@ -1,6 +1,6 @@
 # remote-gadgets
 
-📽️ External repository for Javascript/CSS on [FemiWiki].
+📽️ External repository for Javascript/CSS on [Femiwiki].
 
 &nbsp;
 
