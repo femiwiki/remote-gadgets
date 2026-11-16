@@ -15,6 +15,11 @@
 
 	// TextExtracts gives at most 20 extracts a request
 	const BATCH_SIZE = 20;
+	// Each batch is a grid of its own, so one that fills its last row in one,
+	// two or three columns leaves no gap before the next
+	const ROW_MULTIPLE = 6;
+	// Pages beyond the last full row, kept for the next batch
+	let carry = [];
 	const api = new mw.Api();
 	const seen = new Set([mw.config.get("wgTitle")]);
 	const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -56,18 +61,23 @@
 				ppprop: "disambiguation",
 			})
 			.then((data) => {
-				const pages = ((data.query && data.query.pages) || []).filter(
+				const fresh = ((data.query && data.query.pages) || []).filter(
 					(page) =>
 						!seen.has(page.title) &&
 						!(page.pageprops && "disambiguation" in page.pageprops),
 				);
-				for (const page of pages) {
+				for (const page of fresh) {
 					seen.add(page.title);
 					if (page.thumbnail) {
 						new Image().src = page.thumbnail.source;
 					}
 				}
-				return pages;
+				const pages = carry.concat(fresh);
+				const full =
+					Math.floor(pages.length / ROW_MULTIPLE) * ROW_MULTIPLE ||
+					pages.length;
+				carry = pages.slice(full);
+				return pages.slice(0, full);
 			});
 	};
 
@@ -128,7 +138,6 @@
 	);
 	heading.id = "fw-random-feed-heading";
 	heading.tabIndex = -1;
-	heading.append(element("span", "fw-random-feed-label", mw.msg("randompage")));
 	const batches = element("div", "fw-random-feed-batches");
 	const pending = element(
 		"ul",
@@ -326,14 +335,14 @@
 		if (!batches.firstChild) {
 			showNext();
 		}
-		section.scrollIntoView({
+		heading.scrollIntoView({
 			behavior: smooth ? "smooth" : "auto",
 			block: "start",
 		});
 		heading.focus({ preventScroll: true });
 		// RelatedArticles and lazy images above still grow after the scroll, so
 		// hold the feed in place until the reader scrolls on their own
-		const land = () => section.scrollIntoView({ block: "start" });
+		const land = () => heading.scrollIntoView({ block: "start" });
 		const pin = new ResizeObserver(land);
 		const unpin = () => {
 			pin.disconnect();
