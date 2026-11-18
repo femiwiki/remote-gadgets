@@ -5,14 +5,11 @@
 		return;
 	}
 
-	const send = (click) => {
+	mw.hook("ext.moreToExplore.click").add((click) => {
 		window.gtag("event", "explore_click", {
 			link_position: click.position,
 			source: click.source,
 		});
-	};
-	mw.hook("ext.moreToExplore.click").add(send);
-	// The name before femiwiki/UnifiedExtensionForFemiwiki#329; drop once that is live
-	mw.hook("ext.unifiedExtensionForFemiwiki.explore.click").add(send);
+	});
 })();
 // </nowiki>
