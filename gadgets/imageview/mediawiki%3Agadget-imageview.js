@@ -2,22 +2,22 @@
 (() => {
 	"use strict";
 
-	var LINK_SELECTOR = ".mw-parser-output a.mw-file-description";
+	const LINK_SELECTOR = ".mw-parser-output a.mw-file-description";
 	// 이만큼 옆으로 밀면 앞뒤 이미지로 넘어감
-	var SWIPE_THRESHOLD = 50;
-	var MIN_SIZE = 64;
+	const SWIPE_THRESHOLD = 50;
+	const MIN_SIZE = 64;
 
 	// 파일 이름 → 이미지 주소 Promise
-	var urls = new Map();
+	const urls = new Map();
 
-	var overlay = null;
-	var state = null;
+	let overlay = null;
+	let state = null;
 
 	function getFileName(href) {
-		var name =
+		const name =
 			mw.util.getParamValue("title", href) ||
 			decodeURIComponent(href.split("?")[0].split("/").pop());
-		var title = mw.Title.newFromText(name);
+		const title = mw.Title.newFromText(name);
 		return title ? title.getPrefixedText() : null;
 	}
 
@@ -31,19 +31,19 @@
 	}
 
 	function iconButton(className, iconClassName, label) {
-		var button = element(
+		const button = element(
 			"button",
 			"cdx-button cdx-button--weight-quiet cdx-button--icon-only cdx-button--size-large " +
 				className,
 			{ type: "button", title: label, "aria-label": label },
 		);
-		button.append(element("span", "imageview__icon " + iconClassName));
+		button.append(element("span", `imageview__icon ${iconClassName}`));
 		return button;
 	}
 
 	// 아이콘처럼 작은 그림은 넘겨 보는 목록에 넣지 않음
 	function isPhoto(link) {
-		var image = link.querySelector("img");
+		const image = link.querySelector("img");
 		return (
 			!!image &&
 			image.getClientRects().length > 0 &&
@@ -53,7 +53,7 @@
 	}
 
 	function collectItems(clicked) {
-		var links = isPhoto(clicked)
+		const links = isPhoto(clicked)
 			? Array.from(document.querySelectorAll(LINK_SELECTOR)).filter(
 					(link) =>
 						link === clicked ||
@@ -62,13 +62,13 @@
 			: [clicked];
 		return links
 			.map((link) => {
-				var href = link.getAttribute("href");
-				var fileName = href && getFileName(href);
+				const href = link.getAttribute("href");
+				const fileName = href && getFileName(href);
 				if (!fileName) {
 					return null;
 				}
-				var linkedImage = link.querySelector("img");
-				var label = mw.Title.newFromText(fileName).getMainText();
+				const linkedImage = link.querySelector("img");
+				const label = mw.Title.newFromText(fileName).getMainText();
 				return {
 					link: link,
 					href: href,
@@ -82,12 +82,12 @@
 
 	// 아직 모르는 파일들의 주소를 한 번에 가져옴
 	function fetchUrls(fileNames) {
-		var missing = fileNames.filter(
+		const missing = fileNames.filter(
 			(name, i) => !urls.has(name) && fileNames.indexOf(name) === i,
 		);
 		if (missing.length) {
-			var ratio = window.devicePixelRatio || 1;
-			var request = new mw.Api()
+			const ratio = window.devicePixelRatio || 1;
+			const request = new mw.Api()
 				.get({
 					action: "query",
 					titles: missing,
@@ -98,9 +98,9 @@
 					formatversion: 2,
 				})
 				.then((data) => {
-					var found = {};
+					const found = {};
 					data.query.pages.forEach((page) => {
-						var info = page.imageinfo;
+						const info = page.imageinfo;
 						if (info) {
 							found[page.title] = info[0].thumburl || info[0].url;
 						}
@@ -113,7 +113,7 @@
 					return found;
 				});
 			missing.forEach((name) => {
-				var url = request.then((found) =>
+				const url = request.then((found) =>
 					found[name] ? found[name] : Promise.reject(),
 				);
 				// 실패한 요청은 다음에 다시 시도
@@ -129,7 +129,7 @@
 	}
 
 	function preload(index) {
-		var item = state.items[index];
+		const item = state.items[index];
 		if (!item) {
 			return;
 		}
@@ -141,16 +141,16 @@
 	}
 
 	function show(index) {
-		var item = state.items[index];
+		const item = state.items[index];
 		state.index = index;
 
 		overlay.setAttribute("aria-label", item.label);
 		state.prevButton.hidden = index === 0;
 		state.nextButton.hidden = index === state.items.length - 1;
 		state.counter.textContent =
-			state.items.length > 1 ? index + 1 + " / " + state.items.length : "";
+			state.items.length > 1 ? `${index + 1} / ${state.items.length}` : "";
 
-		var image = element("img", "imageview__image", { alt: item.alt });
+		const image = element("img", "imageview__image", { alt: item.alt });
 		if (state.image) {
 			state.image.replaceWith(image);
 		} else {
@@ -173,7 +173,7 @@
 		});
 
 		// 지금 이미지와 앞뒤 이미지의 주소를 같이 가져옴
-		var neighbors = [index - 1, index + 1].filter(
+		const neighbors = [index - 1, index + 1].filter(
 			(i) => i >= 0 && i < state.items.length,
 		);
 		fetchUrls(
@@ -197,7 +197,7 @@
 	}
 
 	function go(delta) {
-		var index = state.index + delta;
+		const index = state.index + delta;
 		if (index >= 0 && index < state.items.length) {
 			show(index);
 		}
@@ -207,7 +207,7 @@
 		if (!overlay) {
 			return;
 		}
-		var returnFocus = state.items[state.index].link;
+		const returnFocus = state.items[state.index].link;
 		overlay.remove();
 		overlay = null;
 		state = null;
@@ -241,18 +241,18 @@
 			go(1);
 		} else if (event.key === "Tab") {
 			// 대화 상자 안의 버튼만 돌아가며 누름
-			var buttons = Array.from(overlay.querySelectorAll("button")).filter(
+			const buttons = Array.from(overlay.querySelectorAll("button")).filter(
 				(button) => button.offsetParent !== null,
 			);
-			var i = buttons.indexOf(document.activeElement);
-			var next = i + (event.shiftKey ? -1 : 1);
+			const i = buttons.indexOf(document.activeElement);
+			const next = i + (event.shiftKey ? -1 : 1);
 			event.preventDefault();
 			buttons[(next + buttons.length) % buttons.length].focus();
 		}
 	}
 
 	function addSwipe() {
-		var start = null;
+		let start = null;
 
 		function reset() {
 			if (start && state && state.image) {
@@ -276,22 +276,21 @@
 			if (!start || !event.isPrimary) {
 				return;
 			}
-			var dx = event.clientX - start.x;
+			const dx = event.clientX - start.x;
 			if (Math.abs(dx) < Math.abs(event.clientY - start.y)) {
 				return;
 			}
-			var atEdge =
+			const atEdge =
 				(dx > 0 && state.index === 0) ||
 				(dx < 0 && state.index === state.items.length - 1);
 			start.dx = dx;
-			state.image.style.transform =
-				"translateX(" + (atEdge ? dx / 4 : dx) + "px)";
+			state.image.style.transform = `translateX(${atEdge ? dx / 4 : dx}px)`;
 		});
 		overlay.addEventListener("pointerup", (event) => {
 			if (!start || !event.isPrimary) {
 				return;
 			}
-			var dx = start.dx;
+			const dx = start.dx;
 			reset();
 			if (Math.abs(dx) > 10) {
 				// 밀고 나서 손을 뗀 것을 바탕을 누른 것으로 보지 않음
@@ -310,8 +309,8 @@
 	}
 
 	function open(link) {
-		var items = collectItems(link);
-		var index = items.findIndex((item) => item.link === link);
+		const items = collectItems(link);
+		const index = items.findIndex((item) => item.link === link);
 		if (index === -1) {
 			return false;
 		}
@@ -322,34 +321,37 @@
 			tabindex: "-1",
 		});
 
-		var closeLabel = mw.msg("cdx-dialog-close-button-label");
-		var closeButton = iconButton(
+		const closeLabel = mw.msg("cdx-dialog-close-button-label");
+		const closeButton = iconButton(
 			"imageview__close",
 			"imageview__icon--close",
 			closeLabel,
 		);
 		closeButton.addEventListener("click", close);
 
-		var prevButton = iconButton(
+		const prevButton = iconButton(
 			"imageview__prev",
 			"imageview__icon--prev",
 			mw.msg("mobile-frontend-media-prev"),
 		);
 		prevButton.addEventListener("click", () => go(-1));
 
-		var nextButton = iconButton(
+		const nextButton = iconButton(
 			"imageview__next",
 			"imageview__icon--next",
 			mw.msg("mobile-frontend-media-next"),
 		);
 		nextButton.addEventListener("click", () => go(1));
 
-		var counter = element("div", "imageview__counter", {
+		const counter = element("div", "imageview__counter", {
 			"aria-live": "polite",
 		});
 
-		var progress = element("div", "cdx-progress-indicator imageview__progress");
-		var indicator = element("div", "cdx-progress-indicator__indicator");
+		const progress = element(
+			"div",
+			"cdx-progress-indicator imageview__progress",
+		);
+		const indicator = element("div", "cdx-progress-indicator__indicator");
 		indicator.append(
 			element("progress", "cdx-progress-indicator__indicator__progress", {
 				"aria-label": items[index].label,
@@ -389,7 +391,8 @@
 	}
 
 	document.addEventListener("click", (event) => {
-		var link = event.target instanceof Element && event.target.closest(LINK_SELECTOR);
+		const link =
+			event.target instanceof Element && event.target.closest(LINK_SELECTOR);
 		if (
 			!link ||
 			overlay ||
