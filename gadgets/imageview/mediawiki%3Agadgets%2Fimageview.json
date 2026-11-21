@@ -11,7 +11,11 @@
 		"pages": ["imageview.js", "imageview.css"],
 		"peers": [],
 		"dependencies": ["mediawiki.api", "mediawiki.util", "mediawiki.Title"],
-		"messages": ["cdx-dialog-close-button-label"],
+		"messages": [
+			"cdx-dialog-close-button-label",
+			"mobile-frontend-media-prev",
+			"mobile-frontend-media-next"
+		],
 		"type": "general"
 	}
 }
