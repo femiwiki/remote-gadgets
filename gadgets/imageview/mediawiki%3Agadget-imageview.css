@@ -16,23 +16,64 @@
 	background-color: rgba(0, 0, 0, 0.9);
 	color-scheme: dark;
 	outline: 0;
+	/* 옆으로 미는 손짓은 소도구가 받고, 두 손가락 확대는 브라우저에 맡김 */
+	touch-action: pan-y pinch-zoom;
 
 	@media (min-width: 640px) {
 		padding: 56px;
 	}
 
-	& .imageview__close {
+	& .imageview__close,
+	& .imageview__prev,
+	& .imageview__next {
 		position: absolute;
-		top: 6px;
-		right: 6px;
 		color: var(--color-inverted-fixed, #fff);
 
-		&:hover,
-		&:active {
+		/* Codex의 조용한 버튼은 누를 때 밝은 바탕에 곱하기 혼합을 써서 어두운 바탕에서 아이콘이 사라짐 */
+		&.cdx-button:enabled:hover,
+		&.cdx-button:enabled:active {
 			background-color: rgba(255, 255, 255, 0.1);
 			color: var(--color-inverted-fixed, #fff);
+			mix-blend-mode: normal;
 		}
 	}
+
+	& .imageview__close {
+		top: 6px;
+		right: 6px;
+	}
+
+	& .imageview__prev,
+	& .imageview__next {
+		top: 50%;
+		transform: translateY(-50%);
+
+		&[hidden] {
+			display: none;
+		}
+
+		/* 터치 화면에서는 옆으로 밀어서 넘김 */
+		@media (hover: none) and (pointer: coarse) {
+			display: none;
+		}
+	}
+
+	& .imageview__prev {
+		left: 6px;
+	}
+
+	& .imageview__next {
+		right: 6px;
+	}
+}
+
+.imageview__counter {
+	position: absolute;
+	top: 6px;
+	left: 16px;
+	line-height: 44px;
+	color: var(--color-inverted-fixed, #fff);
+	font-variant-numeric: tabular-nums;
 }
 
 .imageview__image {
@@ -41,6 +82,9 @@
 	object-fit: contain;
 	opacity: 0;
 	transition: opacity 0.1s;
+	/* 밀어서 넘길 때 그림이 끌려가지 않도록 */
+	-webkit-user-drag: none;
+	user-select: none;
 }
 
 .imageview__image--loaded {
@@ -51,14 +95,22 @@
 	position: absolute;
 }
 
-.imageview__close-icon {
+.imageview__icon {
 	width: 20px;
 	height: 20px;
 	background-color: currentColor;
-	-webkit-mask:
-		url(/load.php?modules=oojs-ui.styles.icons-interactions&image=close&format=original&lang=ko&skin=femiwiki)
-		center / contain no-repeat;
-	mask:
-		url(/load.php?modules=oojs-ui.styles.icons-interactions&image=close&format=original&lang=ko&skin=femiwiki)
-		center / contain no-repeat;
+	-webkit-mask: var(--imageview-icon) center / contain no-repeat;
+	mask: var(--imageview-icon) center / contain no-repeat;
+}
+
+.imageview__icon--close {
+	--imageview-icon: url(/load.php?modules=oojs-ui.styles.icons-interactions&image=close&format=original&lang=ko&skin=femiwiki);
+}
+
+.imageview__icon--prev {
+	--imageview-icon: url(/load.php?modules=oojs-ui.styles.icons-movement&image=previous&format=original&lang=ko&skin=femiwiki);
+}
+
+.imageview__icon--next {
+	--imageview-icon: url(/load.php?modules=oojs-ui.styles.icons-movement&image=next&format=original&lang=ko&skin=femiwiki);
 }
