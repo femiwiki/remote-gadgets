@@ -4,6 +4,7 @@
 // <nowiki>
 (() => {
 	var raws = document.querySelectorAll(".book-flap-raw");
+	var sublistCount = 0;
 	if (mw.config.get("skin") !== "femiwiki" || raws.length === 0) return;
 
 	// FemiwikiSkin 6 draws the ToC outside the content and leaves a right column
@@ -48,6 +49,12 @@
 			.trim();
 	}
 
+	/**
+	 * 접기=1: each item with a sublist gets a quiet icon button that folds the
+	 * sublist, open only on the branch that holds the current page. It says
+	 * whether it is open with aria-expanded, as the skin's collapsible toggle does
+	 * (FemiwikiSkin#1239).
+	 */
 	function makeCollapsible(root) {
 		root.querySelectorAll(".book-flap-body > ul > li").forEach((li) => {
 			const hidable = Array.prototype.filter.call(
@@ -56,20 +63,33 @@
 			);
 			if (hidable.length === 0) return;
 
-			const button = element("div", "bookflap-collapse-button");
-			button.textContent = "▼";
-			button.addEventListener("click", () => {
-				hidable.forEach((ul) => {
-					ul.style.display = ul.style.display === "none" ? "" : "none";
-				});
+			hidable.forEach((ul) => {
+				ul.id = `book-flap-sublist-${++sublistCount}`;
 			});
-			li.prepend(button);
-
-			if (!li.querySelector(".mw-selflink")) {
+			const name = Array.prototype.filter
+				.call(li.childNodes, (node) => node.tagName !== "UL")
+				.map((node) => node.textContent)
+				.join("")
+				.trim();
+			const button = element("button", "bookflap-collapse-button", {
+				type: "button",
+				"aria-controls": hidable.map((ul) => ul.id).join(" "),
+				"aria-label": name || mw.msg("collapsible-expand"),
+			});
+			function setOpen(open) {
+				button.setAttribute("aria-expanded", String(open));
+				button.title = mw.msg(
+					open ? "collapsible-collapse" : "collapsible-expand",
+				);
 				hidable.forEach((ul) => {
-					ul.style.display = "none";
+					ul.hidden = !open;
 				});
 			}
+			button.addEventListener("click", () => {
+				setOpen(button.getAttribute("aria-expanded") !== "true");
+			});
+			li.prepend(button);
+			setOpen(!!li.querySelector(".mw-selflink"));
 		});
 	}
 

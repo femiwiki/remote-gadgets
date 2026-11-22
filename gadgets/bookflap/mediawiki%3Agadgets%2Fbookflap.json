@@ -12,6 +12,8 @@
 		"peers": ["bookflap-vector-styles"],
 		"dependencies": [],
 		"messages": [
+			"collapsible-collapse",
+			"collapsible-expand",
 			"navigation",
 			"ooui-popup-widget-close-button-aria-label",
 			"skin-femiwiki-pin-hide",
