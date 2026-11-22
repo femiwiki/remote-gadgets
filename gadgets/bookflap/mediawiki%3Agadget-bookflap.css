@@ -47,17 +47,60 @@
 	}
 }
 
+/* 접기=1. An icon-only quiet button: flat, with a 0.3em face on hover (the
+   design guide, 모서리와 깊이), and the Codex chevron the skin's collapsible
+   toggle uses, at the icons' 65% (아이콘). */
 .bookflap-collapse-button {
-	width: 2em;
-	height: 2em;
 	float: right;
-	color: #797979;
-	font:
-		400 13.3333px Arial,
-		sans-serif;
+	box-sizing: content-box;
+	width: 1em;
+	height: 1em;
+	/* At least 24px for a finger */
+	padding: 0.4em;
+	border: 0;
+	border-radius: 0.3em;
+	background-color: transparent;
+	color: var(--color-base, #202122);
 	cursor: pointer;
-	text-align: center;
-	line-height: 2em;
+
+	&::before {
+		content: "";
+		display: block;
+		width: 100%;
+		height: 100%;
+		background-color: currentcolor;
+		opacity: 0.65;
+		-webkit-mask:
+			url(/load.php?modules=oojs-ui.styles.icons-movement&image=expand&format=original&lang=ko&skin=femiwiki)
+			center / 0.75em no-repeat;
+		mask:
+			url(/load.php?modules=oojs-ui.styles.icons-movement&image=expand&format=original&lang=ko&skin=femiwiki)
+			center / 0.75em no-repeat;
+	}
+
+	&[aria-expanded="true"]::before {
+		-webkit-mask-image: url(/load.php?modules=oojs-ui.styles.icons-movement&image=collapse&format=original&lang=ko&skin=femiwiki);
+		mask-image: url(/load.php?modules=oojs-ui.styles.icons-movement&image=collapse&format=original&lang=ko&skin=femiwiki);
+	}
+
+	&:hover {
+		background-color: var(
+			--background-color-button-quiet--hover,
+			rgba(0, 24, 73, 0.027)
+		);
+	}
+
+	/* The right column scrolls, so a ring outside the button would be cut off. */
+	&:focus-visible {
+		outline-offset: -2px;
+	}
+
+	&:active {
+		background-color: var(
+			--background-color-button-quiet--active,
+			rgba(0, 24, 73, 0.082)
+		);
+	}
 }
 
 /* FemiwikiSkin 6 (FemiwikiSkin#348): 둘러보기 in the right column, a ToC tab
