@@ -173,6 +173,12 @@ body.book-flap-outside .book-flap-wrapper {
 	line-height: 1.4;
 }
 
+/* The current page is bold, as the skin's ToC marks the current section. */
+.book-flap-aside .book-flap-body .mw-selflink,
+.book-flap-pane .book-flap-body .mw-selflink {
+	font-weight: bold;
+}
+
 .book-flap-tabs {
 	display: none;
 }
